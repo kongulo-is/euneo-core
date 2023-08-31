@@ -1,0 +1,8 @@
+
+{
+    "name":"@kongulo/euneo-types",
+    "version": "1.0.0",
+    "description": "Euneo types",
+    "repository": "kongulo/euneo-types",
+    "main": "index.ts"
+  }
