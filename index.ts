@@ -242,6 +242,12 @@ export type ConditionId =
 
 // !Client --------------------------------
 
+/**
+ * @description Client data from client collection
+ * @param platform ios or android
+ * @param currentProgramId Id of the program the client is currently doing
+ * @param programs Array of programs data from programs subcollection to client
+ */
 export type ClientProfile = {
   name: string;
   birthDate: Date;
