@@ -233,12 +233,11 @@ export type ConditionId =
   | "calf-injury"
   | "hip-replacement"
   | "dislocated-shoulder"
-  | "wrist-injury"
   | "post-surgery"
-  | "meniscus-lesion"
   | "ankle-sprain"
   | "knee-replacement"
-  | "achilles-tendonitis";
+  | "achilles-tendonitis"
+  | "no-condition";
 
 // !Client --------------------------------
 
@@ -246,7 +245,7 @@ export type ConditionId =
  * @description Client data from client collection
  * @param platform ios or android
  * @param currentProgramId Id of the program the client is currently doing
- * @param programs Array of programs data from programs subcollection to client
+ * @param programs Array of programs progress data from programs subcollection to client
  */
 export type ClientProfile = {
   name: string;
