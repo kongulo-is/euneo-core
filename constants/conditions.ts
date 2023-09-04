@@ -1,4 +1,4 @@
-import { ConditionId } from "../types/dataTypes";
+import { ConditionId } from "../types/datatypes";
 
 type Conditions = Record<ConditionId, string>;
 

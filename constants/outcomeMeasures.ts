@@ -1,4 +1,4 @@
-import { OutcomeMeasuresId } from "../types/dataTypes";
+import { OutcomeMeasureId } from "../types/datatypes";
 
 export type TOutcomeMeasure = {
   id: string;
@@ -6,7 +6,7 @@ export type TOutcomeMeasure = {
   acronym: string;
 };
 
-type OutcomeMeasures = Record<OutcomeMeasuresId, TOutcomeMeasure>;
+type OutcomeMeasures = Record<OutcomeMeasureId, TOutcomeMeasure>;
 
 export const outcomeMeasures: OutcomeMeasures = {
   faam: {

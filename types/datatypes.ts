@@ -253,6 +253,8 @@ export type ConditionId =
   | "achilles-tendonitis"
   | "no-condition";
 
+export type EuneoProgramId = "plantar-heel-pain";
+
 // !Client --------------------------------
 
 /**

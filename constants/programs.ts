@@ -1,13 +1,14 @@
-//TODO: fix.
-type ProgramKey = "plantar-heel-pain";
+import { EuneoProgramId } from "../types/datatypes";
 
-type Programs = Record<string, string>;
+type Programs = Record<EuneoProgramId, string>;
 
 export const programs: Programs = {
   "plantar-heel-pain": "Plantar Heel Pain",
 };
 
-export const conditionOptions = Object.keys(programs).map((key) => ({
-  value: key,
-  label: programs[key as ProgramKey], // Use type assertion to ensure correct indexing
-}));
+export const programOptions = Object.entries(programs).map(
+  ([value, label]) => ({
+    value,
+    label,
+  })
+);
