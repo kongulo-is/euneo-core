@@ -37,7 +37,7 @@ export type TPhysioClient = {
  */
 export type TPrescription = {
   programId: string;
-  programBy: "Euneo" | "Physio"; //? bæta þessu við?
+  programBy?: "Euneo" | "Physio"; //? bæta þessu við?
   prescriptionDate: Date;
   status: TPrescriptionStatus;
 };
