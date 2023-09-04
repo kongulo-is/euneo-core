@@ -1,11 +1,14 @@
 {
   "name": "@kongulo-is/euneo-types",
-  "version": "1.2.9",
+  "version": "1.3.0",
   "description": "Euneo types",
   "repository": "kongulo-is/euneo-types",
   "main": "index.ts",
   "types": "index.d.ts",
   "dependencies": {
     "@firebase/firestore-types": "^3.0.0"
-  }  
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.9"
+  }
 }
