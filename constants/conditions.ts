@@ -1,6 +1,6 @@
-import { ConditionId } from "../types/datatypes";
+import { TConditionId } from "../types/datatypes";
 
-type Conditions = Record<ConditionId, string>;
+type Conditions = Record<TConditionId, string>;
 
 export const conditions: Conditions = {
   "plantar-heel-pain": "Plantar Heel Pain",

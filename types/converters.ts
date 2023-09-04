@@ -1,6 +1,6 @@
 //TODO: Ætti þessi file að heita eitthvað annað? eins og t.d. writeTypes eða firebaseTypes?
 import { DocumentReference, Timestamp } from "@firebase/firestore-types";
-import { ConditionId, Status } from "./datatypes";
+import { TConditionId, TStatus } from "./datatypes";
 
 /**
  * @description client data as it is stored in the database in client collection
@@ -38,7 +38,7 @@ export type PhysioWrite = {
 export type PhysioClientWrite = {
   name: string;
   email: string;
-  condition?: ConditionId;
+  condition?: TConditionId;
   clientRef?: DocumentReference;
   prescription?: PrescriptionWrite;
 };
@@ -50,7 +50,7 @@ export type PhysioClientWrite = {
 export type PrescriptionWrite = {
   programRef: DocumentReference;
   prescriptionDate: Timestamp;
-  status: Status;
+  status: TStatus;
 };
 
 /**
@@ -59,7 +59,7 @@ export type PrescriptionWrite = {
  */
 export type PhysioProgramWrite = {
   name: string;
-  condition: ConditionId;
+  condition: TConditionId;
   outcomeMeasures: DocumentReference[];
   mode: "continuous";
 };

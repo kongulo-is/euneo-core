@@ -1,6 +1,6 @@
-import { EuneoProgramId } from "../types/datatypes";
+import { TEuneoProgramId } from "../types/datatypes";
 
-type Programs = Record<EuneoProgramId, string>;
+type Programs = Record<TEuneoProgramId, string>;
 
 export const programs: Programs = {
   "plantar-heel-pain": "Plantar Heel Pain",

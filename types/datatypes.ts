@@ -1,7 +1,7 @@
 /**
  * @description Physician data type
  */
-export type Physio = {
+export type TPhysio = {
   email: string;
   name: string;
 };
@@ -16,38 +16,38 @@ export type Physio = {
  * @param program clients program data/progress form client collection. (progress, days, pain levels, etc.)
  * @param status Status of the client (Active, Not Started, Inactive, No Prescription)
  */
-export type PhysioClient = {
+export type TPhysioClient = {
   docId: string;
   name: string;
   email: string;
-  conditionId: ConditionId;
-  status: Status;
-  prescription?: Prescription;
+  conditionId: TConditionId;
+  status: TStatus;
+  prescription?: TPrescription;
   clientId?: string;
-  program?: ClientProgram;
+  program?: TClientProgram;
 };
 
 // TODO: það þarf að hugsa þetta með progamId. Það gengur ekki upp með custom programs ef á að sækja beint í gagnagrunn.
 /**
- * @memberof PhysioClient
+ * @memberof TPhysioClient
  * @description Prescription given to the client by physio
  * @param programId Id of the program (custom or euneo)
  * @param status Status of the invitation to client. (Invited, Accepted, Started)
  * @param programBy Euneo or Physio - is not in database
  */
-export type Prescription = {
+export type TPrescription = {
   programId: string;
   programBy: "Euneo" | "Physio"; //? bæta þessu við?
   prescriptionDate: Date;
-  status: PrescriptionStatus;
+  status: TPrescriptionStatus;
 };
 
-/** @memberof Prescription */
-export type PrescriptionStatus = "Invited" | "Accepted" | "Started";
+/** @memberof TPrescription */
+export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
 
 /**
- * @memberof PhysioClient
- * @memberof ClientProfile
+ * @memberof TPhysioClient
+ * @memberof TClientProfile
  * @description Clients program data/progress from clients collection.
  * @param pid Program Id
  * @param programBy Euneo or Physio Id - this is not stored in database
@@ -59,24 +59,24 @@ export type PrescriptionStatus = "Invited" | "Accepted" | "Started";
  * @param trainingDays which days are training days. (monday: true, etc.)
  * @param physical physical information about the client. (height, weight, etc.) //? Þetta er gamla userInfo.
  */
-export type ClientProgram = {
+export type TClientProgram = {
   pid: string;
   programBy: "Euneo" | string; //? bæta þessu við? string: physioId
-  conditionId: ConditionId;
-  assessments: Assessment[];
-  painLevel: PainLevel[];
-  days: ClientProgramDay[];
+  conditionId: TConditionId;
+  assessments: TAssessment[];
+  painLevel: TPainLevel[];
+  days: TClientProgramDay[];
   conditionAssessment?: Array<boolean | string>;
-  phases?: Phase[];
+  phases?: TPhase[];
   trainingDays?: boolean[];
-  physical?: clientPhysical;
+  physical?: TClientPhysical;
 };
 
 /**
- * @memberof ClientProgram
+ * @memberof TClientProgram
  * @description Physical information about the client
  * */
-export type clientPhysical = {
+export type TClientPhysical = {
   athlete: boolean;
   height: number;
   weight: number;
@@ -84,18 +84,18 @@ export type clientPhysical = {
   physicalActivity: "None" | "Low" | "Moderate" | "High";
 };
 
-/** @memberof ClientProgram */
-export type Phase = { key: string; value: number };
+/** @memberof TClientProgram */
+export type TPhase = { key: string; value: number };
 
 /**
- * @memberof ClientProgram
+ * @memberof TClientProgram
  * @description Each day in clients program, progress. (date, adherence, restDay, etc.)
  * @param id (d1, d2, d3...)
  * @param phaseId (p1, p2, p3...)
  * @param adherence 0-100%
  * @param exercises array completed exercises in a day (0 = not completed, 1 = completed)
  */
-export type ClientProgramDay = {
+export type TClientProgramDay = {
   id: string;
   phaseId: string;
   date: Date;
@@ -106,55 +106,55 @@ export type ClientProgramDay = {
 };
 
 /**
- * @memberof ClientProgram
+ * @memberof TClientProgram
  * @description Assessment of client during program.
  * @param name (FAAM, SF-36, VISA-A, PROMIS,...)
  */
-export type Assessment = {
+export type TAssessment = {
   date: Date;
-  name: OutcomeMeasureId;
+  name: TOutcomeMeasureId;
   type: string | "foot&ankle"; //TODO: what is dis?
-  sections: AssessmentSection[];
+  sections: TAssessmentSection[];
 };
 
 /**
- * @memberof Assessment
+ * @memberof TAssessment
  * @description Assessment result and answers.
  * @param score 0-100%
  * @param questions array of answeres to questions (0-4)
  */
-export type AssessmentSection = {
+export type TAssessmentSection = {
   score: number;
   questions?: number[];
 };
 
-/** @memberof Assessment */
-export type OutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis";
+/** @memberof TAssessment */
+export type TOutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis";
 
 /**
  * @description Euneo or custom program created by Physio
  * @param outcomeMeasureIds Ids of outcome measures used to track client progress every 4 weeks.
  * @param days exercises each day in program (d1, d2, etc.) with ref to exercise and sets, reps, seconds.
  */
-type Program = {
+type TProgram = {
   name: string;
-  conditionId: ConditionId;
-  outcomeMeasureIds: OutcomeMeasureId[];
-  mode: ProgramMode;
+  conditionId: TConditionId;
+  outcomeMeasureIds: TOutcomeMeasureId[];
+  mode: TProgramMode;
   // TODO: ræða hvort days eigi að vera hér inni eða ekki.
-  days?: ProgramDay[];
+  days?: TProgramDay[];
 };
 
 /**
  * @param conditionAssessment Only used in Euneo programs. Questions about the client condition to create phases and days in program.
  */
-export type TEuneoProgram = Program & {
+export type TEuneoProgram = TProgram & {
   pid: string;
-  conditionAssessment: ProgramQuestion[]; //? Þetta er gamla general.
+  conditionAssessment: TProgramQuestion[]; //? Þetta er gamla general.
   createdBy: "Euneo";
 };
 
-export type TPhysioProgram = Program & {
+export type TPhysioProgram = TProgram & {
   // TODO: docId verður að physioProgramId
   physioProgramId: string;
   // TODO: hér bætti ég við physioId
@@ -162,28 +162,28 @@ export type TPhysioProgram = Program & {
   createdBy: "Physio";
 };
 
-/** @memberof Program */
-export type ProgramDay = { key: string; exercises: ExerciseDay[] };
+/** @memberof TProgram */
+export type TProgramDay = { key: string; exercises: TExerciseDay[] };
 
 /**
- * @memberof ProgramDay
+ * @memberof TProgramDay
  * @description Exercise in a day in program collection. Either Euneo or custom program.
  * @param id Id of the exercise - ref in firebase
  */
-export type ExerciseDay = {
+export type TExerciseDay = {
   id: string;
   quantity: number; //TODO: Er þetta bara notað fyrir seconds. Heita seconds?
   sets: number;
   reps: number;
 };
 
-export type ProgramMode = "continuous" | "phase";
+export type TProgramMode = "continuous" | "phase";
 
 /**
- * @memberof Program
+ * @memberof TProgram
  * @description Euneo program questions about the client condition
  */
-export type ProgramQuestion = {
+export type TProgramQuestion = {
   question: string;
   title: string;
   type: "boolean" | "option";
@@ -191,34 +191,34 @@ export type ProgramQuestion = {
 };
 
 // Component types
-export type Option = {
-  value: string;
-  label: string;
-};
+// export type TOption = {
+//   value: string;
+//   label: string;
+// };
 
-export type ChartPoint = {
-  day: Date;
-  value: number;
-};
+// export type TChartPoint = {
+//   day: Date;
+//   value: number;
+// };
 
-export type BarChartPoint = {
-  day: Date;
-  sections: {
-    type: string;
-    value: number;
-  }[];
-};
+// export type TBarChartPoint = {
+//   day: Date;
+//   sections: {
+//     type: string;
+//     value: number;
+//   }[];
+// };
 
 /**
  * @description Pain level of client
  * @param painIndex 0-9
  */
-export type PainLevel = {
+export type TPainLevel = {
   painIndex: number;
   date: Date;
 };
 
-export type Status = "Active" | "Not Started" | "Inactive" | "No Prescription";
+export type TStatus = "Active" | "Not Started" | "Inactive" | "No Prescription";
 
 /**
  * @description Exercise in exercise collection
@@ -240,7 +240,7 @@ export type TExercise = {
   type: "Stretch" | "Strength" | "Release" | "Other";
 };
 
-export type ConditionId =
+export type TConditionId =
   | "plantar-heel-pain"
   | "acl-treatment"
   | "pulled-hamstring"
@@ -253,7 +253,7 @@ export type ConditionId =
   | "achilles-tendonitis"
   | "no-condition";
 
-export type EuneoProgramId = "plantar-heel-pain";
+export type TEuneoProgramId = "plantar-heel-pain";
 
 // !Client --------------------------------
 
@@ -263,11 +263,11 @@ export type EuneoProgramId = "plantar-heel-pain";
  * @param currentProgramId Id of the program the client is currently doing
  * @param programs Array of programs progress data from programs subcollection to client
  */
-export type ClientProfile = {
+export type TClientProfile = {
   name: string;
   birthDate: Date;
   gender: "male" | "female" | "other";
   platform: "ios" | "android";
   currentProgramId?: string;
-  programs?: ClientProgram[];
+  programs?: TClientProgram[];
 };
