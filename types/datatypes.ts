@@ -112,7 +112,7 @@ export type ClientProgramDay = {
  */
 export type Assessment = {
   date: Date;
-  name: OutcomeMeasuresId;
+  name: OutcomeMeasureId;
   type: string | "foot&ankle"; //TODO: what is dis?
   sections: AssessmentSection[];
 };
@@ -129,23 +129,37 @@ export type AssessmentSection = {
 };
 
 /** @memberof Assessment */
-export type OutcomeMeasuresId = "faam" | "sf-36" | "visa-a" | "promis";
+export type OutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis";
 
 /**
  * @description Euneo or custom program created by Physio
- * @param outcomeMeasuresIds Ids of outcome measures used to track client progress every 4 weeks.
+ * @param outcomeMeasureIds Ids of outcome measures used to track client progress every 4 weeks.
  * @param days exercises each day in program (d1, d2, etc.) with ref to exercise and sets, reps, seconds.
+ */
+type Program = {
+  name: string;
+  conditionId: ConditionId;
+  outcomeMeasureIds: OutcomeMeasureId[];
+  mode: ProgramMode;
+  // TODO: ræða hvort days eigi að vera hér inni eða ekki.
+  days?: ProgramDay[];
+};
+
+/**
  * @param conditionAssessment Only used in Euneo programs. Questions about the client condition to create phases and days in program.
  */
-export type Program = {
-  docId: string;
-  name: string;
-  condition: ConditionId;
-  createdBy: "Euneo" | "Physio";
-  outcomeMeasuresIds: OutcomeMeasuresId[];
-  mode: ProgramMode;
-  days?: ProgramDay[];
-  conditionAssessment?: ProgramQuestion[]; //? Þetta er gamla general.
+export type TEuneoProgram = Program & {
+  pid: string;
+  conditionAssessment: ProgramQuestion[]; //? Þetta er gamla general.
+  createdBy: "Euneo";
+};
+
+export type TPhysioProgram = Program & {
+  // TODO: docId verður að physioProgramId
+  physioProgramId: string;
+  // TODO: hér bætti ég við physioId
+  physioId: string;
+  createdBy: "Physio";
 };
 
 /** @memberof Program */
