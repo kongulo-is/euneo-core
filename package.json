@@ -1,10 +1,10 @@
 {
   "name": "@kongulo-is/euneo-types",
-  "version": "1.4.5",
+  "version": "1.4.17",
   "description": "Euneo types",
   "repository": "kongulo-is/euneo-types",
   "main": "./lib/index.js",
-  "types": "./lib/index.d.js",
+  "types": "./lib/index.d.ts",
   "scripts": {
     "build": "tsc",
     "pre": "rm ./lib/* && tsc && npm version patch"
