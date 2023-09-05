@@ -1,6 +1,6 @@
 {
   "name": "@kongulo-is/euneo-types",
-  "version": "1.3.5",
+  "version": "1.3.6",
   "description": "Euneo types",
   "repository": "kongulo-is/euneo-types",
   "main": "lib/index.ts",
@@ -19,5 +19,9 @@
   "devDependencies": {
     "@types/node": "^20.5.9",
     "typescript": "^5.2.2"
+  },
+  "baseUrl": "./lib",
+  "paths": {
+    "@types/*": ["./types/*"]
   }
 }

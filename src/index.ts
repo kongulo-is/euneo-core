@@ -1,5 +1,5 @@
-export * from "./types/datatypes";
-export * from "./types/converters";
-export * from "./constants/conditions";
-export * from "./constants/outcomeMeasures";
-export * from "./constants/programs";
+export * as datatypes from "./types/datatypes";
+export * as converters from "./types/converters";
+export * as conditions from "./constants/conditions";
+export * as outcomeMeasures from "./constants/outcomeMeasures";
+export * as programs from "./constants/programs";
