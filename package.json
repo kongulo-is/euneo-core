@@ -1,19 +1,23 @@
 {
   "name": "@kongulo-is/euneo-types",
-  "version": "1.3.4",
+  "version": "1.3.5",
   "description": "Euneo types",
   "repository": "kongulo-is/euneo-types",
-  "main": "index.ts",
-  "types": "index.d.ts",
+  "main": "lib/index.ts",
+  "types": "lib/index.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "pre": "rm ./lib/* && tsc && npm version patch"
   },
+  "files": [
+    "lib"
+  ],
   "dependencies": {
     "@firebase/firestore-types": "^3.0.0",
     "typescript": "^5.2.2"
   },
   "devDependencies": {
     "@types/node": "^20.5.9",
-    "ts-loader": "^9.4.4"
+    "typescript": "^5.2.2"
   }
 }
