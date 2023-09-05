@@ -9,8 +9,7 @@
     "outDir": "./lib",
     "baseUrl": "./",
     "paths": {
-      "types/*": ["./lib/types*"],
-      "constants/*": ["./lib/constants*"],
+      "conditions/*": ["./lib/constants/conditions/*"],
     }
   },
   "exclude": ["node_modules"],
