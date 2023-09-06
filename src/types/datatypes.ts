@@ -20,8 +20,8 @@ export type TPhysioClient = {
   docId: string;
   name: string;
   email: string;
-  conditionId: TConditionId;
-  status: TStatus;
+  conditionId?: TConditionId;
+  status?: TStatus;
   prescription?: TPrescription;
   clientId?: string;
   program?: TClientProgram;
@@ -48,7 +48,8 @@ export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
 /**
  * @memberof TPhysioClient
  * @memberof TClientProfile
- * @description Clients program data/progress from clients collection.
+ * @description Clients program data/progress from clients/users collection.
+ * @path /clients/{clientId}/programs/{programId}
  * @param pid Program Id
  * @param programBy Euneo or Physio Id - this is not stored in database
  * @param assessments assessment of clients progress, physical condition every 4 weeks.
@@ -58,6 +59,7 @@ export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
  * @param phases how many days in each phase of the program. (p1: 2, etc.)
  * @param trainingDays which days are training days. (monday: true, etc.)
  * @param physical physical information about the client. (height, weight, etc.) //? Þetta er gamla userInfo.
+ *
  */
 export type TClientProgram = {
   pid: string;
@@ -71,7 +73,6 @@ export type TClientProgram = {
   trainingDays?: boolean[];
   physical?: TClientPhysical;
 };
-
 /**
  * @memberof TClientProgram
  * @description Physical information about the client
@@ -271,7 +272,7 @@ export type TClientProfile = {
   gender: "male" | "female" | "other";
   platform: "ios" | "android";
   currentProgramId?: string;
-  programs?: TClientProgram[];
+  programs?: { [key: string]: TClientProgram };
 };
 
 export * from "./datatypes";
