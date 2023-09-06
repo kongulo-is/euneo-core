@@ -59,8 +59,8 @@ export type PrescriptionWrite = {
  */
 export type PhysioProgramWrite = {
   name: string;
-  condition: TConditionId; // TODO: breyta í conditionId?
-  outcomeMeasures: DocumentReference[]; // TODO: breyta í outcomeMeasureRefs því þetta eru refs?
+  conditionId: TConditionId;
+  outcomeMeasureRefs: DocumentReference[];
   mode: "continuous";
 };
 

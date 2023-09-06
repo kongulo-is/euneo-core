@@ -8,9 +8,6 @@
     "sourceMap": true,
     "outDir": "./lib",
     "baseUrl": "./",
-    "paths": {
-      "conditions/*": ["./lib/constants/conditions/*"],
-    }
   },
   "exclude": ["node_modules"],
   "include": ["./src/**/*.tsx", "./src/**/*.ts", "src/index.js"],
