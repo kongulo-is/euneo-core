@@ -1,6 +1,6 @@
 {
   "name": "@kongulo-is/euneo-types",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "description": "Euneo types",
   "repository": "kongulo-is/euneo-types",
   "main": "./lib/index.js",

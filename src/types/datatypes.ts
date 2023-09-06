@@ -52,32 +52,32 @@ export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
  * @path /clients/{clientId}/programs/{programId}
  * @param pid Program Id
  * @param programBy Euneo or Physio Id - this is not stored in database
- * @param assessments assessment of clients progress, physical condition every 4 weeks.
+ * @param outcomeMeasuresAnswers assessment of clients progress, physical condition every 4 weeks.
  * @param days prescripted program mapped to training days.
  * @param painLevel pain level of the client mapped to dates.
- * @param conditionAssessment Answers to program questions regarding client condition at start of program. //?Þetta er gamla general.
+ * @param conditionAssessment Answers to program questions regarding client condition at start of program. //*Þetta er gamla general.
  * @param phases how many days in each phase of the program. (p1: 2, etc.)
  * @param trainingDays which days are training days. (monday: true, etc.)
- * @param physical physical information about the client. (height, weight, etc.) //? Þetta er gamla userInfo.
+ * @param physicalInformation physical information about the client. (height, weight, etc.) //* Þetta er gamla userInfo.
  *
  */
 export type TClientProgram = {
   pid: string;
   programBy: "Euneo" | string; //? bæta þessu við? string: physioId
   conditionId: TConditionId;
-  assessments: TAssessment[];
+  outcomeMeasuresAnswers: TOutcomeMeasureAnswer[];
   painLevel: TPainLevel[];
   days: TClientProgramDay[];
-  conditionAssessment?: Array<boolean | string>;
+  conditionAssessmentAnswers?: Array<boolean | string>;
   phases?: TPhase[];
-  trainingDays?: boolean[];
-  physical?: TClientPhysical;
+  trainingDays?: boolean[]; //TODO: ? Tékka hvort þetta sé einhverntíman ekki sett í gagnagrunninn.
+  physicalInformation?: TClientPhysicalInformation;
 };
 /**
  * @memberof TClientProgram
  * @description Physical information about the client
  * */
-export type TClientPhysical = {
+export type TClientPhysicalInformation = {
   athlete: boolean;
   height: number;
   weight: number;
@@ -111,25 +111,25 @@ export type TClientProgramDay = {
  * @description Assessment of client during program.
  * @param name (FAAM, SF-36, VISA-A, PROMIS,...)
  */
-export type TAssessment = {
+export type TOutcomeMeasureAnswer = {
   date: Date;
   name: TOutcomeMeasureId;
   type: string | "foot&ankle"; //TODO: what is dis?
-  sections: TAssessmentSection[];
+  sections: TOutcomeMeasureAnswerSection[];
 };
 
 /**
- * @memberof TAssessment
+ * @memberof TOutcomeMeasureAnswer
  * @description Assessment result and answers.
  * @param score 0-100%
- * @param questions array of answeres to questions (0-4)
+ * @param answers array of answeres to questions (0-4)
  */
-export type TAssessmentSection = {
+export type TOutcomeMeasureAnswerSection = {
   score: number;
-  questions?: number[];
+  answers?: number[];
 };
 
-/** @memberof TAssessment */
+/** @memberof TOutcomeMeasureAnswer */
 export type TOutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis";
 
 /**
@@ -159,7 +159,7 @@ type TPhaseProgram = TProgramBase & {
  */
 export type TEuneoProgram = (TContinuousProgram | TPhaseProgram) & {
   programId: string;
-  conditionAssessment: TProgramQuestion[];
+  conditionAssessment: TProgramQuestion[]; //* Það er ekki conditionAssessments því þetta er bara 1 assessment
   createdBy: "Euneo";
 };
 
