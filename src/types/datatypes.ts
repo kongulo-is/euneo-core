@@ -137,32 +137,38 @@ export type TOutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis";
  * @param outcomeMeasureIds Ids of outcome measures used to track client progress every 4 weeks.
  * @param days exercises each day in program (d1, d2, etc.) with ref to exercise and sets, reps, seconds.
  */
-type TProgram = {
+type TProgramBase = {
   name: string;
   conditionId: TConditionId;
   outcomeMeasureIds: TOutcomeMeasureId[];
   // TODO: ræða hvort days eigi að vera hér inni eða ekki.
   days?: TProgramDay[];
-  phases?: TPhase[];
+};
+
+type TContinuousProgram = TProgramBase & {
+  mode: "continuous";
+};
+
+type TPhaseProgram = TProgramBase & {
+  mode: "phase";
+  phases: TPhase[];
 };
 
 /**
  * @param conditionAssessment Only used in Euneo programs. Questions about the client condition to create phases and days in program.
  */
-export type TEuneoProgram = TProgram & {
+export type TEuneoProgram = (TContinuousProgram | TPhaseProgram) & {
   programId: string;
-  conditionAssessment: TProgramQuestion[]; //? Þetta er gamla general.
+  conditionAssessment: TProgramQuestion[];
   createdBy: "Euneo";
-  mode: TProgramMode;
 };
 
-export type TPhysioProgram = TProgram & {
+export type TPhysioProgram = TContinuousProgram & {
   // TODO: docId verður að physioProgramId
   physioProgramId: string;
   // TODO: hér bætti ég við physioId
   physioId: string;
   createdBy: "Physio";
-  mode: "continuous";
 };
 
 /** @memberof TProgram */
