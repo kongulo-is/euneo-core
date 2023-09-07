@@ -17,11 +17,11 @@ export type TPhysio = {
  * @param status Status of the client (Active, Not Started, Inactive, No Prescription)
  */
 export type TPhysioClient = {
-  docId: string;
+  physioClientId: string;
   name: string;
   email: string;
   conditionId?: TConditionId;
-  status?: TStatus;
+  status?: TClientStatus;
   prescription?: TPrescription;
   clientId?: string;
   program?: TClientProgram;
@@ -133,6 +133,13 @@ export type TOutcomeMeasureAnswerSection = {
 export type TOutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis";
 
 /**
+ * @description Program data from program collection
+ */
+export type TProgramPath =
+  | `programs/${string}`
+  | `physios/${string}/programs/${string}`;
+
+/**
  * @description Euneo or custom program created by Physio
  * @param outcomeMeasureIds Ids of outcome measures used to track client progress every 4 weeks.
  * @param days exercises each day in program (d1, d2, etc.) with ref to exercise and sets, reps, seconds.
@@ -142,7 +149,8 @@ type TProgramBase = {
   conditionId: TConditionId;
   outcomeMeasureIds: TOutcomeMeasureId[];
   // TODO: ræða hvort days eigi að vera hér inni eða ekki.
-  days?: TProgramDay[];
+  days: TProgramDay[];
+  // programPath: TProgramPath // * "programs/plantar-heel-pain" or "physios/physio1/programs/plantar-heel-pain"
 };
 
 type TContinuousProgram = TProgramBase & {
@@ -160,7 +168,7 @@ type TPhaseProgram = TProgramBase & {
 export type TEuneoProgram = (TContinuousProgram | TPhaseProgram) & {
   programId: string;
   conditionAssessment: TProgramQuestion[]; //* Það er ekki conditionAssessments því þetta er bara 1 assessment
-  createdBy: "Euneo";
+  // createdBy: "Euneo"; // ? sjáum hvort við þurfum þetta eða ekki
 };
 
 export type TPhysioProgram = TContinuousProgram & {
@@ -168,7 +176,7 @@ export type TPhysioProgram = TContinuousProgram & {
   physioProgramId: string;
   // TODO: hér bætti ég við physioId
   physioId: string;
-  createdBy: "Physio";
+  // createdBy: "Physio";
 };
 
 /** @memberof TProgram */
@@ -227,7 +235,11 @@ export type TPainLevel = {
   date: Date;
 };
 
-export type TStatus = "Active" | "Not Started" | "Inactive" | "No Prescription";
+export type TClientStatus =
+  | "Active"
+  | "Not Started"
+  | "Inactive"
+  | "No Prescription";
 
 /**
  * @description Exercise in exercise collection
@@ -280,5 +292,3 @@ export type TClientProfile = {
   currentProgramId?: string;
   programs?: { [key: string]: TClientProgram };
 };
-
-export * from "./datatypes";

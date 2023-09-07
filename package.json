@@ -1,6 +1,6 @@
 {
-  "name": "@kongulo-is/euneo-types",
-  "version": "1.6.0",
+  "name": "@kongulo-is/euneo",
+  "version": "0.0.0",
   "description": "Euneo types",
   "repository": "kongulo-is/euneo-types",
   "main": "./lib/index.js",
@@ -21,10 +21,6 @@
     "typescript": "^5.2.2"
   },
   "exports": {
-    "./conditions": "./lib/constants/conditions.js",
-    "./program": "./lib/constants/program.js",
-    "./outcomeMeasures": "./lib/constants/outcomeMeasures.js",
-    "./datatypes": "./lib/types/datatypes.js",
-    "./converters": "./lib/types/converters.js"
+    ".": "./lib/index.js"
   }
 }
