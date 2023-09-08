@@ -7,6 +7,7 @@
   "types": "./lib/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "patch": "tsc && npm version patch && npm publish",
     "pre": "rm ./lib/* && tsc && npm version patch"
   },
   "files": [
