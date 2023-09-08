@@ -77,23 +77,28 @@ export async function getPhysioProgramsWithDays(
   db: Firestore,
   physioId: string
 ): Promise<TPhysioProgram[]> {
-  const physioRef = doc(db, "physios", physioId);
-  const programsRef = collection(physioRef, "programs");
-
   try {
-    const physioProgramsQuery = query(programsRef);
-    const querySnapshot = await getDocs(physioProgramsQuery);
-    const physioPrograms: TPhysioProgram[] = [];
-    for (const doc of querySnapshot.docs) {
-      const programRef = doc.ref as DocumentReference<PhysioProgramWrite>;
-      const programData = (await _getProgramFromRef(
-        db,
-        programRef
-      )) as TPhysioProgram;
-      physioPrograms.push(programData);
-    }
+    const physioRef = doc(db, "physios", physioId);
+    const programsRef = collection(physioRef, "programs").withConverter(
+      physioProgramConverter(db)
+    );
+    const programsSnap = await getDocs(programsRef);
 
-    return physioPrograms;
+    // for each program, get the days
+    const daysSnap = await Promise.all(
+      programsSnap.docs.map((doc) =>
+        getDocs(collection(doc.ref, "days").withConverter(dayConverter(db)))
+      )
+    );
+    // map the days to the programs
+    const programs: TPhysioProgram[] = programsSnap.docs.map((doc, i) => {
+      const days = Object.fromEntries(
+        daysSnap[i].docs.map((doc) => [doc.id, doc.data()])
+      );
+      return { ...doc.data(), days };
+    });
+
+    return programs;
   } catch (error) {
     console.error("Error fetching physio programs:", error);
     throw error;
