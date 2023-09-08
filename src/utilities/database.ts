@@ -31,30 +31,19 @@ async function _getProgramFromRef(
   db: Firestore,
   programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>
 ): Promise<TPhysioProgram | TEuneoProgram> {
-  // Fetch program data using the determined programRef
-  const programSnap = await getDoc(
-    programRef.withConverter(physioProgramConverter(db))
-  );
+  const [programSnap, daySnapshots] = await Promise.all([
+    getDoc(programRef.withConverter(physioProgramConverter(db))),
+    getDocs(collection(programRef, "days").withConverter(dayConverter(db))),
+  ]);
+
   const program = programSnap.data();
-
-  // Fetch days
-  const daysQuery = collection(programRef, "days").withConverter(
-    dayConverter(db)
+  const days = Object.fromEntries(
+    daySnapshots.docs.map((doc) => [doc.id, doc.data()])
   );
-  const daySnapshots = await getDocs(daysQuery);
-  const daysList = daySnapshots.docs;
-  const days: { [key: string]: TProgramDay } = {};
 
-  for (let i = 0; i < daysList.length; i++) {
-    days[daysList[i].id] = daysList[i].data();
-  }
+  // TODO: Add phases
 
-  const programData: TPhysioProgram = {
-    ...program,
-    days: days,
-  };
-  // Merge and return
-  return programData;
+  return { ...program, days };
 }
 
 /**
