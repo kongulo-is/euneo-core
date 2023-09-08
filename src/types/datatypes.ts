@@ -149,7 +149,7 @@ type TProgramBase = {
   conditionId: TConditionId;
   outcomeMeasureIds: TOutcomeMeasureId[];
   // TODO: ræða hvort days eigi að vera hér inni eða ekki.
-  days: { [key: `d${number}`]: TProgramDay };
+  days: { [key: `${number}`]: TProgramDay };
   // programPath: TProgramPath // * "programs/plantar-heel-pain" or "physios/physio1/programs/plantar-heel-pain"
 };
 
