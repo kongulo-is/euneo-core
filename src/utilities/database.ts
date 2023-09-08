@@ -77,10 +77,11 @@ export async function getPhysioProgramsWithDays(
   db: Firestore,
   physioId: string
 ): Promise<TPhysioProgram[]> {
-  const programsCollection = collection(db, "physios", physioId, "programs"); // Replace "programs" with your collection name
+  const physioRef = doc(db, "physios", physioId);
+  const programsRef = collection(physioRef, "programs");
 
   try {
-    const physioProgramsQuery = query(programsCollection);
+    const physioProgramsQuery = query(programsRef);
     const querySnapshot = await getDocs(physioProgramsQuery);
     const physioPrograms: TPhysioProgram[] = [];
     for (const doc of querySnapshot.docs) {
