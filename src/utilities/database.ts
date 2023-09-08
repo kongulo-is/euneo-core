@@ -1,19 +1,13 @@
-import {
-  physioProgramConverter,
-  dayConverter,
-  physioClientConverter,
-} from "./converters";
+import { physioProgramConverter, dayConverter } from "./converters";
 import {
   EuneoProgramWrite,
   InvitationWrite,
-  PhysioClientWrite,
   PhysioProgramWrite,
 } from "../types/converterTypes";
 import {
   TPhysioProgram,
   TEuneoProgram,
   TProgramPath,
-  TProgramDay,
 } from "../types/datatypes";
 import {
   DocumentReference,
@@ -80,7 +74,7 @@ export async function getPhysioProgramsWithDays(
   try {
     console.log("physioId", physioId);
     console.log("db", db);
-    const physioRef = doc(db, "physios", physioId);
+    const physioRef = doc(db, "/physios", physioId);
     console.log("physioRef", physioRef);
     const programsRef = collection(physioRef, "programs").withConverter(
       physioProgramConverter(db)
