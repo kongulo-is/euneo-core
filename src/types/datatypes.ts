@@ -229,6 +229,10 @@ export type TPainLevel = {
 
 export type TStatus = "Active" | "Not Started" | "Inactive" | "No Prescription";
 
+type TExercises = {
+  [key: string]: TExercise;
+};
+
 /**
  * @description Exercise in exercise collection
  * @param steps Instructions for the exercise
