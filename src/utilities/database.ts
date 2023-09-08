@@ -73,6 +73,42 @@ export async function getProgramWithDays(
   return _getProgramFromRef(db, programRef);
 }
 
+export async function getPhysioProgramsWithDays(
+  db: Firestore,
+  physioId: string
+): Promise<TPhysioProgram[]> {
+  try {
+    console.log("physioId", physioId);
+    console.log("db", db);
+    const physioRef = doc(db, "physios", physioId);
+    console.log("physioRef", physioRef);
+    const programsRef = collection(physioRef, "programs").withConverter(
+      physioProgramConverter(db)
+    );
+    console.log("programsRef", programsRef);
+    const programsSnap = await getDocs(programsRef);
+
+    // for each program, get the days
+    const daysSnap = await Promise.all(
+      programsSnap.docs.map((doc) =>
+        getDocs(collection(doc.ref, "days").withConverter(dayConverter(db)))
+      )
+    );
+    // map the days to the programs
+    const programs: TPhysioProgram[] = programsSnap.docs.map((doc, i) => {
+      const days = Object.fromEntries(
+        daysSnap[i].docs.map((doc) => [doc.id, doc.data()])
+      );
+      return { ...doc.data(), days };
+    });
+
+    return programs;
+  } catch (error) {
+    console.error("Error fetching physio programs:", error);
+    throw error;
+  }
+}
+
 export async function getProgramFromCode(
   db: Firestore,
   code: string
