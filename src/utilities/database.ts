@@ -42,13 +42,17 @@ async function _getProgramFromRef(
     dayConverter(db)
   );
   const daySnapshots = await getDocs(daysQuery);
-  const daysList = daySnapshots.docs.map((doc) => doc.data());
+  const daysList = daySnapshots.docs;
+  const days: { [key: string]: TProgramDay } = {};
+
+  for (let i = 0; i < daysList.length; i++) {
+    days[daysList[i].id] = daysList[i].data();
+  }
 
   const programData: TPhysioProgram = {
     ...program,
-    days: daysList,
+    days: days,
   };
-
   // Merge and return
   return programData;
 }
