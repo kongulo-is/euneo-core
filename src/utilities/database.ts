@@ -79,8 +79,12 @@ export async function getProgramFromCode(
   db: Firestore,
   code: string
 ): Promise<TPhysioProgram | TEuneoProgram> {
+  console.log("EUNEO-TYPES-DEBUGGER1");
+
   // We dont need a converter here because it would not convert anything
   const q = query(collection(db, "invitations"), where("code", "==", code));
+  console.log("EUNEO-TYPES-DEBUGGER", q);
+
   const querySnapshot = (await getDocs(q)) as QuerySnapshot<
     InvitationWrite,
     DocumentData
