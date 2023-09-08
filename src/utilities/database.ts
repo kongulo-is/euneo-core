@@ -8,6 +8,9 @@ import {
   TPhysioProgram,
   TEuneoProgram,
   TProgramPath,
+  TProgramDay,
+  TClientProfile,
+  TConditionId,
 } from "../types/datatypes";
 import {
   DocumentReference,
@@ -121,13 +124,11 @@ export async function getProgramFromCode(
   }
 
   const firstDoc = querySnapshot.docs[0];
-
   const { physioClientRef } = firstDoc.data();
 
   console.log("physioRef", physioClientRef, physioClientRef.id);
 
   const physioClientDoc = await getDoc(physioClientRef);
-
   const physioClientData = physioClientDoc.data();
 
   if (!physioClientData || !physioClientData.prescription) {
@@ -143,3 +144,29 @@ export async function getProgramFromCode(
 
   return program;
 }
+
+// export type ClientProgramWrite = {
+//   programBy: "Euneo" | string; //? bæta þessu við? string: physioId
+//   conditionId: TConditionId;
+//   outcomeMeasuresAnswers: TOutcomeMeasureAnswer[];
+//   painLevel: TPainLevel[];
+//   days: TClientProgramDay[]; //TODO: ? Tékka við viljum við hafa þetta hér inni eða ekki.
+//   conditionAssessmentAnswers?: Array<boolean | string>;
+//   phases?: TPhase[];
+//   trainingDays?: boolean[]; //TODO: ? Tékka hvort þetta sé einhverntíman ekki sett í gagnagrunninn.
+//   physicalInformation?: TClientPhysicalInformation;
+// };
+
+// /**
+//  *
+//  * @param db
+//  * @param programInfo is of type TPhysioProgram | TEuneoProgram
+//  */
+// export async function addProgramToUser(
+//   db: Firestore,
+//   programInfo: TPhysioProgram | TEuneoProgram
+// ) {
+//   const clientProgram: TClientProfile = {
+//     program,
+//   };
+// }
