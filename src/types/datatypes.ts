@@ -62,12 +62,12 @@ export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
  *
  */
 export type TClientProgram = {
-  pid: string;
+  programId: string;
   programBy: "Euneo" | string; //? bæta þessu við? string: physioId
   conditionId: TConditionId;
   outcomeMeasuresAnswers: TOutcomeMeasureAnswer[];
   painLevel: TPainLevel[];
-  days: TClientProgramDay[];
+  days: TClientProgramDay[]; //TODO: ? Tékka við viljum við hafa þetta hér inni eða ekki.
   conditionAssessmentAnswers?: Array<boolean | string>;
   phases?: TPhase[];
   trainingDays?: boolean[]; //TODO: ? Tékka hvort þetta sé einhverntíman ekki sett í gagnagrunninn.
