@@ -17,13 +17,17 @@ import {
   dayConverter,
   physioClientConverter,
 } from "./converters";
-import { TProgramPath } from "src/types/datatypes";
+import {
+  TEuneoProgram,
+  TPhysioProgram,
+  TProgramPath,
+} from "src/types/datatypes";
 import { InvitationWrite } from "src/types/converterTypes";
 
 async function _getProgramFromRef(
-  programRef: DocumentReference,
-  db: Firestore
-) {
+  db: Firestore,
+  programRef: DocumentReference
+): Promise<TPhysioProgram | TEuneoProgram> {
   // Fetch program data using the determined programRef
   const programSnap = await getDoc(
     programRef.withConverter(physioProgramConverter(db))
@@ -51,9 +55,9 @@ async function _getProgramFromRef(
  * @returns
  */
 export async function getProgramWithDays(
-  programPath: TProgramPath,
-  db: Firestore
-) {
+  db: Firestore,
+  programPath: TProgramPath
+): Promise<TPhysioProgram | TEuneoProgram> {
   let programRef: DocumentReference<DocumentData, DocumentData>;
 
   // Determine if it's a program or a physio program based on the path format
@@ -68,10 +72,13 @@ export async function getProgramWithDays(
     throw new Error("Invalid program path format");
   }
 
-  return _getProgramFromRef(programRef, db);
+  return _getProgramFromRef(db, programRef);
 }
 
-export async function getProgramFromCode(code: string, db: Firestore) {
+export async function getProgramFromCode(
+  db: Firestore,
+  code: string
+): Promise<TPhysioProgram | TEuneoProgram> {
   // We dont need a converter here because it would not convert anything
   const q = query(collection(db, "invitations"), where("code", "==", code));
   const querySnapshot = (await getDocs(q)) as QuerySnapshot<
@@ -103,5 +110,7 @@ export async function getProgramFromCode(code: string, db: Firestore) {
 
   // TODO: delete the invitation from db
 
-  return _getProgramFromRef(programRef, db);
+  const program = await _getProgramFromRef(db, programRef);
+
+  return program;
 }
