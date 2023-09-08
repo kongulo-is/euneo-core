@@ -1,32 +1,34 @@
 import {
-  getDoc,
-  collection,
-  getDocs,
-  doc,
-  Firestore,
-  DocumentReference,
-  DocumentData,
-  QueryDocumentSnapshot,
-  query,
-  where,
-  Query,
-  QuerySnapshot,
-} from "@firebase/firestore";
-import {
   physioProgramConverter,
   dayConverter,
   physioClientConverter,
 } from "./converters";
-import { InvitationWrite } from "../types/converterTypes";
+import {
+  EuneoProgramWrite,
+  InvitationWrite,
+  PhysioClientWrite,
+  PhysioProgramWrite,
+} from "../types/converterTypes";
 import {
   TPhysioProgram,
   TEuneoProgram,
   TProgramPath,
 } from "../types/datatypes";
+import {
+  DocumentReference,
+  Firestore,
+  QuerySnapshot,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 
 async function _getProgramFromRef(
   db: Firestore,
-  programRef: DocumentReference
+  programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>
 ): Promise<TPhysioProgram | TEuneoProgram> {
   // Fetch program data using the determined programRef
   const programSnap = await getDoc(
@@ -58,16 +60,16 @@ export async function getProgramWithDays(
   db: Firestore,
   programPath: TProgramPath
 ): Promise<TPhysioProgram | TEuneoProgram> {
-  let programRef: DocumentReference<DocumentData, DocumentData>;
+  let programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>;
 
   // Determine if it's a program or a physio program based on the path format
   const parts = programPath.split("/");
   if (parts.length === 2) {
     // It's a program ID
-    programRef = doc(db, programPath);
+    programRef = doc(db, programPath) as DocumentReference<EuneoProgramWrite>;
   } else if (parts.length === 4) {
     // It's a physio program ID
-    programRef = doc(db, programPath);
+    programRef = doc(db, programPath) as DocumentReference<PhysioProgramWrite>;
   } else {
     throw new Error("Invalid program path format");
   }
@@ -85,10 +87,7 @@ export async function getProgramFromCode(
   const q = query(collection(db, "invitations"), where("code", "==", code));
   console.log("EUNEO-TYPES-DEBUGGER", q);
 
-  const querySnapshot = (await getDocs(q)) as QuerySnapshot<
-    InvitationWrite,
-    DocumentData
-  >;
+  const querySnapshot = (await getDocs(q)) as QuerySnapshot<InvitationWrite>;
 
   if (querySnapshot.empty) {
     console.log("No matching invitation found.");

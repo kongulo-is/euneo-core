@@ -140,7 +140,11 @@ export const physioClientConverter = (db: Firestore) => ({
     if (client.prescription && client.prescription.programId) {
       data.prescription = {
         ...client.prescription,
-        programRef: doc(db, "programs", client.prescription.programId),
+        programRef: doc(
+          db,
+          "programs",
+          client.prescription.programId
+        ) as DocumentReference<EuneoProgramWrite>,
         prescriptionDate: Timestamp.fromDate(
           client.prescription.prescriptionDate
         ),

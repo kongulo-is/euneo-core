@@ -55,7 +55,7 @@ export type PhysioClientWrite = {
  * @path /physios/{physioId}/clients/{physioClientId}
  */
 export type PrescriptionWrite = {
-  programRef: DocumentReference;
+  programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>;
   prescriptionDate: Timestamp;
   status: TPrescriptionStatus;
 };
