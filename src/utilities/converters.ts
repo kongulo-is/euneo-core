@@ -53,7 +53,6 @@ export const dayConverter = (db: Firestore) => ({
       }) || [];
 
     return {
-      key: snapshot.id,
       exercises: convertedExercises,
     };
   },

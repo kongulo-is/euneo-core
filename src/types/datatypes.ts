@@ -149,7 +149,7 @@ type TProgramBase = {
   conditionId: TConditionId;
   outcomeMeasureIds: TOutcomeMeasureId[];
   // TODO: ræða hvort days eigi að vera hér inni eða ekki.
-  days: TProgramDay[];
+  days: { [key: `${number}`]: TProgramDay };
   // programPath: TProgramPath // * "programs/plantar-heel-pain" or "physios/physio1/programs/plantar-heel-pain"
 };
 
@@ -180,7 +180,7 @@ export type TPhysioProgram = TContinuousProgram & {
 };
 
 /** @memberof TProgram */
-export type TProgramDay = { key: string; exercises: TExerciseDay[] };
+export type TProgramDay = { exercises: TExerciseDay[] };
 
 /**
  * @memberof TProgramDay

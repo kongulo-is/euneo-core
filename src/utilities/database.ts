@@ -13,6 +13,7 @@ import {
   TPhysioProgram,
   TEuneoProgram,
   TProgramPath,
+  TProgramDay,
 } from "../types/datatypes";
 import {
   DocumentReference,
@@ -41,13 +42,15 @@ async function _getProgramFromRef(
     dayConverter(db)
   );
   const daySnapshots = await getDocs(daysQuery);
-  const days = daySnapshots.docs.map((doc) => doc.data());
+  const daysList = daySnapshots.docs.map((doc) => doc.data());
+
+  const programData: TPhysioProgram = {
+    ...program,
+    days: daysList,
+  };
 
   // Merge and return
-  return {
-    ...program,
-    days,
-  };
+  return programData;
 }
 
 /**
