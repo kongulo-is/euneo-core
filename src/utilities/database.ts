@@ -17,12 +17,12 @@ import {
   dayConverter,
   physioClientConverter,
 } from "./converters";
+import { InvitationWrite } from "../types/converterTypes";
 import {
-  TEuneoProgram,
   TPhysioProgram,
+  TEuneoProgram,
   TProgramPath,
-} from "src/types/datatypes";
-import { InvitationWrite } from "src/types/converterTypes";
+} from "../types/datatypes";
 
 async function _getProgramFromRef(
   db: Firestore,

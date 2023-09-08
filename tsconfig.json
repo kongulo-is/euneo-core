@@ -7,8 +7,6 @@
     "declaration": true,
     "sourceMap": true,
     "outDir": "./lib",
-    "baseUrl": "./",
-   
   },
   "exclude": ["node_modules"],
   "include": ["./src/**/*.tsx", "./src/**/*.ts", "src/index.ts"],

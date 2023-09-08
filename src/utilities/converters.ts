@@ -4,9 +4,8 @@ import {
   ProgramDayWrite,
   PhysioProgramWrite,
   EuneoProgramWrite,
-  ClientWrite,
   PhysioClientWrite,
-} from "src/types/converterTypes";
+} from "../types/converterTypes";
 import {
   TEuneoProgram,
   TOutcomeMeasureId,
