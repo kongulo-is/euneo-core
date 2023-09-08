@@ -1,5 +1,4 @@
 import { TConditionId } from "../types/datatypes";
-// ...
 
 type Conditions = Record<TConditionId, string>;
 
