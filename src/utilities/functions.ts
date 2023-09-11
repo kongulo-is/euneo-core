@@ -8,13 +8,9 @@ import {
   TPhysioProgram,
   TEuneoProgram,
   TProgramPath,
-  TProgramDay,
-  TClientProfile,
-  TConditionId,
 } from "../types/datatypes";
 import {
   DocumentReference,
-  Firestore,
   QuerySnapshot,
   collection,
   doc,
@@ -23,9 +19,9 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import { db } from "../firebase/initialize";
 
 async function _getProgramFromRef(
-  db: Firestore,
   programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>
 ): Promise<TPhysioProgram | TEuneoProgram> {
   const [programSnap, daySnapshots] = await Promise.all([
@@ -50,7 +46,6 @@ async function _getProgramFromRef(
  * @returns
  */
 export async function getProgramWithDays(
-  db: Firestore,
   programPath: TProgramPath
 ): Promise<TPhysioProgram | TEuneoProgram> {
   let programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>;
@@ -67,11 +62,10 @@ export async function getProgramWithDays(
     throw new Error("Invalid program path format");
   }
 
-  return _getProgramFromRef(db, programRef);
+  return _getProgramFromRef(programRef);
 }
 
 export async function getPhysioProgramsWithDays(
-  db: Firestore,
   physioId: string
 ): Promise<TPhysioProgram[]> {
   try {
@@ -107,7 +101,6 @@ export async function getPhysioProgramsWithDays(
 }
 
 export async function getProgramFromCode(
-  db: Firestore,
   code: string
 ): Promise<TPhysioProgram | TEuneoProgram> {
   console.log("EUNEO-TYPES-DEBUGGER1", db);
@@ -140,7 +133,7 @@ export async function getProgramFromCode(
 
   // TODO: delete the invitation from db
 
-  const program = await _getProgramFromRef(db, programRef);
+  const program = await _getProgramFromRef(programRef);
 
   return program;
 }
