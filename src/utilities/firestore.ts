@@ -1,14 +1,5 @@
 import { physioProgramConverter, dayConverter } from "./converters";
-import {
-  EuneoProgramWrite,
-  InvitationWrite,
-  PhysioProgramWrite,
-} from "../types/converterTypes";
-import {
-  TPhysioProgram,
-  TEuneoProgram,
-  TProgramPath,
-} from "../types/datatypes";
+
 import {
   DocumentReference,
   QuerySnapshot,
@@ -19,6 +10,16 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import {
+  EuneoProgramWrite,
+  PhysioProgramWrite,
+  InvitationWrite,
+} from "@src/types/converterTypes";
+import {
+  TPhysioProgram,
+  TEuneoProgram,
+  TProgramPath,
+} from "@src/types/datatypes";
 import { db } from "../firebase/initialize";
 
 async function _getProgramFromRef(

@@ -1,10 +1,9 @@
 import { initializeApp } from "firebase/app";
 import { initializeFirestore } from "firebase/firestore";
-import { initializeAuth, getAuth } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 
 import * as firebaseAuth from "firebase/auth";
 import { getFunctions } from "firebase/functions";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // import * as Facebook from "expo-facebook";
 
@@ -19,24 +18,8 @@ const firebaseConfig = {
   measurementId: "G-5GR90C0XWB",
 };
 
-// TODO: Temporary solution is to use forced type conversion, remove this when the type is updated https://stackoverflow.com/questions/76914913/cannot-import-getreactnativepersistence-in-firebase10-1-0
-const reactNativePersistence = (firebaseAuth as any).getReactNativePersistence;
-
 const app = initializeApp(firebaseConfig);
-
-const isApp = process.env.EXPO_PUBLIC_PROJECT === "APP";
-
-let auth: firebaseAuth.Auth;
-
-if (isApp) {
-  auth = initializeAuth(app, {
-    persistence: reactNativePersistence(AsyncStorage),
-  });
-} else {
-  auth = getAuth(app);
-}
-
-export { auth };
+export const auth = getAuth(app);
 
 // export const auth = getAuth(app);
 export const functions = getFunctions(app);
