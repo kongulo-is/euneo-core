@@ -1,8 +1,14 @@
-import { physioProgramConverter, dayConverter } from "./converters";
+import {
+  physioProgramConverter,
+  dayConverter,
+  clientProgramConverter,
+} from "./converters";
 
 import {
   DocumentReference,
   QuerySnapshot,
+  Timestamp,
+  addDoc,
   collection,
   doc,
   getDoc,
@@ -19,15 +25,16 @@ import {
   TPhysioProgram,
   TEuneoProgram,
   TProgramPath,
+  TClientProgram,
 } from "@src/types/datatypes";
-import { db } from "../firebase/initialize";
+import { db } from "@src/firebase/db";
 
 async function _getProgramFromRef(
   programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>
 ): Promise<TPhysioProgram | TEuneoProgram> {
   const [programSnap, daySnapshots] = await Promise.all([
-    getDoc(programRef.withConverter(physioProgramConverter(db))),
-    getDocs(collection(programRef, "days").withConverter(dayConverter(db))),
+    getDoc(programRef.withConverter(physioProgramConverter)),
+    getDocs(collection(programRef, "days").withConverter(dayConverter)),
   ]);
 
   const program = programSnap.data();
@@ -40,12 +47,6 @@ async function _getProgramFromRef(
   return { ...program, days };
 }
 
-/**
- *
- * @param programRef
- * @param db
- * @returns
- */
 export async function getProgramWithDays(
   programPath: TProgramPath
 ): Promise<TPhysioProgram | TEuneoProgram> {
@@ -72,7 +73,7 @@ export async function getPhysioProgramsWithDays(
   try {
     const physioRef = doc(db, "physios", physioId);
     const programsRef = collection(physioRef, "programs").withConverter(
-      physioProgramConverter(db)
+      physioProgramConverter
     );
     console.log("programsRef", programsRef);
     const programsSnap = await getDocs(programsRef);
@@ -80,7 +81,7 @@ export async function getPhysioProgramsWithDays(
     // for each program, get the days
     const daysSnap = await Promise.all(
       programsSnap.docs.map((doc) =>
-        getDocs(collection(doc.ref, "days").withConverter(dayConverter(db)))
+        getDocs(collection(doc.ref, "days").withConverter(dayConverter))
       )
     );
     // map the days to the programs
@@ -101,11 +102,8 @@ export async function getPhysioProgramsWithDays(
 export async function getProgramFromCode(
   code: string
 ): Promise<TPhysioProgram | TEuneoProgram> {
-  console.log("EUNEO-TYPES-DEBUGGER1", db);
-
   // We dont need a converter here because it would not convert anything
   const q = query(collection(db, "invitations"), where("code", "==", code));
-  console.log("EUNEO-TYPES-DEBUGGER", q);
 
   const querySnapshot = (await getDocs(q)) as QuerySnapshot<InvitationWrite>;
 
@@ -116,8 +114,6 @@ export async function getProgramFromCode(
 
   const firstDoc = querySnapshot.docs[0];
   const { physioClientRef } = firstDoc.data();
-
-  console.log("physioRef", physioClientRef, physioClientRef.id);
 
   const physioClientDoc = await getDoc(physioClientRef);
   const physioClientData = physioClientDoc.data();
@@ -134,6 +130,94 @@ export async function getProgramFromCode(
   const program = await _getProgramFromRef(programRef);
 
   return program;
+}
+
+export async function addPhysioProgramToUser(
+  clientId: string,
+  physioProgram: TPhysioProgram,
+  trainingDays: boolean[]
+): Promise<TClientProgram> {
+  // Store the program in the Firestore database
+  const userProgramDoc = collection(db, "clients", clientId, "programs");
+
+  console.log("userProgramDoc", userProgramDoc);
+
+  // add program to client
+  // TODO: take a look
+  const program = await addDoc(
+    userProgramDoc.withConverter(clientProgramConverter),
+    {
+      programId: physioProgram.physioProgramId,
+      physioId: physioProgram.physioId,
+      conditionId: physioProgram.conditionId,
+      programBy: physioProgram.programBy,
+      outcomeMeasuresAnswers: physioProgram.outcomeMeasuresAnswers,
+      painLevels: physioProgram.painLevels,
+    }
+  );
+
+  let dayList = [];
+
+  let restIndex = 0;
+
+  let d = new Date();
+
+  const iterator = 14;
+
+  d.setHours(0, 0, 0, 0);
+  for (let i = 0; i < iterator; i++) {
+    const dayId = "d1";
+    const day = physioProgram.days[dayId];
+
+    console.log("day", day);
+
+    const infoDay = physioProgram.days[dayId];
+    const timestamp = Timestamp.fromDate(d);
+
+    const isRestDay = !trainingDays[d.getDay()];
+
+    dayList.push({
+      id: dayId,
+      date: timestamp,
+      finished: false,
+      adherence: 0,
+      exercises: infoDay?.exercises.map(() => 0),
+      restDay: isRestDay,
+    });
+
+    d.setDate(d.getDate() + 1);
+    !isRestDay && restIndex++;
+  }
+
+  console.log("INITALPHASE", initialPhase);
+
+  // Update the user's programs days array in firestore
+  await Promise.all(
+    initialPhase.map(async (day, i) => {
+      const dayCol = doc(
+        db,
+        "clients",
+        uid,
+        "programs",
+        program.id,
+        "days",
+        i.toString()
+      );
+      // TODO: find a way to do this earlier or write to Firestore by using converter
+      day.exercises = day.exercises.reduce((acc, cur, i) => {
+        // Convert the exercises to a map
+        acc[i] = cur;
+        return acc;
+      }, {});
+      await setDoc(dayCol, day);
+    })
+  );
+
+  const clientRef = doc(db, "clients", uid);
+  updateDoc(clientRef, { currentProgramId: program.id });
+
+  // Return true if all operations succeed
+  return program.id;
 }
 
 // export type ClientProgramWrite = {

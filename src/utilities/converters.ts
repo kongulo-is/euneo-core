@@ -1,5 +1,6 @@
 //TODO: Ætti þessi file að heita eitthvað annað? eins og t.d. writeTypes eða firebaseTypes?
 
+import { db } from "@src/firebase/db";
 import {
   ProgramDayWrite,
   PhysioProgramWrite,
@@ -7,8 +8,16 @@ import {
   PhysioClientWrite,
 } from "../types/converterTypes";
 import {
+  TClientPhysicalInformation,
+  TClientProgram,
+  TClientProgramDay,
+  TConditionAssessmentAnswer,
+  TConditionId,
   TEuneoProgram,
+  TOutcomeMeasureAnswer,
   TOutcomeMeasureId,
+  TPainLevel,
+  TPhase,
   TPhysioClient,
   TPhysioProgram,
   TProgramDay,
@@ -26,7 +35,7 @@ import {
 // sdkofjdsalkfjsa
 
 // Program Day converter
-export const dayConverter = (db: Firestore) => ({
+export const dayConverter = {
   toFirestore(day: TProgramDay): ProgramDayWrite {
     return {
       exercises: day.exercises.map((e) => ({
@@ -58,9 +67,9 @@ export const dayConverter = (db: Firestore) => ({
       exercises: convertedExercises,
     };
   },
-});
+};
 
-export const physioProgramConverter = (db: Firestore) => ({
+export const physioProgramConverter = {
   toFirestore(program: TPhysioProgram): PhysioProgramWrite {
     // * we only create/edit physio programs
     return {
@@ -95,9 +104,9 @@ export const physioProgramConverter = (db: Firestore) => ({
       mode: "continuous",
     };
   },
-});
+};
 
-export const euneoProgramConverter = (db: Firestore) => ({
+export const euneoProgramConverter = {
   fromFirestore(
     snapshot: QueryDocumentSnapshot<EuneoProgramWrite>,
     options: SnapshotOptions
@@ -121,9 +130,9 @@ export const euneoProgramConverter = (db: Firestore) => ({
       programId: snapshot.id,
     };
   },
-});
+};
 
-export const physioClientConverter = (db: Firestore) => ({
+export const physioClientConverter = {
   toFirestore(client: TPhysioClient): PhysioClientWrite {
     const data: PhysioClientWrite = {
       name: client.name,
@@ -183,7 +192,100 @@ export const physioClientConverter = (db: Firestore) => ({
       physioClientId: snapshot.id,
     };
   },
-});
+};
+
+type ClientProgramWrite = {
+  outcomeMeasureAnsvers: TOutcomeMeasureAnswer[];
+  conditionId: TConditionId;
+  painLevels: TPainLevel[];
+  programRef: DocumentReference;
+  conditionAssessmentAnswers?: TConditionAssessmentAnswer[];
+  physicalInformation?: TClientPhysicalInformation;
+  trainingDays?: boolean[];
+  phases?: TPhase[];
+};
+
+export const clientProgramConverter = {
+  toFirestore(program: TClientProgram): ClientProgramWrite {
+    const data: ClientProgramWrite = {
+      outcomeMeasureAnsvers: program.outcomeMeasuresAnswers,
+      conditionId: program.conditionId,
+      painLevels: program.painLevel,
+      programRef: doc(db, "programs", program.programId),
+    };
+
+    if (program.physioId) {
+      data.programRef = doc(
+        db,
+        "physios",
+        program.physioId,
+        "programs",
+        program.programId
+      );
+    }
+    if (program.phases) {
+      data.phases = program.phases;
+    }
+
+    if (program.physicalInformation) {
+      data.physicalInformation = program.physicalInformation;
+    }
+
+    if (program.trainingDays) {
+      data.trainingDays = program.trainingDays;
+    }
+
+    if (program.conditionAssessmentAnswers) {
+      data.conditionAssessmentAnswers = program.conditionAssessmentAnswers;
+    }
+
+    return data;
+  },
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<ClientProgramWrite>,
+    options?: SnapshotOptions
+  ): TClientProgram {
+    const data = snapshot.data();
+    let { programRef, ...rest } = data;
+
+    const programId = programRef.id;
+
+    return {
+      ...rest,
+      programId,
+    };
+  },
+};
+
+type ClientProgramDayWrite = {
+  dayId: string;
+  phaseId?: string;
+  date: Date;
+  finished: boolean;
+  adherence: number;
+  restDay: boolean;
+  exercises: number[];
+};
+
+export const clientProgramDayConverter = {
+  toFirestore(day: TClientProgramDay): ClientProgramDayWrite {
+    const data: ClientProgramDayWrite = {
+      dayId: day.dayId,
+      date: day.date,
+      finished: day.finished,
+      adherence: day.adherence,
+      restDay: day.restDay,
+      exercises: day.exercises,
+    };
+
+    if (day.phaseId) {
+      data.phaseId = day.phaseId;
+    }
+
+    return data;
+  },
+  fromFirestore() {},
+};
 
 // export const invitationConverter = (db: Firestore) => ({
 //   fromFirestore(

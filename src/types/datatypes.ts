@@ -45,6 +45,8 @@ export type TPrescription = {
 /** @memberof TPrescription */
 export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
 
+export type TConditionAssessmentAnswer = boolean | string;
+
 /**
  * @memberof TPhysioClient
  * @memberof TClientProfile
@@ -63,12 +65,13 @@ export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
  */
 export type TClientProgram = {
   programId: string;
-  programBy: "Euneo" | string; //? bæta þessu við? string: physioId
   conditionId: TConditionId;
+  physioId?: string;
+  programBy: "Euneo" | string; //? bæta þessu við? string: physioId
   outcomeMeasuresAnswers: TOutcomeMeasureAnswer[];
   painLevel: TPainLevel[];
   days: TClientProgramDay[]; //TODO: ? Tékka við viljum við hafa þetta hér inni eða ekki.
-  conditionAssessmentAnswers?: Array<boolean | string>;
+  conditionAssessmentAnswers?: TConditionAssessmentAnswer[];
   phases?: TPhase[];
   trainingDays?: boolean[]; //TODO: ? Tékka hvort þetta sé einhverntíman ekki sett í gagnagrunninn.
   physicalInformation?: TClientPhysicalInformation;
@@ -91,14 +94,14 @@ export type TPhase = { key: string; value: number };
 /**
  * @memberof TClientProgram
  * @description Each day in clients program, progress. (date, adherence, restDay, etc.)
- * @param id (d1, d2, d3...)
+ * @param dayId (d1, d2, d3...)
  * @param phaseId (p1, p2, p3...)
  * @param adherence 0-100%
  * @param exercises array completed exercises in a day (0 = not completed, 1 = completed)
  */
 export type TClientProgramDay = {
-  id: string;
-  phaseId: string;
+  dayId: string;
+  phaseId?: string;
   date: Date;
   finished: boolean;
   adherence: number;
