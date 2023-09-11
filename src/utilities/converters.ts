@@ -23,6 +23,8 @@ import {
   Timestamp,
 } from "@firebase/firestore";
 
+// sdkofjdsalkfjsa
+
 // Program Day converter
 export const dayConverter = (db: Firestore) => ({
   toFirestore(day: TProgramDay): ProgramDayWrite {
