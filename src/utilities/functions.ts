@@ -69,10 +69,7 @@ export async function getPhysioProgramsWithDays(
   physioId: string
 ): Promise<TPhysioProgram[]> {
   try {
-    console.log("physioId", physioId);
-    console.log("db", db);
-    const physioRef = doc(db, "/physios", physioId);
-    console.log("physioRef", physioRef);
+    const physioRef = doc(db, "physios", physioId);
     const programsRef = collection(physioRef, "programs").withConverter(
       physioProgramConverter(db)
     );
