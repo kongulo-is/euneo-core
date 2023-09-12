@@ -1,6 +1,6 @@
 //TODO: Ætti þessi file að heita eitthvað annað? eins og t.d. writeTypes eða firebaseTypes?
 
-import { db } from "@src/firebase/db";
+import { db } from "../firebase/db";
 import {
   ProgramDayWrite,
   PhysioProgramWrite,
@@ -141,14 +141,6 @@ export const physioClientConverter = {
       name: client.name,
       email: client.email,
     };
-
-    if (client.status) {
-      data.status = client.status;
-    }
-
-    if (client.conditionId) {
-      data.condition = client.conditionId;
-    }
 
     if (client.prescription && client.prescription.programId) {
       data.prescription = {

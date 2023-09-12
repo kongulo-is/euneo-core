@@ -7,7 +7,6 @@ import {
 } from "./converters";
 
 import {
-  CollectionReference,
   DocumentReference,
   QuerySnapshot,
   Timestamp,
@@ -23,19 +22,19 @@ import {
   EuneoProgramWrite,
   PhysioProgramWrite,
   InvitationWrite,
-  ClientProgramDayWrite,
   ClientProgramWrite,
   ClientWrite,
+  PhysioClientWrite,
+  PrescriptionWrite,
 } from "@src/types/converterTypes";
 import {
   TPhysioProgram,
   TEuneoProgram,
   TProgramPath,
   TPhysioClient,
-  TClientProgramDay,
   TClientProgram,
 } from "@src/types/datatypes";
-import { db } from "@src/firebase/db";
+import { db } from "../firebase/db";
 
 async function _getProgramFromRef(
   programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>
@@ -140,7 +139,38 @@ export async function getProgramFromCode(
   return program;
 }
 
-// TODO: 11.sept, testa þetta! - var hér.
+export async function createPhysioClient(
+  data: PhysioClientWrite,
+  physioId: string
+) {
+  try {
+    const physioRef = doc(db, "physios", physioId);
+    const clientsRef = collection(physioRef, "clients");
+    const clientRef = await addDoc(clientsRef, data);
+    return clientRef.id;
+  } catch (error) {
+    console.error("Error adding physio client:", error, {
+      data,
+    });
+    throw error;
+  }
+}
+
+export async function addPrescriptionToPhysioClient(
+  prescription: PrescriptionWrite,
+  physioId: string
+) {
+  try {
+    const physioRef = doc(db, "physios", physioId);
+    const clientsRef = collection(physioRef, "clients");
+  } catch (error) {
+    console.error("Error adding prescription to physio client:", error, {
+      prescription,
+    });
+    throw error;
+  }
+}
+
 export async function getPhysioClients(
   physioId: string
 ): Promise<TPhysioClient[]> {
