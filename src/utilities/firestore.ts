@@ -1,9 +1,9 @@
 import {
   physioProgramConverter,
-  dayConverter,
   physioClientConverter,
   clientProgramDayConverter,
   clientProgramConverter,
+  programDayConverter,
 } from "./converters";
 
 import {
@@ -37,17 +37,18 @@ import {
   TClientProgramDay,
   TClientProgram,
   TPainLevel,
-  TOutcomeMeasureAnswer,
+  TOutcomeMeasureAnswers,
 } from "@src/types/datatypes";
 import { db } from "../firebase/db";
 import { updateDoc } from "./updateDoc";
+import runtimeChecks from "./runtimeChecks";
 
 async function _getProgramFromRef(
   programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>
 ): Promise<TPhysioProgram | TEuneoProgram> {
   const [programSnap, daySnapshots] = await Promise.all([
     getDoc(programRef.withConverter(physioProgramConverter)),
-    getDocs(collection(programRef, "days").withConverter(dayConverter)),
+    getDocs(collection(programRef, "days").withConverter(programDayConverter)),
   ]);
 
   const program = programSnap.data();
@@ -94,7 +95,7 @@ export async function getPhysioProgramsWithDays(
     // for each program, get the days
     const daysSnap = await Promise.all(
       programsSnap.docs.map((doc) =>
-        getDocs(collection(doc.ref, "days").withConverter(dayConverter))
+        getDocs(collection(doc.ref, "days").withConverter(programDayConverter))
       )
     );
     // map the days to the programs
@@ -224,8 +225,16 @@ export async function addPhysioProgramToUser(
   physioProgram: TPhysioProgram,
   trainingDays: boolean[],
   painLevel: TPainLevel,
-  outcomeMeasuresAnswer: TOutcomeMeasureAnswer
+  outcomeMeasureAnswers: TOutcomeMeasureAnswers
 ): Promise<{ clientProgram: TClientProgram; clientProgramId: string }> {
+  runtimeChecks.addProgramToUser(
+    clientId,
+    physioProgram,
+    trainingDays,
+    painLevel,
+    outcomeMeasureAnswers
+  );
+
   const { physioId, conditionId, physioProgramId, days } = physioProgram;
 
   // Store the program in the Firestore database
@@ -236,7 +245,7 @@ export async function addPhysioProgramToUser(
     conditionId,
     trainingDays,
     painLevels: [painLevel],
-    outcomeMeasuresAnswers: [outcomeMeasuresAnswer],
+    outcomeMeasuresAnswers: [outcomeMeasureAnswers],
     days: [],
   };
 
