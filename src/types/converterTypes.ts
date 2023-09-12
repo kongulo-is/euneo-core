@@ -83,10 +83,10 @@ export type PhysioWrite = {
 export type PhysioClientWrite = {
   name: string;
   email: string;
-  status?: TClientStatus;
-  condition?: TConditionId;
+  conditionId?: TConditionId;
   clientRef?: DocumentReference;
   prescription?: PrescriptionWrite;
+  // status?: TClientStatus; //* Ekki geymt í firestore
 };
 
 /**

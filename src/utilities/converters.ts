@@ -136,14 +136,6 @@ export const physioClientConverter = {
       email: client.email,
     };
 
-    if (client.status) {
-      data.status = client.status;
-    }
-
-    if (client.conditionId) {
-      data.condition = client.conditionId;
-    }
-
     if (client.prescription && client.prescription.programId) {
       data.prescription = {
         ...client.prescription,
