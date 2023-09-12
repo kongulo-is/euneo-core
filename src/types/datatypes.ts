@@ -56,7 +56,7 @@ export type TConditionAssessmentAnswer = boolean | string;
  * @param programBy Euneo or Physio Id - this is not stored in database
  * @param outcomeMeasuresAnswers assessment of clients progress, physical condition every 4 weeks.
  * @param days prescripted program mapped to training days.
- * @param painLevel pain level of the client mapped to dates.
+ * @param painLevels pain level of the client mapped to dates.
  * @param conditionAssessment Answers to program questions regarding client condition at start of program. //*Þetta er gamla general.
  * @param phases how many days in each phase of the program. (p1: 2, etc.)
  * @param trainingDays which days are training days. (monday: true, etc.)
@@ -68,13 +68,14 @@ export type TClientProgram = {
   conditionId: TConditionId;
   physioId?: string;
   outcomeMeasuresAnswers: TOutcomeMeasureAnswer[];
-  painLevel: TPainLevel[];
-  days?: TClientProgramDay[]; //TODO: ? Tékka við viljum við hafa þetta hér inni eða ekki.
+  painLevels: TPainLevel[];
+  days: TClientProgramDay[]; //TODO: ? Tékka við viljum við hafa þetta hér inni eða ekki.
   conditionAssessmentAnswers?: TConditionAssessmentAnswer[];
   phases?: TPhase[];
   trainingDays?: boolean[]; //TODO: ? Tékka hvort þetta sé einhverntíman ekki sett í gagnagrunninn.
   physicalInformation?: TClientPhysicalInformation;
 };
+
 /**
  * @memberof TClientProgram
  * @description Physical information about the client

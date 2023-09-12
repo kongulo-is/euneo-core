@@ -1,9 +1,9 @@
 import {
   physioProgramConverter,
-  dayConverter,
   physioClientConverter,
   clientProgramDayConverter,
   clientProgramConverter,
+  programDayConverter,
 } from "./converters";
 
 import {
@@ -16,6 +16,8 @@ import {
   getDoc,
   getDocs,
   query,
+  setDoc,
+  updateDoc as firestoreUpdateDoc,
   where,
 } from "firebase/firestore";
 import {
@@ -33,15 +35,19 @@ import {
   TProgramPath,
   TPhysioClient,
   TClientProgram,
+  TPainLevel,
+  TOutcomeMeasureAnswer,
+  TClientProgramDay,
 } from "@src/types/datatypes";
 import { db } from "../firebase/db";
+import { updateDoc } from "./updateDoc";
 
 async function _getProgramFromRef(
   programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>
 ): Promise<TPhysioProgram | TEuneoProgram> {
   const [programSnap, daySnapshots] = await Promise.all([
     getDoc(programRef.withConverter(physioProgramConverter)),
-    getDocs(collection(programRef, "days").withConverter(dayConverter)),
+    getDocs(collection(programRef, "days").withConverter(programDayConverter)),
   ]);
 
   const program = programSnap.data();
@@ -88,7 +94,7 @@ export async function getPhysioProgramsWithDays(
     // for each program, get the days
     const daysSnap = await Promise.all(
       programsSnap.docs.map((doc) =>
-        getDocs(collection(doc.ref, "days").withConverter(dayConverter))
+        getDocs(collection(doc.ref, "days").withConverter(programDayConverter))
       )
     );
     // map the days to the programs
@@ -247,89 +253,75 @@ export async function getPhysioClients(
 export async function addPhysioProgramToUser(
   clientId: string,
   physioProgram: TPhysioProgram,
-  trainingDays: boolean[]
-): Promise<TClientProgram> {
+  trainingDays: boolean[],
+  painLevel: TPainLevel,
+  outcomeMeasuresAnswer: TOutcomeMeasureAnswer
+): Promise<{ clientProgram: TClientProgram; clientProgramId: string }> {
+  const { physioId, conditionId, physioProgramId, days } = physioProgram;
+
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
+  const clientProgram = {
+    programId: physioProgramId,
+    physioId,
+    conditionId,
+    trainingDays,
+    painLevels: [painLevel],
+    outcomeMeasuresAnswers: [outcomeMeasuresAnswer],
+    days: [],
+  };
 
-  console.log("userProgramDoc", userProgramDoc);
-
-  // add program to client
-  // TODO: take a look
   const program = await addDoc(
     userProgramDoc.withConverter(clientProgramConverter),
-    {
-      programId: physioProgram.physioProgramId,
-      physioId: physioProgram.physioId,
-      conditionId: physioProgram.conditionId,
-      programBy: physioProgram.programBy,
-      outcomeMeasuresAnswers: physioProgram.outcomeMeasuresAnswers,
-      painLevels: physioProgram.painLevels,
-    }
+    clientProgram
   );
 
-  let dayList = [];
-
-  let restIndex = 0;
-
+  let dayList: TClientProgramDay[] = [];
   let d = new Date();
-
+  d.setHours(0, 0, 0, 0);
   const iterator = 14;
 
-  d.setHours(0, 0, 0, 0);
   for (let i = 0; i < iterator; i++) {
     const dayId = "d1";
-    const day = physioProgram.days[dayId];
-
-    console.log("day", day);
-
-    const infoDay = physioProgram.days[dayId];
-    const timestamp = Timestamp.fromDate(d);
-
     const isRestDay = !trainingDays[d.getDay()];
+    const infoDay = days[dayId];
 
     dayList.push({
-      id: dayId,
-      date: timestamp,
+      dayId,
+      date: new Date(d),
       finished: false,
       adherence: 0,
-      exercises: infoDay?.exercises.map(() => 0),
+      exercises: infoDay?.exercises.map(() => 0) || [],
       restDay: isRestDay,
     });
 
     d.setDate(d.getDate() + 1);
-    !isRestDay && restIndex++;
   }
 
-  console.log("INITALPHASE", initialPhase);
-
-  // Update the user's programs days array in firestore
+  clientProgram.days = dayList;
   await Promise.all(
-    initialPhase.map(async (day, i) => {
+    dayList.map((day, i) => {
       const dayCol = doc(
         db,
         "clients",
-        uid,
+        clientId,
         "programs",
         program.id,
         "days",
         i.toString()
       );
-      // TODO: find a way to do this earlier or write to Firestore by using converter
-      day.exercises = day.exercises.reduce((acc, cur, i) => {
-        // Convert the exercises to a map
-        acc[i] = cur;
-        return acc;
-      }, {});
-      await setDoc(dayCol, day);
+      return setDoc(dayCol.withConverter(clientProgramDayConverter), day);
     })
   );
 
-  const clientRef = doc(db, "clients", uid);
+  const clientRef = doc(
+    db,
+    "clients",
+    clientId
+  ) as DocumentReference<ClientWrite>;
   updateDoc(clientRef, { currentProgramId: program.id });
 
-  // Return true if all operations succeed
-  return program.id;
+  return { clientProgram, clientProgramId: program.id };
 }
 
 // export type ClientProgramWrite = {
