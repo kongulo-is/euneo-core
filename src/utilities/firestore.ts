@@ -39,7 +39,7 @@ import {
   TPainLevel,
   TOutcomeMeasureAnswer,
 } from "@src/types/datatypes";
-import { db } from "@src/firebase/db";
+import { db } from "../firebase/db";
 import { updateDoc } from "./updateDoc";
 
 async function _getProgramFromRef(

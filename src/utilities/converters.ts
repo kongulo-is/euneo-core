@@ -1,6 +1,6 @@
 //TODO: Ætti þessi file að heita eitthvað annað? eins og t.d. writeTypes eða firebaseTypes?
 
-import { db } from "@src/firebase/db";
+import { db } from "../firebase/db";
 import {
   ProgramDayWrite,
   PhysioProgramWrite,
