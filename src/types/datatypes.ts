@@ -69,7 +69,7 @@ export type TClientProgram = {
   physioId?: string;
   outcomeMeasuresAnswers: TOutcomeMeasureAnswer[];
   painLevel: TPainLevel[];
-  days: TClientProgramDay[]; //TODO: ? Tékka við viljum við hafa þetta hér inni eða ekki.
+  days?: TClientProgramDay[]; //TODO: ? Tékka við viljum við hafa þetta hér inni eða ekki.
   conditionAssessmentAnswers?: TConditionAssessmentAnswer[];
   phases?: TPhase[];
   trainingDays?: boolean[]; //TODO: ? Tékka hvort þetta sé einhverntíman ekki sett í gagnagrunninn.
