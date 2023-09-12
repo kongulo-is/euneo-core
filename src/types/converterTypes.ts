@@ -5,6 +5,12 @@ import {
   TProgramMode,
   TPrescriptionStatus,
   TClientStatus,
+  TOutcomeMeasureAnswer,
+  TPainLevel,
+  TPhase,
+  TClientPhysicalInformation,
+  TOutcomeMeasureAnswerSection,
+  TOutcomeMeasureId,
 } from "./datatypes";
 
 /**
@@ -17,6 +23,39 @@ export type ClientWrite = {
   platform: "android" | "ios";
   birthDate: Timestamp;
   email: string;
+};
+
+export type ClientProgramDayWrite = {
+  id: string;
+  phaseId: string;
+  date: Timestamp;
+  finished: boolean;
+  adherence: number;
+  restDay: boolean;
+  exercises: number[];
+};
+
+export type ClientProgramWrite = {
+  programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>;
+  conditionId: TConditionId;
+  outcomeMeasuresAnswers: OutcomeMeasureAnswerWrite[];
+  painLevel: PainLevelWrite[];
+  conditionAssessmentAnswers?: Array<boolean | string>;
+  phases?: TPhase[];
+  trainingDays?: boolean[]; //TODO: ? Tékka hvort þetta sé einhverntíman ekki sett í gagnagrunninn.
+  physicalInformation?: TClientPhysicalInformation;
+};
+
+type OutcomeMeasureAnswerWrite = {
+  date: Timestamp;
+  name: TOutcomeMeasureId;
+  type: string | "foot&ankle";
+  sections: TOutcomeMeasureAnswerSection[];
+};
+
+type PainLevelWrite = {
+  date: Timestamp;
+  painIndex: number;
 };
 
 /**

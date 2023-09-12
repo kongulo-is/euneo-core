@@ -1,6 +1,13 @@
-import { physioProgramConverter, dayConverter } from "./converters";
+import {
+  physioProgramConverter,
+  dayConverter,
+  physioClientConverter,
+  clientProgramDayConverter,
+  clientProgramConverter,
+} from "./converters";
 
 import {
+  CollectionReference,
   DocumentReference,
   QuerySnapshot,
   collection,
@@ -14,11 +21,17 @@ import {
   EuneoProgramWrite,
   PhysioProgramWrite,
   InvitationWrite,
+  ClientProgramDayWrite,
+  ClientProgramWrite,
+  ClientWrite,
 } from "@src/types/converterTypes";
 import {
   TPhysioProgram,
   TEuneoProgram,
   TProgramPath,
+  TPhysioClient,
+  TClientProgram,
+  TClientProgramDay,
 } from "@src/types/datatypes";
 import { db } from "../firebase/initialize";
 
@@ -134,6 +147,80 @@ export async function getProgramFromCode(
   const program = await _getProgramFromRef(programRef);
 
   return program;
+}
+
+// TODO: 11.sept, testa þetta! - var hér.
+export async function getPhysioClients(
+  physioId: string
+): Promise<TPhysioClient[]> {
+  try {
+    // Get clients data form physio collection
+    const physioRef = doc(db, "physios", physioId);
+    const clientsRef = collection(physioRef, "clients").withConverter(
+      physioClientConverter(db)
+    );
+    const snapshot = await getDocs(clientsRef);
+
+    // get clients program data from programs subcollection to client.
+    const clientsData = await Promise.all(
+      snapshot.docs.map(async (c) => {
+        const clientData = c.data();
+        // if clientId, get program data (date, status, etc.) from prescribed program.
+        // TODO: remove this. This is just for testing.
+        return {
+          ...clientData,
+          program: null,
+        };
+        if (clientData.clientId && clientData.prescription?.programId) {
+          let programRef: DocumentReference<ClientProgramWrite>;
+          let clientRef: DocumentReference<ClientWrite>;
+          clientRef = doc(
+            db,
+            "clients",
+            clientData.clientId
+          ) as DocumentReference<ClientWrite>;
+          programRef = doc(
+            clientRef,
+            "programs",
+            clientData.prescription.programId
+          ) as DocumentReference<ClientProgramWrite>;
+
+          const programSnap = await getDoc(
+            programRef.withConverter(clientProgramConverter(db))
+          );
+          const programData = programSnap.data();
+
+          const daySnapshots = await getDocs(
+            collection(programRef, "days").withConverter(
+              clientProgramDayConverter(db)
+            )
+          );
+
+          const days = daySnapshots.docs.map((doc) => doc.data());
+
+          const physioClient: TPhysioClient = {
+            ...clientData,
+            program: {
+              ...programData,
+              days,
+            },
+          };
+
+          return physioClient;
+        }
+      })
+    ).catch((err) => {
+      console.error(err);
+      return [];
+    });
+
+    return clientsData;
+  } catch (error) {
+    console.error("Error fetching clients:", error, {
+      physioId,
+    });
+    return [];
+  }
 }
 
 // export type ClientProgramWrite = {

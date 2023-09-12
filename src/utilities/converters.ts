@@ -5,10 +5,17 @@ import {
   PhysioProgramWrite,
   EuneoProgramWrite,
   PhysioClientWrite,
+  ClientWrite,
+  ClientProgramWrite,
+  ClientProgramDayWrite,
 } from "../types/converterTypes";
 import {
+  TClientProgram,
+  TClientProgramDay,
   TEuneoProgram,
+  TOutcomeMeasureAnswer,
   TOutcomeMeasureId,
+  TPainLevel,
   TPhysioClient,
   TPhysioProgram,
   TProgramDay,
@@ -120,6 +127,66 @@ export const euneoProgramConverter = (db: Firestore) => ({
       // createdBy: "Euneo",
       programId: snapshot.id,
     };
+  },
+});
+
+export const clientProgramConverter = (db: Firestore) => ({
+  toFirestore(program: TClientProgram): null {
+    return null;
+  },
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<ClientProgramWrite>,
+    options: SnapshotOptions
+  ): Omit<TClientProgram, "days"> {
+    // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
+    const data = snapshot.data(options);
+
+    let { programRef, ...rest } = data;
+
+    // create program id and by.
+    const programId = programRef?.id;
+    const programBy = programRef?.parent.parent?.id;
+
+    // convert timestamps to dates in outcomeMeasures and painLevels
+    const outcomeMeasuresAnswers: TOutcomeMeasureAnswer[] =
+      data.outcomeMeasuresAnswers.map((measure) => ({
+        ...measure,
+        date: measure.date.toDate(),
+      }));
+    const painLevel: TPainLevel[] = data.painLevel.map((pain) => ({
+      ...pain,
+      date: pain.date.toDate(),
+    }));
+
+    const clientProgram = {
+      ...rest,
+      ...(programId && { programId }),
+      ...(programBy && { programBy }),
+      outcomeMeasuresAnswers,
+      painLevel,
+    };
+
+    return clientProgram;
+  },
+});
+
+export const clientProgramDayConverter = (db: Firestore) => ({
+  // TODO: write toFirestore converter
+  toFirestore(client: TClientProgramDay): null {
+    return null;
+  },
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<ClientProgramDayWrite>,
+    options: SnapshotOptions
+  ): TClientProgramDay {
+    const data = snapshot.data(options);
+
+    const clientProgramDay: TClientProgramDay = {
+      ...data,
+      date: data.date.toDate(),
+    };
+
+    return clientProgramDay;
   },
 });
 
