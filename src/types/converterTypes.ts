@@ -26,8 +26,8 @@ export type ClientWrite = {
 };
 
 export type ClientProgramDayWrite = {
-  id: string;
-  phaseId: string;
+  dayId: string;
+  phaseId?: string;
   date: Timestamp;
   finished: boolean;
   adherence: number;
@@ -36,7 +36,7 @@ export type ClientProgramDayWrite = {
 };
 
 export type ClientProgramWrite = {
-  programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>;
+  programRef: DocumentReference;
   conditionId: TConditionId;
   outcomeMeasuresAnswers: OutcomeMeasureAnswerWrite[];
   painLevel: PainLevelWrite[];

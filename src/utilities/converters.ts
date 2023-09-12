@@ -1,21 +1,26 @@
 //TODO: Ætti þessi file að heita eitthvað annað? eins og t.d. writeTypes eða firebaseTypes?
 
+import { db } from "@src/firebase/db";
 import {
   ProgramDayWrite,
   PhysioProgramWrite,
   EuneoProgramWrite,
   PhysioClientWrite,
   ClientWrite,
-  ClientProgramWrite,
   ClientProgramDayWrite,
+  ClientProgramWrite,
 } from "../types/converterTypes";
 import {
   TClientProgram,
   TClientProgramDay,
+  TClientPhysicalInformation,
+  TConditionAssessmentAnswer,
+  TConditionId,
   TEuneoProgram,
   TOutcomeMeasureAnswer,
   TOutcomeMeasureId,
   TPainLevel,
+  TPhase,
   TPhysioClient,
   TPhysioProgram,
   TProgramDay,
@@ -33,7 +38,7 @@ import {
 // sdkofjdsalkfjsa
 
 // Program Day converter
-export const dayConverter = (db: Firestore) => ({
+export const dayConverter = {
   toFirestore(day: TProgramDay): ProgramDayWrite {
     return {
       exercises: day.exercises.map((e) => ({
@@ -65,9 +70,9 @@ export const dayConverter = (db: Firestore) => ({
       exercises: convertedExercises,
     };
   },
-});
+};
 
-export const physioProgramConverter = (db: Firestore) => ({
+export const physioProgramConverter = {
   toFirestore(program: TPhysioProgram): PhysioProgramWrite {
     // * we only create/edit physio programs
     return {
@@ -102,9 +107,9 @@ export const physioProgramConverter = (db: Firestore) => ({
       mode: "continuous",
     };
   },
-});
+};
 
-export const euneoProgramConverter = (db: Firestore) => ({
+export const euneoProgramConverter = {
   fromFirestore(
     snapshot: QueryDocumentSnapshot<EuneoProgramWrite>,
     options: SnapshotOptions
@@ -128,69 +133,9 @@ export const euneoProgramConverter = (db: Firestore) => ({
       programId: snapshot.id,
     };
   },
-});
+};
 
-export const clientProgramConverter = (db: Firestore) => ({
-  toFirestore(program: TClientProgram): null {
-    return null;
-  },
-  fromFirestore(
-    snapshot: QueryDocumentSnapshot<ClientProgramWrite>,
-    options: SnapshotOptions
-  ): Omit<TClientProgram, "days"> {
-    // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
-    const data = snapshot.data(options);
-
-    let { programRef, ...rest } = data;
-
-    // create program id and by.
-    const programId = programRef?.id;
-    const programBy = programRef?.parent.parent?.id;
-
-    // convert timestamps to dates in outcomeMeasures and painLevels
-    const outcomeMeasuresAnswers: TOutcomeMeasureAnswer[] =
-      data.outcomeMeasuresAnswers.map((measure) => ({
-        ...measure,
-        date: measure.date.toDate(),
-      }));
-    const painLevel: TPainLevel[] = data.painLevel.map((pain) => ({
-      ...pain,
-      date: pain.date.toDate(),
-    }));
-
-    const clientProgram = {
-      ...rest,
-      ...(programId && { programId }),
-      ...(programBy && { programBy }),
-      outcomeMeasuresAnswers,
-      painLevel,
-    };
-
-    return clientProgram;
-  },
-});
-
-export const clientProgramDayConverter = (db: Firestore) => ({
-  // TODO: write toFirestore converter
-  toFirestore(client: TClientProgramDay): null {
-    return null;
-  },
-  fromFirestore(
-    snapshot: QueryDocumentSnapshot<ClientProgramDayWrite>,
-    options: SnapshotOptions
-  ): TClientProgramDay {
-    const data = snapshot.data(options);
-
-    const clientProgramDay: TClientProgramDay = {
-      ...data,
-      date: data.date.toDate(),
-    };
-
-    return clientProgramDay;
-  },
-});
-
-export const physioClientConverter = (db: Firestore) => ({
+export const physioClientConverter = {
   toFirestore(client: TPhysioClient): PhysioClientWrite {
     const data: PhysioClientWrite = {
       name: client.name,
@@ -250,7 +195,111 @@ export const physioClientConverter = (db: Firestore) => ({
       physioClientId: snapshot.id,
     };
   },
-});
+};
+
+export const clientProgramConverter = {
+  toFirestore(program: TClientProgram): ClientProgramWrite {
+    const data: ClientProgramWrite = {
+      outcomeMeasuresAnswers: program.outcomeMeasuresAnswers,
+      conditionId: program.conditionId,
+      painLevels: program.painLevel,
+      programRef: doc(db, "programs", program.programId),
+    };
+
+    if (program.physioId) {
+      data.programRef = doc(
+        db,
+        "physios",
+        program.physioId,
+        "programs",
+        program.programId
+      );
+    }
+    if (program.phases) {
+      data.phases = program.phases;
+    }
+
+    if (program.physicalInformation) {
+      data.physicalInformation = program.physicalInformation;
+    }
+
+    if (program.trainingDays) {
+      data.trainingDays = program.trainingDays;
+    }
+
+    if (program.conditionAssessmentAnswers) {
+      data.conditionAssessmentAnswers = program.conditionAssessmentAnswers;
+    }
+
+    return data;
+  },
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<ClientProgramWrite>,
+    options: SnapshotOptions
+  ): Omit<TClientProgram, "days"> {
+    // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
+    const data = snapshot.data(options);
+
+    let { programRef, ...rest } = data;
+
+    // create program id and by.
+    const programId = programRef?.id;
+    const programBy = programRef?.parent.parent?.id;
+
+    // convert timestamps to dates in outcomeMeasures and painLevels
+    const outcomeMeasuresAnswers: TOutcomeMeasureAnswer[] =
+      data.outcomeMeasuresAnswers.map((measure) => ({
+        ...measure,
+        date: measure.date.toDate(),
+      }));
+    const painLevel: TPainLevel[] = data.painLevel.map((pain) => ({
+      ...pain,
+      date: pain.date.toDate(),
+    }));
+
+    const clientProgram = {
+      ...rest,
+      ...(programId && { programId }),
+      ...(programBy && { programBy }),
+      outcomeMeasuresAnswers,
+      painLevel,
+    };
+
+    return clientProgram;
+  },
+};
+
+export const clientProgramDayConverter = {
+  toFirestore(day: TClientProgramDay): ClientProgramDayWrite {
+    const data: ClientProgramDayWrite = {
+      dayId: day.dayId,
+      date: Timestamp.fromDate(day.date),
+      finished: day.finished,
+      adherence: day.adherence,
+      restDay: day.restDay,
+      exercises: day.exercises,
+    };
+
+    if (day.phaseId) {
+      data.phaseId = day.phaseId;
+    }
+
+    return data;
+  },
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<ClientProgramDayWrite>,
+    options: SnapshotOptions
+  ): TClientProgramDay {
+    const data = snapshot.data(options);
+
+    const clientProgramDay: TClientProgramDay = {
+      ...data,
+      date: data.date.toDate(),
+    };
+
+    return clientProgramDay;
+  },
+};
 
 // export const invitationConverter = (db: Firestore) => ({
 //   fromFirestore(
