@@ -6,21 +6,16 @@ import {
   PhysioProgramWrite,
   EuneoProgramWrite,
   PhysioClientWrite,
-  ClientWrite,
   ClientProgramDayWrite,
   ClientProgramWrite,
 } from "../types/converterTypes";
 import {
   TClientProgram,
   TClientProgramDay,
-  TClientPhysicalInformation,
-  TConditionAssessmentAnswer,
-  TConditionId,
   TEuneoProgram,
   TOutcomeMeasureAnswer,
   TOutcomeMeasureId,
   TPainLevel,
-  TPhase,
   TPhysioClient,
   TPhysioProgram,
   TProgramDay,
@@ -29,7 +24,6 @@ import {
 import {
   doc,
   DocumentReference,
-  Firestore,
   QueryDocumentSnapshot,
   SnapshotOptions,
   Timestamp,
@@ -38,7 +32,7 @@ import {
 // sdkofjdsalkfjsa
 
 // Program Day converter
-export const dayConverter = {
+export const programDayConverter = {
   toFirestore(day: TProgramDay): ProgramDayWrite {
     return {
       exercises: day.exercises.map((e) => ({

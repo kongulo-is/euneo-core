@@ -23,6 +23,7 @@ export type ClientWrite = {
   platform: "android" | "ios";
   birthDate: Timestamp;
   email: string;
+  currentProgramId?: string;
 };
 
 export type ClientProgramDayWrite = {
