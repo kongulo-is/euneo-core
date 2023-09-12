@@ -67,7 +67,6 @@ export type TClientProgram = {
   programId: string;
   conditionId: TConditionId;
   physioId?: string;
-  programBy: "Euneo" | string; //? bæta þessu við? string: physioId
   outcomeMeasuresAnswers: TOutcomeMeasureAnswer[];
   painLevel: TPainLevel[];
   days: TClientProgramDay[]; //TODO: ? Tékka við viljum við hafa þetta hér inni eða ekki.
