@@ -13,7 +13,7 @@ import {
   TClientProgram,
   TClientProgramDay,
   TEuneoProgram,
-  TOutcomeMeasureAnswer,
+  TOutcomeMeasureAnswers,
   TOutcomeMeasureId,
   TPainLevel,
   TPhysioClient,
@@ -186,9 +186,9 @@ export const physioClientConverter = {
 export const clientProgramConverter = {
   toFirestore(program: TClientProgram): ClientProgramWrite {
     const data: ClientProgramWrite = {
-      outcomeMeasuresAnswers: program.outcomeMeasuresAnswers,
+      outcomeMeasuresAnswers: program.outcomeMeasuresAnswers as any,
       conditionId: program.conditionId,
-      painLevels: program.painLevel,
+      painLevel: program.painLevels as any,
       programRef: doc(db, "programs", program.programId),
     };
 
@@ -233,7 +233,7 @@ export const clientProgramConverter = {
     const programBy = programRef?.parent.parent?.id;
 
     // convert timestamps to dates in outcomeMeasures and painLevels
-    const outcomeMeasuresAnswers: TOutcomeMeasureAnswer[] =
+    const outcomeMeasuresAnswers: TOutcomeMeasureAnswers[] =
       data.outcomeMeasuresAnswers.map((measure) => ({
         ...measure,
         date: measure.date.toDate(),
@@ -251,7 +251,7 @@ export const clientProgramConverter = {
       painLevel,
     };
 
-    return clientProgram;
+    return clientProgram as any;
   },
 };
 

@@ -36,11 +36,12 @@ import {
   TPhysioClient,
   TClientProgram,
   TPainLevel,
-  TOutcomeMeasureAnswer,
+  TOutcomeMeasureAnswers,
   TClientProgramDay,
 } from "@src/types/datatypes";
 import { db } from "../firebase/db";
 import { updateDoc } from "./updateDoc";
+import runtimeChecks from "./runtimeChecks";
 
 async function _getProgramFromRef(
   programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>
@@ -289,8 +290,16 @@ export async function addPhysioProgramToUser(
   physioProgram: TPhysioProgram,
   trainingDays: boolean[],
   painLevel: TPainLevel,
-  outcomeMeasuresAnswer: TOutcomeMeasureAnswer
+  outcomeMeasureAnswers: TOutcomeMeasureAnswers
 ): Promise<{ clientProgram: TClientProgram; clientProgramId: string }> {
+  runtimeChecks.addProgramToUser(
+    clientId,
+    physioProgram,
+    trainingDays,
+    painLevel,
+    outcomeMeasureAnswers
+  );
+
   const { physioId, conditionId, physioProgramId, days } = physioProgram;
 
   // Store the program in the Firestore database
@@ -301,7 +310,7 @@ export async function addPhysioProgramToUser(
     conditionId,
     trainingDays,
     painLevels: [painLevel],
-    outcomeMeasuresAnswers: [outcomeMeasuresAnswer],
+    outcomeMeasuresAnswers: [outcomeMeasureAnswers],
     days: [],
   };
 

@@ -5,7 +5,6 @@ import {
   TProgramMode,
   TPrescriptionStatus,
   TClientStatus,
-  TOutcomeMeasureAnswer,
   TPainLevel,
   TPhase,
   TClientPhysicalInformation,

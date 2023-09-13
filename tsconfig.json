@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "strict": true,
     "target": "es6",
     "module": "commonjs",
     "jsx": "react-native",
@@ -11,10 +12,6 @@
       "@*": [
         "./*"
       ],
-
-
-   
-      
     },
   },
   "exclude": ["node_modules"],

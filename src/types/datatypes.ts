@@ -67,7 +67,7 @@ export type TClientProgram = {
   programId: string;
   conditionId: TConditionId;
   physioId?: string;
-  outcomeMeasuresAnswers: TOutcomeMeasureAnswer[];
+  outcomeMeasuresAnswers: TOutcomeMeasureAnswers[];
   painLevels: TPainLevel[];
   days: TClientProgramDay[]; //TODO: ? Tékka við viljum við hafa þetta hér inni eða ekki.
   conditionAssessmentAnswers?: TConditionAssessmentAnswer[];
@@ -114,7 +114,7 @@ export type TClientProgramDay = {
  * @description Assessment of client during program.
  * @param name (FAAM, SF-36, VISA-A, PROMIS,...)
  */
-export type TOutcomeMeasureAnswer = {
+export type TOutcomeMeasureAnswers = {
   date: Date;
   name: TOutcomeMeasureId;
   type: string | "foot&ankle"; //TODO: what is dis?
@@ -122,17 +122,17 @@ export type TOutcomeMeasureAnswer = {
 };
 
 /**
- * @memberof TOutcomeMeasureAnswer
+ * @memberof TOutcomeMeasureAnswers
  * @description Assessment result and answers.
  * @param score 0-100%
  * @param answers array of answeres to questions (0-4)
  */
 export type TOutcomeMeasureAnswerSection = {
   score: number;
-  answers?: number[];
+  answers: (number | null)[];
 };
 
-/** @memberof TOutcomeMeasureAnswer */
+/** @memberof TOutcomeMeasureAnswers */
 export type TOutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis";
 
 /**
