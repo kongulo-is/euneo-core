@@ -231,8 +231,8 @@ export async function getPhysioClients(
         // TODO: remove this. This is just for testing.
         return {
           ...clientData,
-          program: null,
-        };
+          program: undefined,
+        } as TPhysioClient;
         if (clientData.clientId && clientData.prescription?.programId) {
           let programRef: DocumentReference<ClientProgramWrite>;
           let clientRef: DocumentReference<ClientWrite>;

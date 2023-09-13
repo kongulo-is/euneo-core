@@ -94,10 +94,9 @@ export const physioProgramConverter = {
 
     return {
       ...rest,
-      ...(outcomeMeasureIds.length && { outcomeMeasureIds }),
-      physioId: snapshot.ref.parent.parent?.id,
+      outcomeMeasureIds,
+      physioId: snapshot.ref.parent.parent!.id,
       physioProgramId: snapshot.id,
-      // createdBy: "Physio",
       mode: "continuous",
     };
   },
@@ -122,7 +121,7 @@ export const euneoProgramConverter = {
 
     return {
       ...rest,
-      ...(outcomeMeasureIds.length && { outcomeMeasureIds }),
+      outcomeMeasureIds,
       // createdBy: "Euneo",
       programId: snapshot.id,
     };
