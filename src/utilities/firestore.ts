@@ -163,15 +163,49 @@ export async function createPhysioClient(
 }
 
 export async function addPrescriptionToPhysioClient(
-  prescription: PrescriptionWrite,
-  physioId: string
+  programPath: TProgramPath,
+  physioId: string,
+  physioClientId: string
 ) {
   try {
-    const physioRef = doc(db, "physios", physioId);
-    const clientsRef = collection(physioRef, "clients");
+    let programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>;
+    // Determine if it's a program or a physio program based on the path format
+    const parts = programPath.split("/");
+    if (parts.length === 2) {
+      // It's a program ID
+      programRef = doc(db, programPath) as DocumentReference<EuneoProgramWrite>;
+    } else if (parts.length === 4) {
+      // It's a physio program ID
+      programRef = doc(
+        db,
+        programPath
+      ) as DocumentReference<PhysioProgramWrite>;
+    } else {
+      throw new Error("Invalid program path format");
+    }
+    const clientRef = doc(
+      db,
+      "physios",
+      physioId,
+      "clients",
+      physioClientId
+    ) as DocumentReference<PhysioClientWrite>;
+
+    const prescription: PrescriptionWrite = {
+      programRef,
+      prescriptionDate: Timestamp.now(),
+      status: "Invited",
+    };
+
+    await updateDoc(clientRef, {
+      prescription,
+    });
+    return true;
   } catch (error) {
     console.error("Error adding prescription to physio client:", error, {
-      prescription,
+      programPath,
+      physioId,
+      physioClientId,
     });
     throw error;
   }
