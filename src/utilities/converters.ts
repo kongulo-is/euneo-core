@@ -11,7 +11,9 @@ import {
 } from "../types/converterTypes";
 import {
   TClientProgram,
+  TClientProgramCommon,
   TClientProgramDay,
+  TClientProgramSpecific,
   TEuneoProgram,
   TOutcomeMeasureAnswers,
   TOutcomeMeasureId,
@@ -96,6 +98,9 @@ export const physioProgramConverter = {
       ...rest,
       outcomeMeasureIds,
       physioId: snapshot.ref.parent.parent!.id,
+      ...(snapshot.ref.parent.parent && {
+        physioId: snapshot.ref.parent.parent?.id,
+      }),
       physioProgramId: snapshot.id,
       mode: "continuous",
     };
@@ -184,22 +189,37 @@ export const physioClientConverter = {
 
 export const clientProgramConverter = {
   toFirestore(program: TClientProgram): ClientProgramWrite {
+    const outcomeMeasuresAnswers = program.outcomeMeasuresAnswers.map(
+      (measure) => ({
+        ...measure,
+        date: Timestamp.fromDate(measure.date),
+      })
+    );
+
+    const painLevels = program.painLevels.map((pain) => ({
+      ...pain,
+      date: Timestamp.fromDate(pain.date),
+    }));
+
     const data: ClientProgramWrite = {
-      outcomeMeasuresAnswers: program.outcomeMeasuresAnswers as any,
+      outcomeMeasuresAnswers,
       conditionId: program.conditionId,
-      painLevel: program.painLevels as any,
+      painLevels,
       programRef: doc(db, "programs", program.programId),
     };
 
-    if (program.physioId) {
+    if ("physioId" in program && "physioProgramId" in program) {
       data.programRef = doc(
         db,
         "physios",
         program.physioId,
         "programs",
-        program.programId
+        program.physioProgramId
       );
+    } else if ("programId" in program && program.conditionAssessmentAnswers) {
+      data.conditionAssessmentAnswers = program.conditionAssessmentAnswers;
     }
+
     if (program.phases) {
       data.phases = program.phases;
     }
@@ -212,16 +232,13 @@ export const clientProgramConverter = {
       data.trainingDays = program.trainingDays;
     }
 
-    if (program.conditionAssessmentAnswers) {
-      data.conditionAssessmentAnswers = program.conditionAssessmentAnswers;
-    }
-
     return data;
   },
+
   fromFirestore(
     snapshot: QueryDocumentSnapshot<ClientProgramWrite>,
     options: SnapshotOptions
-  ): Omit<TClientProgram, "days"> {
+  ): Omit<TClientProgramCommon, "days"> & TClientProgramSpecific {
     // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
     const data = snapshot.data(options);
 
@@ -237,7 +254,7 @@ export const clientProgramConverter = {
         ...measure,
         date: measure.date.toDate(),
       }));
-    const painLevel: TPainLevel[] = data.painLevel.map((pain) => ({
+    const painLevel: TPainLevel[] = data.painLevels.map((pain) => ({
       ...pain,
       date: pain.date.toDate(),
     }));

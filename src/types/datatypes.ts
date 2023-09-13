@@ -47,6 +47,26 @@ export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
 
 export type TConditionAssessmentAnswer = boolean | string;
 
+// Common properties
+export type TClientProgramCommon = {
+  clientProgramId: string;
+  conditionId: TConditionId;
+  outcomeMeasuresAnswers: TOutcomeMeasureAnswers[];
+  painLevels: TPainLevel[];
+  days: TClientProgramDay[];
+  phases?: TPhase[];
+  trainingDays?: boolean[];
+  physicalInformation?: TClientPhysicalInformation;
+};
+
+// Specific properties for each case
+export type TClientProgramSpecific =
+  | { physioProgramId: string; physioId: string }
+  | {
+      programId: string;
+      conditionAssessmentAnswers: TConditionAssessmentAnswer[];
+    };
+
 /**
  * @memberof TPhysioClient
  * @memberof TClientProfile
@@ -63,18 +83,8 @@ export type TConditionAssessmentAnswer = boolean | string;
  * @param physicalInformation physical information about the client. (height, weight, etc.) //* Þetta er gamla userInfo.
  *
  */
-export type TClientProgram = {
-  programId: string;
-  conditionId: TConditionId;
-  physioId?: string;
-  outcomeMeasuresAnswers: TOutcomeMeasureAnswers[];
-  painLevels: TPainLevel[];
-  days: TClientProgramDay[]; //TODO: ? Tékka við viljum við hafa þetta hér inni eða ekki.
-  conditionAssessmentAnswers?: TConditionAssessmentAnswer[];
-  phases?: TPhase[];
-  trainingDays?: boolean[]; //TODO: ? Tékka hvort þetta sé einhverntíman ekki sett í gagnagrunninn.
-  physicalInformation?: TClientPhysicalInformation;
-};
+// Combine them
+export type TClientProgram = TClientProgramSpecific & TClientProgramCommon;
 
 /**
  * @memberof TClientProgram

@@ -1,83 +1,157 @@
+import { assert } from "console";
 import {
-  TPhysioProgram,
-  TPainLevel,
+  TClientPhysicalInformation,
+  TClientProgram,
+  TClientProgramDay,
+  TConditionAssessmentAnswer,
+  TConditionId,
   TOutcomeMeasureAnswers,
-} from "@src/types/datatypes";
+  TPainLevel,
+  TPhase,
+  TPhysioProgram,
+} from "../types/datatypes";
+
+const assertTConditionId = (id: TConditionId): void => {
+  const validIds = [
+    "plantar-heel-pain" /*...other condition IDs*/,
+    ,
+    "no-condition",
+  ];
+  if (!validIds.includes(id)) throw new Error(`Invalid TConditionId: ${id}`);
+};
+
+const assertTOutcomeMeasureAnswers = (obj: TOutcomeMeasureAnswers): void => {
+  if (
+    !obj ||
+    !(obj.date instanceof Date) ||
+    typeof obj.name !== "string" ||
+    !Array.isArray(obj.sections)
+  ) {
+    throw new Error("Invalid TOutcomeMeasureAnswers");
+  }
+};
+
+const assertTPainLevel = (obj: TPainLevel): void => {
+  if (
+    !obj ||
+    typeof obj.painIndex !== "number" ||
+    !(obj.date instanceof Date)
+  ) {
+    throw new Error("Invalid TPainLevel");
+  }
+};
+
+const assertTClientProgramDay = (obj: TClientProgramDay): void => {
+  if (
+    !obj ||
+    typeof obj.dayId !== "string" ||
+    !(obj.date instanceof Date) ||
+    typeof obj.finished !== "boolean"
+  ) {
+    throw new Error("Invalid TClientProgramDay");
+  }
+};
+
+const assertTPhase = (obj: TPhase): void => {
+  if (!obj || typeof obj.key !== "string" || typeof obj.value !== "number") {
+    throw new Error("Invalid TPhase");
+  }
+};
+
+const assertConditionAssessmentAnswer = (
+  answer: TConditionAssessmentAnswer
+): void => {
+  if (typeof answer !== "boolean" && typeof answer !== "string") {
+    throw new Error("Invalid TConditionAssessmentAnswer");
+  }
+};
+
+const assertTClientPhysicalInformation = (
+  obj: TClientPhysicalInformation
+): void => {
+  if (
+    !obj ||
+    typeof obj.athlete !== "boolean" ||
+    typeof obj.height !== "number"
+  ) {
+    throw new Error("Invalid TClientPhysicalInformation");
+  }
+};
+
+const assertTypeString = (val: any, fieldName: string): void => {
+  if (typeof val !== "string") {
+    throw new Error(`assertTypeString: Invalid ${fieldName}`);
+  }
+};
+
+type AssertFunction<T> = (item: T) => void;
+
+const assertArray = <T>(
+  arr: any[],
+  assertFunc: AssertFunction<T>,
+  fieldName: string
+): void => {
+  if (
+    !Array.isArray(arr) ||
+    !arr.every((item) => {
+      try {
+        assertFunc(item);
+        return true;
+      } catch {
+        return false;
+      }
+    })
+  ) {
+    throw new Error(`assertArray: Invalid ${fieldName}`);
+  }
+};
 
 const runtimeChecks = {
-  addProgramToUser(
-    clientId: string,
-    physioProgram: TPhysioProgram,
-    trainingDays: boolean[],
-    painLevel: TPainLevel,
-    outcomeMeasureAnswers: TOutcomeMeasureAnswers
-  ) {
-    if (!clientId || typeof clientId !== "string") {
-      throw new Error("Invalid clientId");
-    }
-
+  assertTClientProgram(
+    obj: TClientProgram | Omit<TClientProgram, "clientProgramId">,
+    write?: boolean
+  ): void {
     if (
-      !Array.isArray(trainingDays) ||
-      !trainingDays.every((day) => typeof day === "boolean")
+      (!obj ||
+        ("clientProgramId" in obj &&
+          typeof obj.clientProgramId !== "string")) &&
+      !write
     ) {
-      throw new Error("Invalid trainingDays");
+      throw new Error("Invalid TClientProgram");
     }
 
-    // Validate painLevel
-    if (
-      !painLevel ||
-      typeof painLevel.painIndex !== "number" ||
-      painLevel.painIndex < 0 ||
-      painLevel.painIndex > 10 ||
-      !(painLevel.date instanceof Date)
-    ) {
-      throw new Error("Invalid painLevel");
+    assertTConditionId(obj.conditionId);
+
+    // Handle the union type
+    if ("physioProgramId" in obj) {
+      assertTypeString(obj.physioProgramId, "physioProgramId");
+      assertTypeString(obj.physioId, "physioId");
+    } else if ("programId" in obj) {
+      assertTypeString(obj.programId, "programId");
+      assertArray(
+        obj.conditionAssessmentAnswers,
+        assertConditionAssessmentAnswer,
+        "conditionAssessmentAnswers"
+      );
     }
 
-    // Validate outcomeMeasuresAnswer
-    if (!outcomeMeasureAnswers) {
-      throw new Error("outcomeMeasureAnswers is missing");
+    assertArray(
+      obj.outcomeMeasuresAnswers,
+      assertTOutcomeMeasureAnswers,
+      "outcomeMeasuresAnswers"
+    );
+    assertArray(obj.painLevels, assertTPainLevel, "painLevels");
+    assertArray(obj.days, assertTClientProgramDay, "days");
+
+    if (obj.phases !== undefined) {
+      assertArray(obj.phases, assertTPhase, "phases");
     }
 
-    if (!(outcomeMeasureAnswers.date instanceof Date)) {
-      console.log(typeof outcomeMeasureAnswers.date, outcomeMeasureAnswers);
-
-      throw new Error("Invalid outcomeMeasureAnswers.date");
-    }
-
-    if (typeof outcomeMeasureAnswers.name !== "string") {
-      throw new Error("Invalid outcomeMeasureAnswers.name");
-    }
-
-    if (
-      typeof outcomeMeasureAnswers.type !== "string" &&
-      outcomeMeasureAnswers.type !== "foot&ankle"
-    ) {
-      throw new Error("Invalid outcomeMeasureAnswers.type");
-    }
-
-    if (
-      !Array.isArray(outcomeMeasureAnswers.sections) ||
-      outcomeMeasureAnswers.sections.length === 0
-    ) {
-      throw new Error("Invalid outcomeMeasuresAnswer.sections");
-    }
-
-    // Validate physioProgram
-    if (
-      !physioProgram ||
-      typeof physioProgram.name !== "string" ||
-      typeof physioProgram.conditionId !== "string" ||
-      !Array.isArray(physioProgram.outcomeMeasureIds) ||
-      physioProgram.outcomeMeasureIds.length === 0 ||
-      typeof physioProgram.mode !== "string" ||
-      (physioProgram.mode !== "continuous" && physioProgram.mode !== "phase") ||
-      typeof physioProgram.physioProgramId !== "string" ||
-      typeof physioProgram.physioId !== "string"
-    ) {
-      throw new Error("Invalid physioProgram");
+    if (obj.physicalInformation !== undefined) {
+      assertTClientPhysicalInformation(obj.physicalInformation);
     }
   },
+  getClientProgram(clientProgram: TClientProgram) {},
 };
 
 export default runtimeChecks;

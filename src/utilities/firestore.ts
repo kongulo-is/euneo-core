@@ -1,15 +1,6 @@
 import {
-  physioProgramConverter,
-  physioClientConverter,
-  clientProgramDayConverter,
-  clientProgramConverter,
-  programDayConverter,
-} from "./converters";
-
-import {
   DocumentReference,
   QuerySnapshot,
-  Timestamp,
   addDoc,
   collection,
   doc,
@@ -17,30 +8,38 @@ import {
   getDocs,
   query,
   setDoc,
-  updateDoc as firestoreUpdateDoc,
   where,
+  updateDoc,
+  WithFieldValue,
 } from "firebase/firestore";
+import { db } from "../firebase/db";
 import {
   EuneoProgramWrite,
   PhysioProgramWrite,
   InvitationWrite,
-  ClientProgramWrite,
-  ClientWrite,
   PhysioClientWrite,
   PrescriptionWrite,
-} from "@src/types/converterTypes";
+  ClientProgramWrite,
+  ClientWrite,
+} from "../types/converterTypes";
 import {
   TPhysioProgram,
   TEuneoProgram,
   TProgramPath,
   TPhysioClient,
-  TClientProgram,
   TPainLevel,
   TOutcomeMeasureAnswers,
+  TClientProgram,
   TClientProgramDay,
-} from "@src/types/datatypes";
-import { db } from "../firebase/db";
-import { updateDoc } from "./updateDoc";
+  TClientPhysicalInformation,
+} from "../types/datatypes";
+import {
+  physioProgramConverter,
+  programDayConverter,
+  physioClientConverter,
+  clientProgramConverter,
+  clientProgramDayConverter,
+} from "./converters";
 import runtimeChecks from "./runtimeChecks";
 
 async function _getProgramFromRef(
@@ -290,34 +289,36 @@ export async function addPhysioProgramToUser(
   physioProgram: TPhysioProgram,
   trainingDays: boolean[],
   painLevel: TPainLevel,
-  outcomeMeasureAnswers: TOutcomeMeasureAnswers
+  outcomeMeasureAnswers: TOutcomeMeasureAnswers,
+  physicalInformation: TClientPhysicalInformation
 ): Promise<{ clientProgram: TClientProgram; clientProgramId: string }> {
-  runtimeChecks.addProgramToUser(
-    clientId,
-    physioProgram,
-    trainingDays,
-    painLevel,
-    outcomeMeasureAnswers
-  );
-
   const { physioId, conditionId, physioProgramId, days } = physioProgram;
 
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
-  const clientProgram = {
-    programId: physioProgramId,
+
+  // Create clientProgram without clientProgramId
+  const clientProgram: TClientProgram = {
+    physioProgramId,
     physioId,
     conditionId,
     trainingDays,
     painLevels: [painLevel],
     outcomeMeasuresAnswers: [outcomeMeasureAnswers],
-    days: [],
+    physicalInformation,
+    days: [], // a placeholder, it's not used
+    clientProgramId: "", // a placeholder, it's not used
   };
+
+  // Perform runtime checks
+  runtimeChecks.assertTClientProgram(clientProgram, true); // Assertion done here if needed
 
   const program = await addDoc(
     userProgramDoc.withConverter(clientProgramConverter),
     clientProgram
   );
+
+  clientProgram.clientProgramId = program.id;
 
   let dayList: TClientProgramDay[] = [];
   let d = new Date();
@@ -365,6 +366,47 @@ export async function addPhysioProgramToUser(
   updateDoc(clientRef, { currentProgramId: program.id });
 
   return { clientProgram, clientProgramId: program.id };
+}
+
+export async function getClientProgram(
+  clientId: string,
+  clientProgramId: string
+): Promise<TClientProgram> {
+  const clientProgramRef = doc(
+    db,
+    "clients",
+    clientId,
+    "programs",
+    clientProgramId
+  ) as DocumentReference<ClientProgramWrite>;
+
+  const clientProgramSnap = await getDoc(
+    clientProgramRef.withConverter(clientProgramConverter)
+  );
+
+  const clientProgram = clientProgramSnap.data();
+
+  if (!clientProgram) {
+    throw new Error("Client program not found");
+  }
+
+  // add days to clientProgram
+  const daysSnap = await getDocs(
+    collection(clientProgramRef, "days").withConverter(
+      clientProgramDayConverter
+    )
+  );
+
+  const days = daysSnap.docs.map((doc) => doc.data());
+
+  const clientProgramWithDays: TClientProgram = {
+    ...clientProgram,
+    days,
+  };
+
+  runtimeChecks.assertTClientProgram(clientProgramWithDays);
+
+  return clientProgramWithDays;
 }
 
 // export type ClientProgramWrite = {
