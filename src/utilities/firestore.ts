@@ -10,7 +10,7 @@ import {
   setDoc,
   where,
   updateDoc,
-  WithFieldValue,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "../firebase/db";
 import {
@@ -282,6 +282,42 @@ export async function getPhysioClients(
     });
     return [];
   }
+}
+
+// get single physio client
+export async function getPhysioClient(
+  physioId: string,
+  physioClientId: string
+): Promise<TPhysioClient> {
+  try {
+    const physioClientRef = doc(
+      db,
+      "physios",
+      physioId,
+      "clients",
+      physioClientId
+    ) as DocumentReference<PhysioClientWrite>;
+
+    const clientSnap = await getDoc(
+      physioClientRef.withConverter(physioClientConverter)
+    );
+    const clientData = clientSnap.data();
+
+    if (!clientData) {
+      throw new Error("Client not found");
+    }
+
+    // TODO: get clients program data.
+
+    return clientData;
+  } catch (error) {
+    console.error("Error fetching client:", error, {
+      physioId,
+      physioClientId,
+    });
+  }
+
+  return {} as TPhysioClient;
 }
 
 export async function addPhysioProgramToUser(
