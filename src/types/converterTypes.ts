@@ -39,7 +39,7 @@ export type ClientProgramWrite = {
   programRef: DocumentReference;
   conditionId: TConditionId;
   outcomeMeasuresAnswers: OutcomeMeasureAnswerWrite[];
-  painLevel: PainLevelWrite[];
+  painLevels: PainLevelWrite[];
   conditionAssessmentAnswers?: Array<boolean | string>;
   phases?: TPhase[];
   trainingDays?: boolean[]; //TODO: ? Tékka hvort þetta sé einhverntíman ekki sett í gagnagrunninn.

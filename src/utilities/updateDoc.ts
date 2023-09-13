@@ -3,18 +3,18 @@ import {
   UpdateData,
   updateDoc as firestoreUpdateDoc,
 } from "firebase/firestore";
-
 import {
-  ClientProgramDayWrite,
   ClientProgramWrite,
   ClientWrite,
-  EuneoProgramWrite,
-  ExerciseDayWrite,
-  PhysioClientWrite,
-  PhysioProgramWrite,
+  ClientProgramDayWrite,
   PhysioWrite,
+  PhysioClientWrite,
+  EuneoProgramWrite,
+  PhysioProgramWrite,
   ProgramDayWrite,
-} from "@src/types/converterTypes";
+  ExerciseDayWrite,
+} from "../types/converterTypes";
+
 type AllWrites =
   | ClientProgramWrite
   | ClientWrite
