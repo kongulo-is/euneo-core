@@ -10,18 +10,10 @@ import {
   ClientProgramWrite,
 } from "../types/converterTypes";
 import {
-  TClientProgram,
-  TClientProgramCommon,
-  TClientProgramDay,
-  TClientProgramSpecific,
-  TEuneoProgram,
-  TOutcomeMeasureAnswers,
   TOutcomeMeasureId,
-  TPainLevel,
   TPhysioClient,
-  TPhysioProgram,
   TProgramDay,
-} from "../types/datatypes";
+} from "../types/baseTypes";
 
 import {
   doc,
@@ -30,6 +22,20 @@ import {
   SnapshotOptions,
   Timestamp,
 } from "@firebase/firestore";
+import {
+  TEuneoProgramOmitted,
+  TPhysioProgram,
+  TPhysioProgramOmitted,
+} from "../types/programTypes";
+import {
+  TClientProgramCommon,
+  TClientProgramSpecific,
+  TOutcomeMeasureAnswers,
+  TPainLevel,
+  TClientProgramDay,
+  TClientProgramOmitted,
+  TClientProgram,
+} from "../types/clientTypes";
 
 // sdkofjdsalkfjsa
 
@@ -71,20 +77,25 @@ export const programDayConverter = {
 export const physioProgramConverter = {
   toFirestore(program: TPhysioProgram): PhysioProgramWrite {
     // * we only create/edit physio programs
-    return {
+    let outcomeMeasureRefs: DocumentReference[] = [];
+    if (program.outcomeMeasureIds) {
+      outcomeMeasureRefs = program.outcomeMeasureIds.map((id) =>
+        doc(db, "outcomeMeasures", id)
+      );
+    }
+    const data: PhysioProgramWrite = {
       name: program.name,
       conditionId: program.conditionId,
       mode: program.mode,
-      outcomeMeasureRefs: program.outcomeMeasureIds.map((id) =>
-        doc(db, "outcomeMeasures", id)
-      ),
-    } as PhysioProgramWrite;
+      outcomeMeasureRefs,
+    };
+    return data;
   },
 
   fromFirestore(
     snapshot: QueryDocumentSnapshot<PhysioProgramWrite>,
     options: SnapshotOptions
-  ): Omit<TPhysioProgram, "days"> {
+  ): TPhysioProgramOmitted<"days"> {
     // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
     const data = snapshot.data(options);
     let { outcomeMeasureRefs, ...rest } = data;
@@ -97,9 +108,7 @@ export const physioProgramConverter = {
     return {
       ...rest,
       ...(outcomeMeasureIds.length && { outcomeMeasureIds }),
-      ...(snapshot.ref.parent.parent && {
-        physioId: snapshot.ref.parent.parent?.id,
-      }),
+      physioId: snapshot.ref.parent.parent!.id,
       physioProgramId: snapshot.id,
       // createdBy: "Physio",
       mode: "continuous",
@@ -111,7 +120,7 @@ export const euneoProgramConverter = {
   fromFirestore(
     snapshot: QueryDocumentSnapshot<EuneoProgramWrite>,
     options: SnapshotOptions
-  ): Omit<TEuneoProgram, "days"> {
+  ): TEuneoProgramOmitted<"days"> {
     // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
     const data = snapshot.data(options);
     let { outcomeMeasureRefs, ...rest } = data;
@@ -188,7 +197,9 @@ export const physioClientConverter = {
 };
 
 export const clientProgramConverter = {
-  toFirestore(program: TClientProgram): ClientProgramWrite {
+  // ! TODO: ég þurfti að breyta þessu úr TClientProgramOmitted<"days" | "clientProgramId"> því
+  // ! það sem fer í firestore þarf að vera sama týpa og kemur úr firestore
+  toFirestore(program: TClientProgramOmitted<"days">): ClientProgramWrite {
     const outcomeMeasuresAnswers = program.outcomeMeasuresAnswers.map(
       (measure) => ({
         ...measure,
@@ -234,19 +245,16 @@ export const clientProgramConverter = {
 
     return data;
   },
-
   fromFirestore(
     snapshot: QueryDocumentSnapshot<ClientProgramWrite>,
     options: SnapshotOptions
-  ): Omit<TClientProgramCommon, "days"> & TClientProgramSpecific {
+  ): TClientProgramOmitted<"days"> {
     // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
     const data = snapshot.data(options);
 
-    let { programRef, ...rest } = data;
+    let { programRef, painLevels, ...rest } = data;
 
     // create program id and by.
-    const programId = programRef?.id;
-    const programBy = programRef?.parent.parent?.id;
 
     // convert timestamps to dates in outcomeMeasures and painLevels
     const outcomeMeasuresAnswers: TOutcomeMeasureAnswers[] =
@@ -254,20 +262,39 @@ export const clientProgramConverter = {
         ...measure,
         date: measure.date.toDate(),
       }));
-    const painLevel: TPainLevel[] = data.painLevels.map((pain) => ({
+
+    let clientProgram: TClientProgramOmitted<"days">;
+
+    const painLevelsClient = painLevels.map((pain) => ({
       ...pain,
       date: pain.date.toDate(),
     }));
 
-    const clientProgram = {
-      ...rest,
-      ...(programId && { programId }),
-      ...(programBy && { programBy }),
-      outcomeMeasuresAnswers,
-      painLevel,
-    };
+    // TODO: Þyrftum sennilega að hafa eh betra tékk hvort þetta sé euneo eða physio program, kannski tékka frekar á reffinum, hvort það sé parent.parent
 
-    return clientProgram as any;
+    if ("conditionAssessmentAnswers" in rest) {
+      clientProgram = {
+        ...rest,
+        clientProgramId: snapshot.id,
+        outcomeMeasuresAnswers,
+        painLevels: painLevelsClient,
+        programId: programRef.id,
+        conditionAssessmentAnswers: [], // replace with real value
+      };
+      return clientProgram;
+    } else {
+      const physioProgramId = programRef?.id;
+      const physioId = programRef?.parent.parent!.id;
+      clientProgram = {
+        ...rest,
+        clientProgramId: snapshot.id,
+        outcomeMeasuresAnswers,
+        painLevels: painLevelsClient,
+        physioProgramId,
+        physioId,
+      };
+      return clientProgram;
+    }
   },
 };
 
