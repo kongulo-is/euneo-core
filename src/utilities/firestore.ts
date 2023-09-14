@@ -29,6 +29,7 @@ import {
   physioClientConverter,
   clientProgramConverter,
   clientProgramDayConverter,
+  exerciseConverter,
 } from "./converters";
 import runtimeChecks from "./runtimeChecks";
 import { TPhysioProgram, TEuneoProgram } from "../types/programTypes";
@@ -38,7 +39,6 @@ import {
   TClientPhysicalInformation,
   TClientProgram,
   TClientProgramDay,
-  TClientProgramOmitted,
 } from "../types/clientTypes";
 
 async function _getProgramFromRef(
@@ -60,7 +60,8 @@ async function _getProgramFromRef(
 
   // TODO: Add phases
 
-  return { ...program, days };
+  // TODO: check if program is undefined
+  return { ...program!, days };
 }
 
 export async function getProgramWithDays(
@@ -235,43 +236,43 @@ export async function getPhysioClients(
           ...clientData,
           program: undefined,
         } as TPhysioClient;
-        if (clientData.clientId && clientData.prescription?.programId) {
-          let programRef: DocumentReference<ClientProgramWrite>;
-          let clientRef: DocumentReference<ClientWrite>;
-          clientRef = doc(
-            db,
-            "clients",
-            clientData.clientId
-          ) as DocumentReference<ClientWrite>;
-          programRef = doc(
-            clientRef,
-            "programs",
-            clientData.prescription.programId
-          ) as DocumentReference<ClientProgramWrite>;
+        // if (clientData.clientId && clientData.prescription?.programId) {
+        //   let programRef: DocumentReference<ClientProgramWrite>;
+        //   let clientRef: DocumentReference<ClientWrite>;
+        //   clientRef = doc(
+        //     db,
+        //     "clients",
+        //     clientData.clientId
+        //   ) as DocumentReference<ClientWrite>;
+        //   programRef = doc(
+        //     clientRef,
+        //     "programs",
+        //     clientData.prescription.programId
+        //   ) as DocumentReference<ClientProgramWrite>;
 
-          const programSnap = await getDoc(
-            programRef.withConverter(clientProgramConverter)
-          );
-          const programData = programSnap.data();
+        //   const programSnap = await getDoc(
+        //     programRef.withConverter(clientProgramConverter)
+        //   );
+        //   const programData = programSnap.data();
 
-          const daySnapshots = await getDocs(
-            collection(programRef, "days").withConverter(
-              clientProgramDayConverter
-            )
-          );
+        //   const daySnapshots = await getDocs(
+        //     collection(programRef, "days").withConverter(
+        //       clientProgramDayConverter
+        //     )
+        //   );
 
-          const days = daySnapshots.docs.map((doc) => doc.data());
+        //   const days = daySnapshots.docs.map((doc) => doc.data());
 
-          const physioClient: TPhysioClient = {
-            ...clientData,
-            program: {
-              ...programData,
-              days,
-            },
-          };
+        //   const physioClient: TPhysioClient = {
+        //     ...clientData,
+        //     program: {
+        //       ...programData,
+        //       days,
+        //     },
+        //   };
 
-          return physioClient;
-        }
+        //   return physioClient;
+        // }
       })
     ).catch((err) => {
       console.error(err);
@@ -348,9 +349,6 @@ export async function addPhysioProgramToClient(
     clientProgramId: "", // ! TODO: þetta þarf líklegast að vera hér, sjá komment á clientProgramConverter
   };
 
-  // Perform runtime checks
-  runtimeChecks.assertTClientProgram(clientProgramNoDays, true); // Assertion done here if needed
-
   const program = await addDoc(
     userProgramDoc.withConverter(clientProgramConverter),
     clientProgramNoDays
@@ -360,6 +358,8 @@ export async function addPhysioProgramToClient(
   let d = new Date();
   d.setHours(0, 0, 0, 0);
   const iterator = 14;
+
+  console.log("here3");
 
   for (let i = 0; i < iterator; i++) {
     const dayId = "d1";
@@ -377,6 +377,7 @@ export async function addPhysioProgramToClient(
 
     d.setDate(d.getDate() + 1);
   }
+  console.log("here4");
 
   const clientProgram: TClientProgram = {
     ...clientProgramNoDays,
@@ -397,6 +398,8 @@ export async function addPhysioProgramToClient(
       return setDoc(dayCol.withConverter(clientProgramDayConverter), day);
     })
   );
+
+  console.log("here5");
 
   const clientRef = doc(
     db,
@@ -437,15 +440,33 @@ export async function getClientProgram(
     )
   );
 
+  console.log("daySnap", daysSnap);
+
   const days = daysSnap.docs.map((doc) => doc.data());
 
   const clientProgramWithDays: TClientProgram = {
     ...clientProgram,
     days,
   };
+
   runtimeChecks.assertTClientProgram(clientProgramWithDays);
 
   return clientProgramWithDays;
+}
+
+export async function getAllExercises() {
+  const exercisesRef = collection(db, "exercises");
+  const exercisesSnap = await getDocs(
+    exercisesRef.withConverter(exerciseConverter)
+  );
+  const exercisesList = exercisesSnap.docs.map((doc) => doc.data());
+
+  // create a map of exercises
+  const exercises = Object.fromEntries(
+    exercisesList.map((exercise) => [exercise.id, exercise])
+  );
+
+  return exercises;
 }
 
 // export type ClientProgramWrite = {

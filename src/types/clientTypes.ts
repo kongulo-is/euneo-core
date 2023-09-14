@@ -87,10 +87,9 @@ export type TClientProgramCommon = {
   conditionId: TConditionId;
   outcomeMeasuresAnswers: TOutcomeMeasureAnswers[];
   painLevels: TPainLevel[];
+  physicalInformation: TClientPhysicalInformation;
   days: TClientProgramDay[];
-  phases?: TPhase[];
-  trainingDays?: boolean[];
-  physicalInformation?: TClientPhysicalInformation;
+  trainingDays: boolean[];
 };
 
 // Specific properties for each case
@@ -99,6 +98,7 @@ export type TClientProgramSpecific =
   | {
       programId: string;
       conditionAssessmentAnswers: TConditionAssessmentAnswer[];
+      phases: TPhase[];
     };
 
 export type TConditionAssessmentAnswer = boolean | string;

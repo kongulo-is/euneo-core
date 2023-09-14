@@ -136,9 +136,9 @@ const runtimeChecks = {
       "outcomeMeasuresAnswers"
     );
     assertArray(obj.painLevels, assertTPainLevel, "painLevels");
-    assertArray(obj.days, assertTClientProgramDay, "days");
+    "days" in obj && assertArray(obj.days, assertTClientProgramDay, "days");
 
-    if (obj.phases !== undefined) {
+    if ("phases" in obj && obj.phases !== undefined) {
       assertArray(obj.phases, assertTPhase, "phases");
     }
 

@@ -1,3 +1,5 @@
+import { TClientProgram } from "./clientTypes";
+
 /**
  * @description Physician data type
  */
@@ -59,15 +61,15 @@ export type TProgramPath =
   | `physios/${string}/programs/${string}`;
 
 /** @memberof TProgram */
-export type TProgramDay = { exercises: TExerciseDay[] };
+export type TProgramDay = { exercises: TProgramDayExercise[] };
 
 /**
  * @memberof TProgramDay
  * @description Exercise in a day in program collection. Either Euneo or custom program.
  * @param id Id of the exercise - ref in firebase
  */
-export type TExerciseDay = {
-  id: string;
+export type TProgramDayExercise = {
+  exerciseId: string;
   quantity: number; //TODO: Er þetta bara notað fyrir seconds. Heita seconds?
   sets: number;
   reps: number;
@@ -98,10 +100,6 @@ export type TClientStatus =
   | "Inactive"
   | "No Prescription";
 
-type TExercises = {
-  [key: string]: TExercise;
-};
-
 /**
  * @description Exercise in exercise collection
  * @param steps Instructions for the exercise
@@ -119,8 +117,10 @@ export type TExercise = {
     displayID: string;
     assetID: string;
   };
-  type: "Stretch" | "Strength" | "Release" | "Other";
+  type: TExerciseType;
 };
+
+export type TExerciseType = "Stretch" | "Strength" | "Release" | "Other";
 
 export type TConditionId =
   | "plantar-heel-pain"

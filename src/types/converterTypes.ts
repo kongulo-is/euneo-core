@@ -1,16 +1,17 @@
 import { Timestamp, DocumentReference } from "@firebase/firestore";
 import {
   TConditionId,
-  TProgramQuestion,
-  TProgramMode,
   TPrescriptionStatus,
   TClientStatus,
-  TPainLevel,
   TPhase,
+  TOutcomeMeasureId,
+  TExerciseType,
+} from "./baseTypes";
+import {
   TClientPhysicalInformation,
   TOutcomeMeasureAnswerSection,
-  TOutcomeMeasureId,
-} from "./baseTypes";
+} from "./clientTypes";
+import { TProgramQuestion, TProgramMode } from "./programTypes";
 
 /**
  * @description client data as it is stored in the database in client collection
@@ -36,14 +37,14 @@ export type ClientProgramDayWrite = {
 };
 
 export type ClientProgramWrite = {
-  programRef: DocumentReference;
+  programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>;
   conditionId: TConditionId;
   outcomeMeasuresAnswers: OutcomeMeasureAnswerWrite[];
   painLevels: PainLevelWrite[];
   conditionAssessmentAnswers?: Array<boolean | string>;
+  trainingDays: boolean[]; //TODO: ? Tékka hvort þetta sé einhverntíman ekki sett í gagnagrunninn.
+  physicalInformation: TClientPhysicalInformation;
   phases?: TPhase[];
-  trainingDays?: boolean[]; //TODO: ? Tékka hvort þetta sé einhverntíman ekki sett í gagnagrunninn.
-  physicalInformation?: TClientPhysicalInformation;
 };
 
 type OutcomeMeasureAnswerWrite = {
@@ -142,4 +143,16 @@ export type ExerciseDayWrite = {
   quantity: number;
   sets: number;
   reps: number;
+};
+
+export type ExerciseWrite = {
+  description: string;
+  name: string;
+  steps: string[];
+  tips: string[];
+  videoLink: {
+    displayID: string;
+    assetID: string;
+  };
+  type: TExerciseType;
 };

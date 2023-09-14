@@ -8,8 +8,10 @@ import {
   PhysioClientWrite,
   ClientProgramDayWrite,
   ClientProgramWrite,
+  ExerciseWrite,
 } from "../types/converterTypes";
 import {
+  TExercise,
   TOutcomeMeasureId,
   TPhysioClient,
   TProgramDay,
@@ -36,6 +38,8 @@ import {
   TClientProgramOmitted,
   TClientProgram,
 } from "../types/clientTypes";
+import { DocumentData } from "firebase/firestore";
+import runtimeChecks from "./runtimeChecks";
 
 // sdkofjdsalkfjsa
 
@@ -44,7 +48,7 @@ export const programDayConverter = {
   toFirestore(day: TProgramDay): ProgramDayWrite {
     return {
       exercises: day.exercises.map((e) => ({
-        reference: doc(db, "exercises", e.id),
+        reference: doc(db, "exercises", e.exerciseId),
         quantity: e.quantity,
         reps: e.reps,
         sets: e.sets,
@@ -64,7 +68,7 @@ export const programDayConverter = {
         const { reference, ...rest } = exercise;
         return {
           ...rest,
-          id: reference.id,
+          exerciseId: reference.id,
         };
       }) || [];
 
@@ -199,6 +203,9 @@ export const clientProgramConverter = {
   // ! TODO: ég þurfti að breyta þessu úr TClientProgramOmitted<"days" | "clientProgramId"> því
   // ! það sem fer í firestore þarf að vera sama týpa og kemur úr firestore
   toFirestore(program: TClientProgramOmitted<"days">): ClientProgramWrite {
+    // Perform runtime checks
+    runtimeChecks.assertTClientProgram(program, true); // Assertion done here if needed
+
     const outcomeMeasuresAnswers = program.outcomeMeasuresAnswers.map(
       (measure) => ({
         ...measure,
@@ -211,35 +218,39 @@ export const clientProgramConverter = {
       date: Timestamp.fromDate(pain.date),
     }));
 
-    const data: ClientProgramWrite = {
-      outcomeMeasuresAnswers,
-      conditionId: program.conditionId,
-      painLevels,
-      programRef: doc(db, "programs", program.programId),
-    };
+    let programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>;
 
-    if ("physioId" in program && "physioProgramId" in program) {
-      data.programRef = doc(
+    if ("programId" in program) {
+      programRef = doc(
+        db,
+        "programs",
+        program?.programId
+      ) as DocumentReference<EuneoProgramWrite>;
+    } else {
+      programRef = doc(
         db,
         "physios",
         program.physioId,
         "programs",
         program.physioProgramId
-      );
-    } else if ("programId" in program && program.conditionAssessmentAnswers) {
+      ) as DocumentReference<PhysioProgramWrite>;
+    }
+
+    const data: ClientProgramWrite = {
+      outcomeMeasuresAnswers,
+      conditionId: program.conditionId,
+      painLevels,
+      programRef: programRef,
+      trainingDays: program.trainingDays,
+      physicalInformation: program.physicalInformation,
+    };
+
+    if ("conditionAssessmentAnswers" in program) {
       data.conditionAssessmentAnswers = program.conditionAssessmentAnswers;
     }
 
-    if (program.phases) {
+    if ("phases" in program) {
       data.phases = program.phases;
-    }
-
-    if (program.physicalInformation) {
-      data.physicalInformation = program.physicalInformation;
-    }
-
-    if (program.trainingDays) {
-      data.trainingDays = program.trainingDays;
     }
 
     return data;
@@ -250,7 +261,7 @@ export const clientProgramConverter = {
   ): TClientProgramOmitted<"days"> {
     // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
     const data = snapshot.data(options);
-
+    console.log("Here1");
     let { programRef, painLevels, ...rest } = data;
 
     // create program id and by.
@@ -261,6 +272,7 @@ export const clientProgramConverter = {
         ...measure,
         date: measure.date.toDate(),
       }));
+    console.log("Here2", painLevels);
 
     let clientProgram: TClientProgramOmitted<"days">;
 
@@ -269,18 +281,21 @@ export const clientProgramConverter = {
       date: pain.date.toDate(),
     }));
 
+    console.log("HERE4");
+
     // TODO: Þyrftum sennilega að hafa eh betra tékk hvort þetta sé euneo eða physio program, kannski tékka frekar á reffinum, hvort það sé parent.parent
 
-    if ("conditionAssessmentAnswers" in rest) {
+    if (rest.conditionAssessmentAnswers && rest.phases) {
       clientProgram = {
         ...rest,
+        conditionAssessmentAnswers: rest.conditionAssessmentAnswers,
+        phases: rest.phases,
         clientProgramId: snapshot.id,
         outcomeMeasuresAnswers,
         painLevels: painLevelsClient,
         programId: programRef.id,
-        conditionAssessmentAnswers: [], // replace with real value
       };
-      return clientProgram;
+      runtimeChecks.assertTClientProgram(clientProgram, true);
     } else {
       const physioProgramId = programRef?.id;
       const physioId = programRef?.parent.parent!.id;
@@ -292,8 +307,9 @@ export const clientProgramConverter = {
         physioProgramId,
         physioId,
       };
-      return clientProgram;
+      runtimeChecks.assertTClientProgram(clientProgram, true);
     }
+    return clientProgram;
   },
 };
 
@@ -326,6 +342,30 @@ export const clientProgramDayConverter = {
     };
 
     return clientProgramDay;
+  },
+};
+
+export const exerciseConverter = {
+  toFirestore(exercise: TExercise): ExerciseWrite {
+    const { id, ...rest } = exercise;
+    const data: ExerciseWrite = {
+      ...rest,
+    };
+
+    return data;
+  },
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<ExerciseWrite>,
+    options: SnapshotOptions
+  ): TExercise {
+    const data = snapshot.data(options);
+
+    const exercise: TExercise = {
+      ...data,
+      id: snapshot.id,
+    };
+
+    return exercise;
   },
 };
 
