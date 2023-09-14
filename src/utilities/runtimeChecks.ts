@@ -1,22 +1,17 @@
-import { assert } from "console";
+import { TConditionId, TPhase } from "../types/baseTypes";
 import {
-  TClientPhysicalInformation,
-  TClientProgram,
-  TClientProgramDay,
-  TConditionAssessmentAnswer,
-  TConditionId,
   TOutcomeMeasureAnswers,
   TPainLevel,
-  TPhase,
-  TPhysioProgram,
-} from "../types/datatypes";
+  TClientProgramDay,
+  TConditionAssessmentAnswer,
+  TClientPhysicalInformation,
+  TClientProgram,
+  TClientProgramOmitted,
+} from "../types/clientTypes";
+import { conditions } from "../constants/conditions";
 
 const assertTConditionId = (id: TConditionId): void => {
-  const validIds = [
-    "plantar-heel-pain" /*...other condition IDs*/,
-    ,
-    "no-condition",
-  ];
+  const validIds = Object.keys(conditions);
   if (!validIds.includes(id)) throw new Error(`Invalid TConditionId: ${id}`);
 };
 
@@ -108,7 +103,7 @@ const assertArray = <T>(
 
 const runtimeChecks = {
   assertTClientProgram(
-    obj: TClientProgram | Omit<TClientProgram, "clientProgramId">,
+    obj: TClientProgram | TClientProgramOmitted<"days">,
     write?: boolean
   ): void {
     if (

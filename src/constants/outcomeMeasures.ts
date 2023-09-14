@@ -1,4 +1,4 @@
-import { TOutcomeMeasureId } from "../types/datatypes";
+import { TOutcomeMeasureId } from "../types/baseTypes";
 
 export type TOutcomeMeasure = {
   id: string;

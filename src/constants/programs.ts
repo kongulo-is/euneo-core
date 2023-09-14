@@ -1,4 +1,4 @@
-import { TEuneoProgramId } from "../types/datatypes";
+import { TEuneoProgramId } from "../types/baseTypes";
 
 type Programs = Record<TEuneoProgramId, string>;
 

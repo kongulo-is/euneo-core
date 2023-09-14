@@ -10,7 +10,7 @@ import {
   TClientPhysicalInformation,
   TOutcomeMeasureAnswerSection,
   TOutcomeMeasureId,
-} from "./datatypes";
+} from "./baseTypes";
 
 /**
  * @description client data as it is stored in the database in client collection
