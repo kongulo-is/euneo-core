@@ -22,7 +22,12 @@ import {
   ClientProgramWrite,
   ClientWrite,
 } from "../types/converterTypes";
-import { TProgramPath, TPhysioClient } from "../types/baseTypes";
+import {
+  TProgramPath,
+  TPhysioClient,
+  TOutcomeMeasureId,
+  TProgramDay,
+} from "../types/baseTypes";
 import {
   physioProgramConverter,
   programDayConverter,
@@ -468,6 +473,14 @@ export async function getAllExercises() {
 
   return exercises;
 }
+//TODO: ER HÉR!
+export async function createPhysioProgram(
+  name: string,
+  conditionId: string,
+  outcomeMeasureIds: TOutcomeMeasureId[],
+  day: TProgramDay[],
+  physioId: string
+) {}
 
 // export type ClientProgramWrite = {
 //   programBy: "Euneo" | string; //? bæta þessu við? string: physioId
