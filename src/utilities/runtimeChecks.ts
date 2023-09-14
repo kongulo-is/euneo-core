@@ -6,6 +6,7 @@ import {
   TConditionAssessmentAnswer,
   TClientPhysicalInformation,
   TClientProgram,
+  TClientProgramOmitted,
 } from "../types/clientTypes";
 import { conditions } from "../constants/conditions";
 
@@ -102,7 +103,7 @@ const assertArray = <T>(
 
 const runtimeChecks = {
   assertTClientProgram(
-    obj: TClientProgram | Omit<TClientProgram, "clientProgramId">,
+    obj: TClientProgram | TClientProgramOmitted<"days">,
     write?: boolean
   ): void {
     if (
