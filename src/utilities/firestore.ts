@@ -32,6 +32,8 @@ import {
   TClientProgram,
   TClientProgramDay,
   TClientPhysicalInformation,
+  TOutcomeMeasureId,
+  TProgramDay,
 } from "../types/datatypes";
 import {
   physioProgramConverter,
@@ -444,6 +446,15 @@ export async function getClientProgram(
 
   return clientProgramWithDays;
 }
+
+//TODO: ER HÉR!
+export async function createPhysioProgram(
+  name: string,
+  conditionId: string,
+  outcomeMeasureIds: TOutcomeMeasureId[],
+  day: TProgramDay[],
+  physioId: string
+) {}
 
 // export type ClientProgramWrite = {
 //   programBy: "Euneo" | string; //? bæta þessu við? string: physioId
