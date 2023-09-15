@@ -20,6 +20,7 @@ export type TProgramPhase = {
   phaseId: `p${number}`;
   days: `d${number}`[];
   length: number;
+  finalPhase: boolean;
   nextPhase?: {
     phaseId: `p${number}`;
     length: number;
