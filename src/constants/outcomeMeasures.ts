@@ -1,7 +1,7 @@
 import { TOutcomeMeasureId } from "../types/baseTypes";
 
 export type TOutcomeMeasure = {
-  id: string;
+  id: TOutcomeMeasureId;
   name: string;
   acronym: string;
 };

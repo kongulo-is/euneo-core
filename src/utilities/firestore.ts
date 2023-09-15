@@ -335,7 +335,7 @@ export async function addPhysioProgramToClient(
   clientId: string,
   clientProgramOmitted: TClientProgramOmitted<"days" | "clientProgramId">,
   days: { [key: string]: TProgramDay }
-): Promise<{ clientProgram: TClientProgram; clientProgramId: string }> {
+): Promise<{ clientProgram: TClientProgram }> {
   // const { physioId, conditionId, physioProgramId, days } = physioProgram;
 
   // Store the program in the Firestore database
@@ -403,7 +403,82 @@ export async function addPhysioProgramToClient(
 
   updateDoc(clientRef, { currentProgramId: program.id });
 
-  return { clientProgram: clientProgram, clientProgramId: program.id };
+  return { clientProgram: clientProgram };
+}
+
+export async function addEuneoProgramToClient(
+  clientId: string,
+  clientProgramOmitted: TClientProgramOmitted<"days" | "clientProgramId">,
+  days: { [key: string]: TProgramDay }
+): Promise<{ clientProgram: TClientProgram }> {
+  // const { physioId, conditionId, physioProgramId, days } = physioProgram;
+
+  // Store the program in the Firestore database
+  const userProgramDoc = collection(db, "clients", clientId, "programs");
+
+  const program = await addDoc(
+    userProgramDoc.withConverter(clientProgramConverter),
+    clientProgramOmitted
+  );
+
+  let dayList: TClientProgramDay[] = [];
+  let d = new Date();
+  d.setHours(0, 0, 0, 0);
+  const iterator = 14;
+
+  console.log("here3");
+
+  const { trainingDays } = clientProgramOmitted;
+
+  for (let i = 0; i < iterator; i++) {
+    const dayId = "d1";
+    const isRestDay = !trainingDays[d.getDay()];
+    const infoDay = days[dayId];
+
+    dayList.push({
+      dayId,
+      date: new Date(d),
+      finished: false,
+      adherence: 0,
+      exercises: infoDay?.exercises.map(() => 0) || [],
+      restDay: isRestDay,
+    });
+
+    d.setDate(d.getDate() + 1);
+  }
+  console.log("here4");
+
+  const clientProgram: TClientProgram = {
+    ...clientProgramOmitted,
+    days: dayList,
+    clientProgramId: program.id,
+  };
+  await Promise.all(
+    dayList.map((day, i) => {
+      const dayCol = doc(
+        db,
+        "clients",
+        clientId,
+        "programs",
+        program.id,
+        "days",
+        i.toString()
+      );
+      return setDoc(dayCol.withConverter(clientProgramDayConverter), day);
+    })
+  );
+
+  console.log("here5");
+
+  const clientRef = doc(
+    db,
+    "clients",
+    clientId
+  ) as DocumentReference<ClientWrite>;
+
+  updateDoc(clientRef, { currentProgramId: program.id });
+
+  return { clientProgram: clientProgram };
 }
 
 export async function getClientProgram(
@@ -464,19 +539,60 @@ export async function getAllExercises() {
 
   return exercises;
 }
+
+// type TProgramBase = {
+//   name: string;
+//   conditionId: TConditionId;
+//   outcomeMeasureIds?: TOutcomeMeasureId[];
+//   // TODO: ræða hvort days eigi að vera hér inni eða ekki.
+//   days: { [key: string]: TProgramDay };
+// };
+
+// export type TContinuousProgram = TProgramBase & {
+//   mode: "continuous";
+// };
 //TODO: ER HÉR!
 export async function createPhysioProgram(
-  name: string,
-  conditionId: string,
-  outcomeMeasureIds: TOutcomeMeasureId[],
-  day: TProgramDay[],
+  physioProgram: TContinuousProgram,
   physioId: string
 ) {
-  const pysio: TPhysioProgramOmitted<"conditionId"> = {
-    name: "",
-    outcomeMeasureIds: [],
-    days: {},
+  const physioRef = doc(db, "physios", physioId);
+  const programsRef = collection(physioRef, "programs");
+  const programRef = await addDoc(programsRef, {
+    name,
+    conditionId,
+    outcomeMeasureIds,
     mode: "continuous",
-    conditionId: "plantar-heel-pain",
-  };
+  });
+  const daysRef = collection(programRef, "days");
+
+  const dayRef = await addDoc(daysRef, day);
+
+  return dayRef.id;
 }
+
+// export type ClientProgramWrite = {
+//   programBy: "Euneo" | string; //? bæta þessu við? string: physioId
+//   conditionId: TConditionId;
+//   outcomeMeasuresAnswers: TOutcomeMeasureAnswer[];
+//   painLevel: TPainLevel[];
+//   days: TClientProgramDay[]; //TODO: ? Tékka við viljum við hafa þetta hér inni eða ekki.
+//   conditionAssessmentAnswers?: Array<boolean | string>;
+//   phases?: TPhase[];
+//   trainingDays?: boolean[]; //TODO: ? Tékka hvort þetta sé einhverntíman ekki sett í gagnagrunninn.
+//   physicalInformation?: TClientPhysicalInformation;
+// };
+
+// /**
+//  *
+//  * @param db
+//  * @param programInfo is of type TPhysioProgram | TEuneoProgram
+//  */
+// export async function addProgramToUser(
+//   db: Firestore,
+//   programInfo: TPhysioProgram | TEuneoProgram
+// ) {
+//   const clientProgram: TClientProfile = {
+//     program,
+//   };
+// }

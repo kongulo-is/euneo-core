@@ -25,6 +25,8 @@ import {
   Timestamp,
 } from "@firebase/firestore";
 import {
+  TContinuousProgram,
+  TContinuousProgramOmitted,
   TEuneoProgramOmitted,
   TPhysioProgram,
   TPhysioProgramOmitted,
@@ -78,8 +80,9 @@ export const programDayConverter = {
   },
 };
 
+//TODO: mabey remove.. changed to TContinuousProgram | TPhaseProgram
 export const physioProgramConverter = {
-  toFirestore(program: TPhysioProgram): PhysioProgramWrite {
+  toFirestore(program: TPhysioProgramOmitted<"days">): PhysioProgramWrite {
     // * we only create/edit physio programs
     let outcomeMeasureRefs: DocumentReference[] = [];
     if (program.outcomeMeasureIds) {
@@ -114,6 +117,46 @@ export const physioProgramConverter = {
       ...(outcomeMeasureIds.length && { outcomeMeasureIds }),
       physioId: snapshot.ref.parent.parent!.id,
       physioProgramId: snapshot.id,
+      mode: "continuous",
+    };
+  },
+};
+
+// TODO: ræða: skipta upp program converterum í continous og phase, en ekki physio og eueneo. Ástæða:
+export const continuousProgramConverter = {
+  toFirestore(program: TContinuousProgram): PhysioProgramWrite {
+    // * we only create/edit physio programs
+    let outcomeMeasureRefs: DocumentReference[] = [];
+    if (program.outcomeMeasureIds) {
+      outcomeMeasureRefs = program.outcomeMeasureIds.map((id) =>
+        doc(db, "outcomeMeasures", id)
+      );
+    }
+    const data: PhysioProgramWrite = {
+      name: program.name,
+      conditionId: program.conditionId,
+      mode: program.mode,
+      outcomeMeasureRefs,
+    };
+    return data;
+  },
+
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<PhysioProgramWrite>,
+    options: SnapshotOptions
+  ): TContinuousProgramOmitted<"days"> {
+    // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
+    const data = snapshot.data(options);
+    let { outcomeMeasureRefs, ...rest } = data;
+
+    const outcomeMeasureIds =
+      outcomeMeasureRefs?.map(
+        (measure: DocumentReference) => measure.id as TOutcomeMeasureId
+      ) || [];
+
+    return {
+      ...rest,
+      ...(outcomeMeasureIds.length && { outcomeMeasureIds }),
       mode: "continuous",
     };
   },

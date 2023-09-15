@@ -1,8 +1,5 @@
 import { TConditionId, TOutcomeMeasureId } from "./baseTypes";
 
-// Common Types
-type TProgramMode = "continuous" | "phase";
-
 /**
  * @memberof TProgramDay
  * @description Exercise in a day in program collection. Either Euneo or custom program.
@@ -15,21 +12,16 @@ export type TProgramDayExercise = {
   reps: number;
 };
 
-/**
- * @description Program data from program collection
- */
-export type TProgramPath =
-  | `programs/${string}`
-  | `physios/${string}/programs/${string}`;
-
-/** @memberof TProgram */
 export type TProgramDay = { exercises: TProgramDayExercise[] };
+
+// Common Types
+type TProgramMode = "continuous" | "phase";
 
 interface TProgramBase {
   name: string;
   conditionId: TConditionId;
   outcomeMeasureIds?: TOutcomeMeasureId[];
-  days: Record<`d${number}`, TProgramDay>;
+  days: Record<string, TProgramDay>;
 }
 
 type TProgramPhase = {
@@ -52,16 +44,16 @@ type TProgramQuestion = {
 };
 
 // Specific Program Types
-interface TContinuousProgram extends TProgramBase {
+export interface TContinuousProgram extends TProgramBase {
   mode: "continuous";
 }
 
-interface TPhaseProgram extends TProgramBase {
+export interface TPhaseProgram extends TProgramBase {
   mode: "phase";
   phases: Record<string, TProgramPhase>;
 }
 
-// * Exported Types
+// Exported Types
 export type TEuneoProgram = (TContinuousProgram | TPhaseProgram) & {
   programId: string;
   conditionAssessment: TProgramQuestion[];
@@ -72,7 +64,7 @@ export type TPhysioProgram = TContinuousProgram & {
   physioId: string;
 };
 
-// * Omitted Types
+// Omitted Types
 type OmitBaseProps<K extends keyof TProgramBase> = Omit<TProgramBase, K>;
 
 type ProgramWithMode<

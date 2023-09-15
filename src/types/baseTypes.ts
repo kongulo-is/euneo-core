@@ -100,6 +100,12 @@ export type TExercise = {
 
 export type TExerciseType = "Stretch" | "Strength" | "Release" | "Other";
 
+export type TOutcomeMeasure = {
+  id: TOutcomeMeasureId;
+  name: string;
+  acronym: string;
+};
+
 export type TConditionId =
   | "plantar-heel-pain"
   | "acl-treatment"
