@@ -36,7 +36,11 @@ import {
   exerciseConverter,
 } from "./converters";
 import runtimeChecks from "./runtimeChecks";
-import { TPhysioProgram, TEuneoProgram } from "../types/programTypes";
+import {
+  TPhysioProgram,
+  TEuneoProgram,
+  TPhysioProgramOmitted,
+} from "../types/programTypes";
 import {
   TClientProgram,
   TClientProgramDay,
@@ -467,30 +471,12 @@ export async function createPhysioProgram(
   outcomeMeasureIds: TOutcomeMeasureId[],
   day: TProgramDay[],
   physioId: string
-) {}
-
-// export type ClientProgramWrite = {
-//   programBy: "Euneo" | string; //? bæta þessu við? string: physioId
-//   conditionId: TConditionId;
-//   outcomeMeasuresAnswers: TOutcomeMeasureAnswer[];
-//   painLevel: TPainLevel[];
-//   days: TClientProgramDay[]; //TODO: ? Tékka við viljum við hafa þetta hér inni eða ekki.
-//   conditionAssessmentAnswers?: Array<boolean | string>;
-//   phases?: TPhase[];
-//   trainingDays?: boolean[]; //TODO: ? Tékka hvort þetta sé einhverntíman ekki sett í gagnagrunninn.
-//   physicalInformation?: TClientPhysicalInformation;
-// };
-
-// /**
-//  *
-//  * @param db
-//  * @param programInfo is of type TPhysioProgram | TEuneoProgram
-//  */
-// export async function addProgramToUser(
-//   db: Firestore,
-//   programInfo: TPhysioProgram | TEuneoProgram
-// ) {
-//   const clientProgram: TClientProfile = {
-//     program,
-//   };
-// }
+) {
+  const pysio: TPhysioProgramOmitted<"conditionId"> = {
+    name: "",
+    outcomeMeasureIds: [],
+    days: {},
+    mode: "continuous",
+    conditionId: "plantar-heel-pain",
+  };
+}

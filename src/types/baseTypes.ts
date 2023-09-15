@@ -53,28 +53,6 @@ export type TPhase = { key: string; value: number };
 /** @memberof TOutcomeMeasureAnswers */
 export type TOutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis";
 
-/**
- * @description Program data from program collection
- */
-export type TProgramPath =
-  | `programs/${string}`
-  | `physios/${string}/programs/${string}`;
-
-/** @memberof TProgram */
-export type TProgramDay = { exercises: TProgramDayExercise[] };
-
-/**
- * @memberof TProgramDay
- * @description Exercise in a day in program collection. Either Euneo or custom program.
- * @param id Id of the exercise - ref in firebase
- */
-export type TProgramDayExercise = {
-  exerciseId: string;
-  quantity: number; //TODO: Er þetta bara notað fyrir seconds. Heita seconds?
-  sets: number;
-  reps: number;
-};
-
 // Component types
 // export type TOption = {
 //   value: string;
