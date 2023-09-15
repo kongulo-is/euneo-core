@@ -36,7 +36,12 @@ import {
   exerciseConverter,
 } from "./converters";
 import runtimeChecks from "./runtimeChecks";
-import { TPhysioProgram, TEuneoProgram } from "../types/programTypes";
+import {
+  TPhysioProgram,
+  TEuneoProgram,
+  TPhysioProgramOmitted,
+  TContinuousProgram,
+} from "../types/programTypes";
 import {
   TClientProgram,
   TClientProgramDay,
@@ -460,14 +465,37 @@ export async function getAllExercises() {
 
   return exercises;
 }
+
+// type TProgramBase = {
+//   name: string;
+//   conditionId: TConditionId;
+//   outcomeMeasureIds?: TOutcomeMeasureId[];
+//   // TODO: ræða hvort days eigi að vera hér inni eða ekki.
+//   days: { [key: string]: TProgramDay };
+// };
+
+// export type TContinuousProgram = TProgramBase & {
+//   mode: "continuous";
+// };
 //TODO: ER HÉR!
 export async function createPhysioProgram(
-  name: string,
-  conditionId: string,
-  outcomeMeasureIds: TOutcomeMeasureId[],
-  day: TProgramDay[],
+  physioProgram: TContinuousProgram,
   physioId: string
-) {}
+) {
+  const physioRef = doc(db, "physios", physioId);
+  const programsRef = collection(physioRef, "programs");
+  const programRef = await addDoc(programsRef, {
+    name,
+    conditionId,
+    outcomeMeasureIds,
+    mode: "continuous",
+  });
+  const daysRef = collection(programRef, "days");
+
+  const dayRef = await addDoc(daysRef, day);
+
+  return dayRef.id;
+}
 
 // export type ClientProgramWrite = {
 //   programBy: "Euneo" | string; //? bæta þessu við? string: physioId

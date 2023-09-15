@@ -43,11 +43,11 @@ type TProgramBase = {
   days: { [key: string]: TProgramDay };
 };
 
-type TContinuousProgram = TProgramBase & {
+export type TContinuousProgram = TProgramBase & {
   mode: "continuous";
 };
 
-type TPhaseProgram = TProgramBase & {
+export type TPhaseProgram = TProgramBase & {
   mode: "phase";
   phases: { [key: string]: TProgramPhase };
 };
@@ -75,6 +75,11 @@ type OmitProps<T, K extends keyof T> = Omit<T, K>;
 
 type TProgramBaseOmitted<K extends keyof TProgramBase> = OmitProps<
   TProgramBase,
+  K
+>;
+
+export type TContinuousProgramOmitted<K extends keyof TProgramBase> = OmitProps<
+  TContinuousProgram,
   K
 >;
 
