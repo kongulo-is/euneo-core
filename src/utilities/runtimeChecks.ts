@@ -103,7 +103,7 @@ const assertArray = <T>(
 
 const runtimeChecks = {
   assertTClientProgram(
-    obj: TClientProgram | TClientProgramOmitted<"days">,
+    obj: TClientProgram | TClientProgramOmitted<"days" | "clientProgramId">,
     write?: boolean
   ): void {
     if (

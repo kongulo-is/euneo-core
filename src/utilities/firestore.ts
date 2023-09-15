@@ -1,7 +1,6 @@
 import {
   DocumentReference,
   QuerySnapshot,
-  addDoc,
   collection,
   doc,
   getDoc,
@@ -9,8 +8,8 @@ import {
   query,
   setDoc,
   where,
-  updateDoc,
   Timestamp,
+  addDoc,
 } from "firebase/firestore";
 import { db } from "../firebase/db";
 import {
@@ -39,12 +38,11 @@ import {
 import runtimeChecks from "./runtimeChecks";
 import { TPhysioProgram, TEuneoProgram } from "../types/programTypes";
 import {
-  TPainLevel,
-  TOutcomeMeasureAnswers,
-  TClientPhysicalInformation,
   TClientProgram,
   TClientProgramDay,
+  TClientProgramOmitted,
 } from "../types/clientTypes";
+import { updateDoc } from "./updateDoc";
 
 async function _getProgramFromRef(
   programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>
@@ -331,32 +329,17 @@ export async function getPhysioClient(
 
 export async function addPhysioProgramToClient(
   clientId: string,
-  physioProgram: TPhysioProgram,
-  trainingDays: boolean[],
-  painLevel: TPainLevel,
-  outcomeMeasureAnswers: TOutcomeMeasureAnswers,
-  physicalInformation: TClientPhysicalInformation
+  clientProgramOmitted: TClientProgramOmitted<"days" | "clientProgramId">,
+  days: { [key: string]: TProgramDay }
 ): Promise<{ clientProgram: TClientProgram; clientProgramId: string }> {
-  const { physioId, conditionId, physioProgramId, days } = physioProgram;
+  // const { physioId, conditionId, physioProgramId, days } = physioProgram;
 
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
 
-  // Create clientProgram without clientProgramId
-  const clientProgramNoDays = {
-    physioProgramId,
-    physioId,
-    conditionId,
-    trainingDays,
-    painLevels: [painLevel],
-    outcomeMeasuresAnswers: [outcomeMeasureAnswers],
-    physicalInformation,
-    clientProgramId: "", // ! TODO: þetta þarf líklegast að vera hér, sjá komment á clientProgramConverter
-  };
-
   const program = await addDoc(
     userProgramDoc.withConverter(clientProgramConverter),
-    clientProgramNoDays
+    clientProgramOmitted
   );
 
   let dayList: TClientProgramDay[] = [];
@@ -365,6 +348,8 @@ export async function addPhysioProgramToClient(
   const iterator = 14;
 
   console.log("here3");
+
+  const { trainingDays } = clientProgramOmitted;
 
   for (let i = 0; i < iterator; i++) {
     const dayId = "d1";
@@ -385,7 +370,7 @@ export async function addPhysioProgramToClient(
   console.log("here4");
 
   const clientProgram: TClientProgram = {
-    ...clientProgramNoDays,
+    ...clientProgramOmitted,
     days: dayList,
     clientProgramId: program.id,
   };
@@ -411,6 +396,7 @@ export async function addPhysioProgramToClient(
     "clients",
     clientId
   ) as DocumentReference<ClientWrite>;
+
   updateDoc(clientRef, { currentProgramId: program.id });
 
   return { clientProgram: clientProgram, clientProgramId: program.id };
@@ -451,6 +437,7 @@ export async function getClientProgram(
 
   const clientProgramWithDays: TClientProgram = {
     ...clientProgram,
+    clientProgramId: clientProgramSnap.id,
     days,
   };
 

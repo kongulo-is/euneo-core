@@ -202,7 +202,9 @@ export const physioClientConverter = {
 export const clientProgramConverter = {
   // ! TODO: ég þurfti að breyta þessu úr TClientProgramOmitted<"days" | "clientProgramId"> því
   // ! það sem fer í firestore þarf að vera sama týpa og kemur úr firestore
-  toFirestore(program: TClientProgramOmitted<"days">): ClientProgramWrite {
+  toFirestore(
+    program: TClientProgramOmitted<"days" | "clientProgramId">
+  ): ClientProgramWrite {
     // Perform runtime checks
     runtimeChecks.assertTClientProgram(program, true); // Assertion done here if needed
 
@@ -258,7 +260,7 @@ export const clientProgramConverter = {
   fromFirestore(
     snapshot: QueryDocumentSnapshot<ClientProgramWrite>,
     options: SnapshotOptions
-  ): TClientProgramOmitted<"days"> {
+  ): TClientProgramOmitted<"days" | "clientProgramId"> {
     // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
     const data = snapshot.data(options);
     console.log("Here1");
@@ -274,7 +276,7 @@ export const clientProgramConverter = {
       }));
     console.log("Here2", painLevels);
 
-    let clientProgram: TClientProgramOmitted<"days">;
+    let clientProgram;
 
     const painLevelsClient = painLevels.map((pain) => ({
       ...pain,
@@ -290,7 +292,6 @@ export const clientProgramConverter = {
         ...rest,
         conditionAssessmentAnswers: rest.conditionAssessmentAnswers,
         phases: rest.phases,
-        clientProgramId: snapshot.id,
         outcomeMeasuresAnswers,
         painLevels: painLevelsClient,
         programId: programRef.id,
@@ -301,7 +302,6 @@ export const clientProgramConverter = {
       const physioId = programRef?.parent.parent!.id;
       clientProgram = {
         ...rest,
-        clientProgramId: snapshot.id,
         outcomeMeasuresAnswers,
         painLevels: painLevelsClient,
         physioProgramId,

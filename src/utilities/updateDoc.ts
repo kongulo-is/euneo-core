@@ -2,6 +2,8 @@ import {
   DocumentReference,
   UpdateData,
   updateDoc as firestoreUpdateDoc,
+  addDoc as firestoreAddDoc,
+  CollectionReference,
 } from "firebase/firestore";
 import {
   ClientProgramWrite,

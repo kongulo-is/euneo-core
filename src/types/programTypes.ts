@@ -16,6 +16,18 @@ export type TProgramQuestion = {
   options: string[];
 };
 
+export type TProgramPhase = {
+  phaseId: `p${number}`;
+  days: `d${number}`[];
+  length: number;
+  nextPhase?: {
+    phaseId: `p${number}`;
+    length: number;
+    maxPainLevel: number;
+    minPainLevel: number;
+  }[];
+};
+
 export type TProgramMode = "continuous" | "phase";
 
 /**
@@ -37,7 +49,7 @@ type TContinuousProgram = TProgramBase & {
 
 type TPhaseProgram = TProgramBase & {
   mode: "phase";
-  phases: { [key: string]: TPhase };
+  phases: { [key: string]: TProgramPhase };
 };
 
 /**
