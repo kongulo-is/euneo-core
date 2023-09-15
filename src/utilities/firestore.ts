@@ -336,7 +336,7 @@ export async function addPhysioProgramToClient(
   clientId: string,
   clientProgramOmitted: TClientProgramOmitted<"days" | "clientProgramId">,
   days: { [key: string]: TProgramDay }
-): Promise<{ clientProgram: TClientProgram; clientProgramId: string }> {
+): Promise<{ clientProgram: TClientProgram }> {
   // const { physioId, conditionId, physioProgramId, days } = physioProgram;
 
   // Store the program in the Firestore database
@@ -404,7 +404,82 @@ export async function addPhysioProgramToClient(
 
   updateDoc(clientRef, { currentProgramId: program.id });
 
-  return { clientProgram: clientProgram, clientProgramId: program.id };
+  return { clientProgram: clientProgram };
+}
+
+export async function addEuneoProgramToClient(
+  clientId: string,
+  clientProgramOmitted: TClientProgramOmitted<"days" | "clientProgramId">,
+  days: { [key: string]: TProgramDay }
+): Promise<{ clientProgram: TClientProgram }> {
+  // const { physioId, conditionId, physioProgramId, days } = physioProgram;
+
+  // Store the program in the Firestore database
+  const userProgramDoc = collection(db, "clients", clientId, "programs");
+
+  const program = await addDoc(
+    userProgramDoc.withConverter(clientProgramConverter),
+    clientProgramOmitted
+  );
+
+  let dayList: TClientProgramDay[] = [];
+  let d = new Date();
+  d.setHours(0, 0, 0, 0);
+  const iterator = 14;
+
+  console.log("here3");
+
+  const { trainingDays } = clientProgramOmitted;
+
+  for (let i = 0; i < iterator; i++) {
+    const dayId = "d1";
+    const isRestDay = !trainingDays[d.getDay()];
+    const infoDay = days[dayId];
+
+    dayList.push({
+      dayId,
+      date: new Date(d),
+      finished: false,
+      adherence: 0,
+      exercises: infoDay?.exercises.map(() => 0) || [],
+      restDay: isRestDay,
+    });
+
+    d.setDate(d.getDate() + 1);
+  }
+  console.log("here4");
+
+  const clientProgram: TClientProgram = {
+    ...clientProgramOmitted,
+    days: dayList,
+    clientProgramId: program.id,
+  };
+  await Promise.all(
+    dayList.map((day, i) => {
+      const dayCol = doc(
+        db,
+        "clients",
+        clientId,
+        "programs",
+        program.id,
+        "days",
+        i.toString()
+      );
+      return setDoc(dayCol.withConverter(clientProgramDayConverter), day);
+    })
+  );
+
+  console.log("here5");
+
+  const clientRef = doc(
+    db,
+    "clients",
+    clientId
+  ) as DocumentReference<ClientWrite>;
+
+  updateDoc(clientRef, { currentProgramId: program.id });
+
+  return { clientProgram: clientProgram };
 }
 
 export async function getClientProgram(
