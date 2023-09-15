@@ -37,27 +37,49 @@ export type TProgramQuestion = {
 };
 
 // Specific Program Types
-export interface TContinuousProgram {
-  name: string;
-  conditionId: TConditionId;
-  outcomeMeasureIds?: TOutcomeMeasureId[];
-  days: Record<`d${number}`, TProgramDay>;
-  mode: "continuous";
-}
+// export interface TContinuousProgram {
+//   name: string;
+//   conditionId: TConditionId;
+//   outcomeMeasureIds?: TOutcomeMeasureId[];
+//   days: Record<`d${number}`, TProgramDay>;
+//   mode: "continuous";
+// }
 
-export interface TPhaseProgram {
-  name: string;
-  conditionId: TConditionId;
-  days: Record<`d${number}`, TProgramDay>;
-  mode: "phase";
-  phases: Record<`p${number}`, TProgramPhase>;
-  outcomeMeasureIds?: TOutcomeMeasureId[];
-  conditionAssessment?: TProgramQuestion[];
-}
+// export interface TPhaseProgram {
+//   name: string;
+//   conditionId: TConditionId;
+//   days: Record<`d${number}`, TProgramDay>;
+//   mode: "phase";
+//   phases: Record<`p${number}`, TProgramPhase>;
+//   outcomeMeasureIds?: TOutcomeMeasureId[];
+//   conditionAssessment?: TProgramQuestion[];
+// }
 
 // Exported Types
+
+export type TProgramBase = {
+  name: string;
+  conditionId: TConditionId;
+  mode: TProgramMode;
+  outcomeMeasureIds?: TOutcomeMeasureId[];
+  conditionAssessment?: TProgramQuestion[];
+};
+
+export type TProgramRead = TProgramBase;
+
+export type TContinuousProgram = TProgramRead & {
+  days: Record<`d${number}`, TProgramDay>;
+  mode: "continuous";
+};
+
+export type TPhaseProgram = TProgramRead & {
+  days: Record<`d${number}`, TProgramDay>;
+  phases: Record<`p${number}`, TProgramPhase>;
+  mode: "phase";
+};
+
 export type TEuneoProgram = (TContinuousProgram | TPhaseProgram) & {
-  programId: string;
+  euneoProgramId: string;
 };
 
 export type TPhysioProgram = TContinuousProgram & {
