@@ -2,7 +2,6 @@ import { Timestamp, DocumentReference } from "@firebase/firestore";
 import {
   TConditionId,
   TPrescriptionStatus,
-  TClientStatus,
   TPhase,
   TOutcomeMeasureId,
   TExerciseType,
@@ -11,7 +10,8 @@ import {
   TClientPhysicalInformation,
   TOutcomeMeasureAnswerSection,
 } from "./clientTypes";
-import { TProgramQuestion, TProgramMode } from "./programTypes";
+import { TProgramQuestion } from "./programTypes";
+import { DocumentData } from "firebase/firestore";
 
 /**
  * @description client data as it is stored in the database in client collection
@@ -37,7 +37,10 @@ export type ClientProgramDayWrite = {
 };
 
 export type ClientProgramWrite = {
-  programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>;
+  programRef: DocumentReference<
+    ContinuousProgramWrite | PhaseProgramWrite,
+    DocumentData
+  >;
   conditionId: TConditionId;
   outcomeMeasuresAnswers: OutcomeMeasureAnswerWrite[];
   painLevels: PainLevelWrite[];
@@ -95,7 +98,7 @@ export type PhysioClientWrite = {
  * @path /physios/{physioId}/clients/{physioClientId}
  */
 export type PrescriptionWrite = {
-  programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>;
+  programRef: DocumentReference<ContinuousProgramWrite | PhaseProgramWrite>;
   prescriptionDate: Timestamp;
   status: TPrescriptionStatus;
 };
@@ -104,12 +107,12 @@ export type PrescriptionWrite = {
  * @description custom program data as it is stored in the database in program subcollection in physio collection
  * @path /physios/{physioId}/programs/{programId}
  */
-export type EuneoProgramWrite = {
+export type PhaseProgramWrite = {
   name: string;
   conditionId: TConditionId;
   outcomeMeasureRefs: DocumentReference[];
-  conditionAssessment: TProgramQuestion[];
-  mode: TProgramMode;
+  conditionAssessment?: TProgramQuestion[];
+  mode: "phase";
   version: string;
 };
 
@@ -117,7 +120,7 @@ export type EuneoProgramWrite = {
  * @description custom program data as it is stored in the database in program subcollection in physio collection
  * @path /physios/{physioId}/programs/{programId}
  */
-export type PhysioProgramWrite = {
+export type ContinuousProgramWrite = {
   name: string;
   conditionId: TConditionId;
   outcomeMeasureRefs: DocumentReference[];

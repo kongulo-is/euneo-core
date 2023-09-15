@@ -3,18 +3,17 @@
 import { db } from "../firebase/db";
 import {
   ProgramDayWrite,
-  PhysioProgramWrite,
-  EuneoProgramWrite,
   PhysioClientWrite,
   ClientProgramDayWrite,
   ClientProgramWrite,
   ExerciseWrite,
+  ContinuousProgramWrite,
+  PhaseProgramWrite,
 } from "../types/converterTypes";
 import {
   TExercise,
   TOutcomeMeasureId,
   TPhysioClient,
-  TProgramDay,
 } from "../types/baseTypes";
 
 import {
@@ -26,19 +25,15 @@ import {
 } from "@firebase/firestore";
 import {
   TContinuousProgram,
-  TContinuousProgramOmitted,
-  TEuneoProgramOmitted,
   TPhysioProgram,
-  TPhysioProgramOmitted,
+  TProgramDay,
 } from "../types/programTypes";
 import {
-  TClientProgramCommon,
-  TClientProgramSpecific,
   TOutcomeMeasureAnswers,
-  TPainLevel,
   TClientProgramDay,
-  TClientProgramOmitted,
   TClientProgram,
+  TClientProgramBase,
+  TClientProgramRead,
 } from "../types/clientTypes";
 import { DocumentData } from "firebase/firestore";
 import runtimeChecks from "./runtimeChecks";
@@ -124,7 +119,9 @@ export const physioProgramConverter = {
 
 // TODO: ræða: skipta upp program converterum í continous og phase, en ekki physio og eueneo. Ástæða:
 export const continuousProgramConverter = {
-  toFirestore(program: TContinuousProgram): PhysioProgramWrite {
+  toFirestore(
+    program: Omit<TContinuousProgram, "days">
+  ): ContinuousProgramWrite {
     // * we only create/edit physio programs
     let outcomeMeasureRefs: DocumentReference[] = [];
     if (program.outcomeMeasureIds) {
@@ -132,7 +129,7 @@ export const continuousProgramConverter = {
         doc(db, "outcomeMeasures", id)
       );
     }
-    const data: PhysioProgramWrite = {
+    const data: ContinuousProgramWrite = {
       name: program.name,
       conditionId: program.conditionId,
       mode: program.mode,
@@ -142,9 +139,9 @@ export const continuousProgramConverter = {
   },
 
   fromFirestore(
-    snapshot: QueryDocumentSnapshot<PhysioProgramWrite>,
+    snapshot: QueryDocumentSnapshot<ContinuousProgramWrite>,
     options: SnapshotOptions
-  ): TContinuousProgramOmitted<"days"> {
+  ): Omit<TContinuousProgram, "days"> {
     // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
     const data = snapshot.data(options);
     let { outcomeMeasureRefs, ...rest } = data;
@@ -154,11 +151,12 @@ export const continuousProgramConverter = {
         (measure: DocumentReference) => measure.id as TOutcomeMeasureId
       ) || [];
 
-    return {
+    const datas: Omit<TContinuousProgram, "days"> = {
       ...rest,
       ...(outcomeMeasureIds.length && { outcomeMeasureIds }),
       mode: "continuous",
     };
+    return datas;
   },
 };
 
@@ -243,11 +241,7 @@ export const physioClientConverter = {
 };
 
 export const clientProgramConverter = {
-  // ! TODO: ég þurfti að breyta þessu úr TClientProgramOmitted<"days" | "clientProgramId"> því
-  // ! það sem fer í firestore þarf að vera sama týpa og kemur úr firestore
-  toFirestore(
-    program: TClientProgramOmitted<"days" | "clientProgramId">
-  ): ClientProgramWrite {
+  toFirestore(program: TClientProgramRead): ClientProgramWrite {
     // Perform runtime checks
     runtimeChecks.assertTClientProgram(program, true); // Assertion done here if needed
 
@@ -263,22 +257,27 @@ export const clientProgramConverter = {
       date: Timestamp.fromDate(pain.date),
     }));
 
-    let programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>;
+    let programRef: DocumentReference<
+      PhaseProgramWrite | ContinuousProgramWrite
+    >;
 
-    if ("programId" in program) {
+    if ("euneoProgramId" in program && program.euneoProgramId) {
+      program;
       programRef = doc(
         db,
         "programs",
-        program?.programId
-      ) as DocumentReference<EuneoProgramWrite>;
-    } else {
+        program.euneoProgramId
+      ) as DocumentReference<PhaseProgramWrite | ContinuousProgramWrite>;
+    } else if ("physioId" in program) {
       programRef = doc(
         db,
         "physios",
         program.physioId,
         "programs",
         program.physioProgramId
-      ) as DocumentReference<PhysioProgramWrite>;
+      ) as DocumentReference<PhaseProgramWrite | ContinuousProgramWrite>;
+    } else {
+      throw new Error("Program must have either euneoProgramId or physioId");
     }
 
     const data: ClientProgramWrite = {
@@ -303,7 +302,7 @@ export const clientProgramConverter = {
   fromFirestore(
     snapshot: QueryDocumentSnapshot<ClientProgramWrite>,
     options: SnapshotOptions
-  ): TClientProgramOmitted<"days" | "clientProgramId"> {
+  ): TClientProgramRead {
     // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
     const data = snapshot.data(options);
     console.log("Here1");
@@ -337,7 +336,7 @@ export const clientProgramConverter = {
         phases: rest.phases,
         outcomeMeasuresAnswers,
         painLevels: painLevelsClient,
-        programId: programRef.id,
+        euneoProgramId: programRef.id,
       };
       runtimeChecks.assertTClientProgram(clientProgram, true);
     } else {

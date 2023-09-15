@@ -80,49 +80,31 @@ export type TClientPhysicalInformation = {
   unit: "metric" | "imperial";
   physicalActivity: "None" | "Low" | "Moderate" | "High";
 };
+export type TConditionAssessmentAnswer = boolean | string;
 
-// Common properties
-export type TClientProgramCommon = {
-  clientProgramId: string;
+export type TClientProgramBase = {
   conditionId: TConditionId;
   outcomeMeasuresAnswers: TOutcomeMeasureAnswers[];
   painLevels: TPainLevel[];
   physicalInformation: TClientPhysicalInformation;
-  days: TClientProgramDay[];
   trainingDays: boolean[];
+  conditionAssessmentAnswers?: TConditionAssessmentAnswer[];
+  phases?: TPhase[];
+};
+
+export type TClientEuneoProgram = TClientProgramBase & {
+  euneoProgramId: string;
 };
 
 // Specific properties for each case
-export type TClientProgramSpecific =
-  | { physioProgramId: string; physioId: string }
-  | {
-      programId: string;
-      conditionAssessmentAnswers: TConditionAssessmentAnswer[];
-      phases: TPhase[];
-    };
+export type TClientPhysioProgram = TClientProgramBase & {
+  physioProgramId: string;
+  physioId: string;
+};
 
-export type TConditionAssessmentAnswer = boolean | string;
+export type TClientProgramRead = TClientEuneoProgram | TClientPhysioProgram;
 
-/**
- * @memberof TPhysioClient
- * @memberof TClientProfile
- * @description Clients program data/progress from clients/users collection.
- * @path /clients/{clientId}/programs/{programId}
- * @param pid Program Id
- * @param programBy Euneo or Physio Id - this is not stored in database
- * @param outcomeMeasuresAnswers assessment of clients progress, physical condition every 4 weeks.
- * @param days prescripted program mapped to training days.
- * @param painLevels pain level of the client mapped to dates.
- * @param conditionAssessment Answers to program questions regarding client condition at start of program. //*Þetta er gamla general.
- * @param phases how many days in each phase of the program. (p1: 2, etc.)
- * @param trainingDays which days are training days. (monday: true, etc.)
- * @param physicalInformation physical information about the client. (height, weight, etc.) //* Þetta er gamla userInfo.
- *
- */
-// Combine them
-export type TClientProgram = TClientProgramSpecific & TClientProgramCommon;
-
-// ! Omit properties
-
-export type TClientProgramOmitted<T extends keyof TClientProgramCommon> =
-  TClientProgramSpecific & Omit<TClientProgramCommon, T>;
+export type TClientProgram = TClientProgramRead & {
+  clientProgramId: string;
+  days: TClientProgramDay[];
+};

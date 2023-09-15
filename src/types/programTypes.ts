@@ -17,13 +17,6 @@ export type TProgramDay = { exercises: TProgramDayExercise[] };
 // Common Types
 type TProgramMode = "continuous" | "phase";
 
-interface TProgramBase {
-  name: string;
-  conditionId: TConditionId;
-  outcomeMeasureIds?: TOutcomeMeasureId[];
-  days: Record<string, TProgramDay>;
-}
-
 type TProgramPhase = {
   phaseId: `p${number}`;
   days: `d${number}`[];
@@ -36,7 +29,7 @@ type TProgramPhase = {
   }>;
 };
 
-type TProgramQuestion = {
+export type TProgramQuestion = {
   question: string;
   title: string;
   type: "boolean" | "option";
@@ -44,44 +37,30 @@ type TProgramQuestion = {
 };
 
 // Specific Program Types
-export interface TContinuousProgram extends TProgramBase {
+export interface TContinuousProgram {
+  name: string;
+  conditionId: TConditionId;
+  outcomeMeasureIds?: TOutcomeMeasureId[];
+  days: Record<`d${number}`, TProgramDay>;
   mode: "continuous";
 }
 
-export interface TPhaseProgram extends TProgramBase {
+export interface TPhaseProgram {
+  name: string;
+  conditionId: TConditionId;
+  days: Record<`d${number}`, TProgramDay>;
   mode: "phase";
-  phases: Record<string, TProgramPhase>;
+  phases: Record<`p${number}`, TProgramPhase>;
+  outcomeMeasureIds?: TOutcomeMeasureId[];
+  conditionAssessment?: TProgramQuestion[];
 }
 
 // Exported Types
 export type TEuneoProgram = (TContinuousProgram | TPhaseProgram) & {
   programId: string;
-  conditionAssessment: TProgramQuestion[];
 };
 
 export type TPhysioProgram = TContinuousProgram & {
   physioProgramId: string;
   physioId: string;
 };
-
-// Omitted Types
-type OmitBaseProps<K extends keyof TProgramBase> = Omit<TProgramBase, K>;
-
-type ProgramWithMode<
-  K extends keyof TProgramBase,
-  M extends TProgramMode
-> = OmitBaseProps<K> & {
-  mode: M;
-};
-
-export type TPhysioProgramOmitted<K extends keyof TProgramBase> =
-  ProgramWithMode<K, "continuous"> & {
-    physioProgramId: string;
-    physioId: string;
-  };
-
-export type TEuneoProgramOmitted<K extends keyof TProgramBase> =
-  ProgramWithMode<K, TProgramMode> & {
-    programId: string;
-    conditionAssessment: TProgramQuestion[];
-  };

@@ -14,19 +14,13 @@ import {
 import { db } from "../firebase/db";
 import {
   EuneoProgramWrite,
-  PhysioProgramWrite,
   InvitationWrite,
   PhysioClientWrite,
   PrescriptionWrite,
   ClientProgramWrite,
   ClientWrite,
 } from "../types/converterTypes";
-import {
-  TProgramPath,
-  TPhysioClient,
-  TOutcomeMeasureId,
-  TProgramDay,
-} from "../types/baseTypes";
+import { TPhysioClient, TOutcomeMeasureId } from "../types/baseTypes";
 import {
   physioProgramConverter,
   programDayConverter,
@@ -34,17 +28,20 @@ import {
   clientProgramConverter,
   clientProgramDayConverter,
   exerciseConverter,
+  continuousProgramConverter,
 } from "./converters";
 import runtimeChecks from "./runtimeChecks";
 import {
   TPhysioProgram,
   TEuneoProgram,
-  TPhysioProgramOmitted,
+  TProgramDay,
+  TContinuousProgram,
 } from "../types/programTypes";
 import {
+  TClientPhysioProgram,
   TClientProgram,
+  TClientProgramBase,
   TClientProgramDay,
-  TClientProgramOmitted,
 } from "../types/clientTypes";
 import { updateDoc } from "./updateDoc";
 
@@ -96,11 +93,11 @@ export async function getPhysioProgramsWithDays(
 ): Promise<TPhysioProgram[]> {
   try {
     const physioRef = doc(db, "physios", physioId);
-    const programsRef = collection(physioRef, "programs").withConverter(
-      physioProgramConverter
-    );
+    const programsRef = collection(physioRef, "programs");
     console.log("programsRef", programsRef);
-    const programsSnap = await getDocs(programsRef);
+    const programsSnap = await getDocs(
+      programsRef.withConverter(continuousProgramConverter)
+    );
 
     // for each program, get the days
     const daysSnap = await Promise.all(
@@ -113,7 +110,7 @@ export async function getPhysioProgramsWithDays(
       const days = Object.fromEntries(
         daysSnap[i].docs.map((doc) => [doc.id, doc.data()])
       );
-      return { ...doc.data(), days };
+      return { ...doc.data(), days, physioProgramId: doc.id, physioId };
     });
 
     return programs;
@@ -333,9 +330,9 @@ export async function getPhysioClient(
 
 export async function addPhysioProgramToClient(
   clientId: string,
-  clientProgramOmitted: TClientProgramOmitted<"days" | "clientProgramId">,
+  clientPhysioProgram: TClientPhysioProgram,
   days: { [key: string]: TProgramDay }
-): Promise<{ clientProgram: TClientProgram }> {
+): Promise<{ clientProgram: TClientPhysioProgram }> {
   // const { physioId, conditionId, physioProgramId, days } = physioProgram;
 
   // Store the program in the Firestore database
@@ -343,7 +340,7 @@ export async function addPhysioProgramToClient(
 
   const program = await addDoc(
     userProgramDoc.withConverter(clientProgramConverter),
-    clientProgramOmitted
+    clientPhysioProgram
   );
 
   let dayList: TClientProgramDay[] = [];
@@ -353,7 +350,7 @@ export async function addPhysioProgramToClient(
 
   console.log("here3");
 
-  const { trainingDays } = clientProgramOmitted;
+  const { trainingDays } = clientPhysioProgram;
 
   for (let i = 0; i < iterator; i++) {
     const dayId = "d1";
@@ -374,8 +371,9 @@ export async function addPhysioProgramToClient(
   console.log("here4");
 
   const clientProgram: TClientProgram = {
-    ...clientProgramOmitted,
+    ...clientPhysioProgram,
     days: dayList,
+
     clientProgramId: program.id,
   };
   await Promise.all(
@@ -408,7 +406,8 @@ export async function addPhysioProgramToClient(
 
 export async function addEuneoProgramToClient(
   clientId: string,
-  clientProgramOmitted: TClientProgramOmitted<"days" | "clientProgramId">,
+  programId: string,
+  clientProgramOmitted: Omit<TClientProgramBase, "days">,
   days: { [key: string]: TProgramDay }
 ): Promise<{ clientProgram: TClientProgram }> {
   // const { physioId, conditionId, physioProgramId, days } = physioProgram;
@@ -451,6 +450,7 @@ export async function addEuneoProgramToClient(
   const clientProgram: TClientProgram = {
     ...clientProgramOmitted,
     days: dayList,
+    programId: program.id,
     clientProgramId: program.id,
   };
   await Promise.all(
@@ -551,24 +551,30 @@ export async function getAllExercises() {
 // export type TContinuousProgram = TProgramBase & {
 //   mode: "continuous";
 // };
-//TODO: ER HÉR!
+// TODO: tekur inn continuous program, skrifar í gagnagrunninn og skilar physioProgram (með program id og physio id)
 export async function createPhysioProgram(
-  physioProgram: TContinuousProgram,
+  continuousProgram: TContinuousProgram,
   physioId: string
+  // continuousProgram: Omit<TPhysioProgram, "physioProgramId">
 ) {
   const physioRef = doc(db, "physios", physioId);
   const programsRef = collection(physioRef, "programs");
-  const programRef = await addDoc(programsRef, {
-    name,
-    conditionId,
-    outcomeMeasureIds,
-    mode: "continuous",
-  });
+
+  const programRef = await addDoc(
+    programsRef.withConverter(continuousProgramConverter),
+    continuousProgram // * There is no error because
+  );
   const daysRef = collection(programRef, "days");
 
-  const dayRef = await addDoc(daysRef, day);
+  const dayRef = await addDoc(daysRef, continuousProgram.days);
 
-  return dayRef.id;
+  const physioProgram: TPhysioProgram = {
+    ...continuousProgram,
+    physioId,
+    physioProgramId: programRef.id,
+  };
+
+  return physioProgram;
 }
 
 // export type ClientProgramWrite = {
