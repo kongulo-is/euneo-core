@@ -10,6 +10,7 @@ import {
   ContinuousProgramWrite,
   PhaseProgramWrite,
   ProgramWrite,
+  ProgramPhaseWrite,
 } from "../types/converterTypes";
 import {
   TExercise,
@@ -29,6 +30,8 @@ import {
   TProgramBase,
   TProgramDay,
   TProgramDayRead,
+  TProgramPhase,
+  TProgramPhaseRead,
   TProgramRead,
 } from "../types/programTypes";
 import {
@@ -72,6 +75,20 @@ export const programDayConverter = {
     return {
       exercises: convertedExercises,
     };
+  },
+};
+
+export const programPhaseConverter = {
+  toFirestore(phase: TProgramPhaseRead): ProgramPhaseWrite {
+    return phase;
+  },
+
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<ProgramPhaseWrite>,
+    options: SnapshotOptions
+  ): TProgramPhaseRead {
+    const data = snapshot.data(options);
+    return data;
   },
 };
 
