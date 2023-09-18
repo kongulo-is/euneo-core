@@ -36,6 +36,7 @@ import {
   TContinuousProgram,
 } from "../types/programTypes";
 import {
+  TClientEuneoProgram,
   TClientPhysioProgram,
   TClientProgram,
   TClientProgramBase,
@@ -402,8 +403,7 @@ export async function addPhysioProgramToClient(
 
 export async function addEuneoProgramToClient(
   clientId: string,
-  programId: string,
-  clientProgramOmitted: Omit<TClientProgramBase, "days">,
+  clientEuneoProgram: TClientEuneoProgram,
   days: { [key: string]: TProgramDay }
 ): Promise<{ clientProgram: TClientProgram }> {
   // const { physioId, conditionId, physioProgramId, days } = physioProgram;
@@ -413,7 +413,7 @@ export async function addEuneoProgramToClient(
 
   const program = await addDoc(
     userProgramDoc.withConverter(clientProgramConverter),
-    clientProgramOmitted
+    clientEuneoProgram
   );
 
   let dayList: TClientProgramDay[] = [];
@@ -423,7 +423,7 @@ export async function addEuneoProgramToClient(
 
   console.log("here3");
 
-  const { trainingDays } = clientProgramOmitted;
+  const { trainingDays } = clientEuneoProgram;
 
   for (let i = 0; i < iterator; i++) {
     const dayId = "d1";
@@ -444,9 +444,8 @@ export async function addEuneoProgramToClient(
   console.log("here4");
 
   const clientProgram: TClientProgram = {
-    ...clientProgramOmitted,
+    ...clientEuneoProgram,
     days: dayList,
-    programId: program.id,
     clientProgramId: program.id,
   };
   await Promise.all(
