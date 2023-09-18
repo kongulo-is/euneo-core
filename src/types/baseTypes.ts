@@ -1,35 +1,3 @@
-import { TClientProgram } from "./clientTypes";
-
-/**
- * @description Physician data type
- */
-export type TPhysio = {
-  email: string;
-  name: string;
-};
-
-/**
- * @description Client information for the physician
- * @param name Name of the client given by the physician
- * @param email Email of the client
- * @param conditionId Id of the condition
- * @param prescription Prescription given to the client
- * @param clientId Id of the client in client collection after client has accepted the prescription
- * @param program clients program data/progress form client collection. (progress, days, pain levels, etc.)
- * @param status Status of the client (Active, Not Started, Inactive, No Prescription)
- */
-export type TPhysioClient = {
-  physioClientId: string;
-  name: string;
-  email: string;
-  conditionId?: TConditionId;
-  status?: TClientStatus;
-  prescription?: TPrescription;
-  clientId?: string;
-  program?: TClientProgram;
-};
-
-// TODO: það þarf að hugsa þetta með progamId. Það gengur ekki upp með custom programs ef á að sækja beint í gagnagrunn.
 /**
  * @memberof TPhysioClient
  * @description Prescription given to the client by physio
@@ -71,12 +39,6 @@ export type TOutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis";
 //     value: number;
 //   }[];
 // };
-
-export type TClientStatus =
-  | "Active"
-  | "Not Started"
-  | "Inactive"
-  | "No Prescription";
 
 /**
  * @description Exercise in exercise collection
@@ -120,5 +82,3 @@ export type TConditionId =
   | "no-condition";
 
 export type TEuneoProgramId = "plantar-heel-pain";
-
-// !Client --------------------------------
