@@ -113,7 +113,6 @@ export async function getPhysioProgramsWithDays(
   try {
     const physioRef = doc(db, "physios", physioId);
     const programsRef = collection(physioRef, "programs");
-    console.log("programsRef", programsRef);
     const programsSnap = await getDocs(
       programsRef.withConverter(programConverter)
     );

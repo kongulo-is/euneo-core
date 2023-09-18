@@ -2,7 +2,7 @@
  * ! Þetta er ekki physioClient heldur client
  */
 
-import { TConditionId, TOutcomeMeasureId, TPhase } from "./baseTypes";
+import { TConditionId, TOutcomeMeasureId } from "./baseTypes";
 
 /**
  * @description Client data from client collection
@@ -27,6 +27,12 @@ export type TPainLevel = {
   painIndex: number;
   date: Date;
 };
+
+export type TClientStatus =
+  | "Active"
+  | "Not Started"
+  | "Inactive"
+  | "No Prescription";
 
 /**
  * @memberof TClientProgram
@@ -68,6 +74,9 @@ export type TClientProgramDay = {
   restDay: boolean;
   exercises: number[];
 };
+
+/** @memberof TClientProgram */
+export type TPhase = { key: string; value: number };
 
 /**
  * @memberof TClientProgram
