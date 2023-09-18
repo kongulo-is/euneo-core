@@ -10,7 +10,11 @@ import {
   TClientPhysicalInformation,
   TOutcomeMeasureAnswerSection,
 } from "./clientTypes";
-import { TProgramQuestion } from "./programTypes";
+import {
+  TConditionAssessmentQuestion,
+  TProgramMode,
+  TProgramQuestion,
+} from "./programTypes";
 import { DocumentData } from "firebase/firestore";
 
 /**
@@ -101,6 +105,19 @@ export type PrescriptionWrite = {
   programRef: DocumentReference<ContinuousProgramWrite | PhaseProgramWrite>;
   prescriptionDate: Timestamp;
   status: TPrescriptionStatus;
+};
+
+/**
+ * @description custom program data as it is stored in the database in program subcollection in physio collection
+ * @path /physios/{physioId}/programs/{programId}
+ */
+export type ProgramWrite = {
+  name: string;
+  conditionId: TConditionId;
+  outcomeMeasureRefs: DocumentReference[]; // Always exists but might be empty
+  conditionAssessment: TConditionAssessmentQuestion[]; // Always exists but might be empty
+  mode: TProgramMode;
+  version: string;
 };
 
 /**

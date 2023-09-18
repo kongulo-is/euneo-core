@@ -15,7 +15,7 @@ export type TProgramDayExercise = {
 export type TProgramDay = { exercises: TProgramDayExercise[] };
 
 // Common Types
-type TProgramMode = "continuous" | "phase";
+export type TProgramMode = "continuous" | "phase";
 
 type TProgramPhase = {
   phaseId: `p${number}`;
@@ -29,7 +29,7 @@ type TProgramPhase = {
   }>;
 };
 
-export type TProgramQuestion = {
+export type TConditionAssessmentQuestion = {
   question: string;
   title: string;
   type: "boolean" | "option";
@@ -62,7 +62,7 @@ export type TProgramBase = {
   conditionId: TConditionId;
   mode: TProgramMode;
   outcomeMeasureIds?: TOutcomeMeasureId[];
-  conditionAssessment?: TProgramQuestion[];
+  conditionAssessment?: TConditionAssessmentQuestion[];
 };
 
 export type TProgramRead = TProgramBase;
