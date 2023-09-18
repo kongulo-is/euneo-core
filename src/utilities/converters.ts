@@ -28,6 +28,7 @@ import {
   TConditionAssessmentQuestion,
   TProgramBase,
   TProgramDay,
+  TProgramDayRead,
   TProgramRead,
 } from "../types/programTypes";
 import {
@@ -41,7 +42,7 @@ import runtimeChecks from "./runtimeChecks";
 
 // Program Day converter
 export const programDayConverter = {
-  toFirestore(day: TProgramDay): ProgramDayWrite {
+  toFirestore(day: TProgramDayRead): ProgramDayWrite {
     return {
       exercises: day.exercises.map((e) => ({
         reference: doc(db, "exercises", e.exerciseId),
@@ -55,7 +56,7 @@ export const programDayConverter = {
   fromFirestore(
     snapshot: QueryDocumentSnapshot<ProgramDayWrite>,
     options: SnapshotOptions
-  ): TProgramDay {
+  ): TProgramDayRead {
     const data = snapshot.data(options);
     let { exercises } = data;
 
@@ -73,115 +74,6 @@ export const programDayConverter = {
     };
   },
 };
-
-// //TODO: mabey remove.. changed to TContinuousProgram | TPhaseProgram
-// export const physioProgramConverter = {
-//   toFirestore(program: TProgramBase): PhysioProgramWrite {
-//     // * we only create/edit physio programs
-//     let outcomeMeasureRefs: DocumentReference[] = [];
-//     if (program.outcomeMeasureIds) {
-//       outcomeMeasureRefs = program.outcomeMeasureIds.map((id) =>
-//         doc(db, "outcomeMeasures", id)
-//       );
-//     }
-//     const data: PhysioProgramWrite = {
-//       name: program.name,
-//       conditionId: program.conditionId,
-//       mode: program.mode,
-//       outcomeMeasureRefs,
-//     };
-//     return data;
-//   },
-
-//   fromFirestore(
-//     snapshot: QueryDocumentSnapshot<PhysioProgramWrite>,
-//     options: SnapshotOptions
-//   ): TProgramBase {
-//     // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
-//     const data = snapshot.data(options);
-//     let { outcomeMeasureRefs, ...rest } = data;
-
-//     const outcomeMeasureIds =
-//       outcomeMeasureRefs?.map(
-//         (measure: DocumentReference) => measure.id as TOutcomeMeasureId
-//       ) || [];
-
-//     return {
-//       ...rest,
-//       ...(outcomeMeasureIds.length && { outcomeMeasureIds }),
-//       physioId: snapshot.ref.parent.parent!.id,
-//       physioProgramId: snapshot.id,
-//       mode: "continuous",
-//     };
-//   },
-// };
-
-// // TODO: ræða: skipta upp program converterum í continous og phase, en ekki physio og eueneo. Ástæða:
-// export const continuousProgramConverter = {
-//   toFirestore(program: TProgramBase): ContinuousProgramWrite {
-//     // * we only create/edit physio programs
-//     let outcomeMeasureRefs: DocumentReference[] = [];
-//     if (program.outcomeMeasureIds) {
-//       outcomeMeasureRefs = program.outcomeMeasureIds.map((id) =>
-//         doc(db, "outcomeMeasures", id)
-//       );
-//     }
-//     const data: ContinuousProgramWrite = {
-//       name: program.name,
-//       conditionId: program.conditionId,
-//       mode: program.mode,
-//       outcomeMeasureRefs,
-//     };
-//     return data;
-//   },
-
-//   fromFirestore(
-//     snapshot: QueryDocumentSnapshot<ContinuousProgramWrite>,
-//     options: SnapshotOptions
-//   ): TProgramBase {
-//     // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
-//     const data = snapshot.data(options);
-//     let { outcomeMeasureRefs, ...rest } = data;
-
-//     const outcomeMeasureIds =
-//       outcomeMeasureRefs?.map(
-//         (measure: DocumentReference) => measure.id as TOutcomeMeasureId
-//       ) || [];
-
-//     const datas: TProgramBase = {
-//       ...rest,
-//       ...(outcomeMeasureIds.length && { outcomeMeasureIds }),
-//       mode: "continuous",
-//     };
-//     return datas;
-//   },
-// };
-
-// export const euneoProgramConverter = {
-//   fromFirestore(
-//     snapshot: QueryDocumentSnapshot<EuneoProgramWrite>,
-//     options: SnapshotOptions
-//   ): TEuneoProgramOmitted<"days"> {
-//     // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
-//     const data = snapshot.data(options);
-//     let { outcomeMeasureRefs, ...rest } = data;
-
-//     const outcomeMeasureIds =
-//       outcomeMeasureRefs?.map(
-//         (measure: DocumentReference) => measure.id as TOutcomeMeasureId
-//       ) || [];
-
-//     if (rest.mode === "phase") {
-//     }
-
-//     return {
-//       ...rest,
-//       outcomeMeasureIds,
-//       // createdBy: "Euneo",
-//       programId: snapshot.id,
-//     };
-//   },
-// };
 
 export const programConverter = {
   toFirestore(program: TProgramRead): ProgramWrite {
