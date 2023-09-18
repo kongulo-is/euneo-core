@@ -34,8 +34,11 @@ import {
   TEuneoProgram,
   TProgramDay,
   TContinuousProgram,
+  TProgramDayRead,
+  TProgramRead,
 } from "../types/programTypes";
 import {
+  TClientEuneoProgram,
   TClientPhysioProgram,
   TClientProgram,
   TClientProgramBase,
@@ -393,26 +396,41 @@ export async function getAllExercises() {
 
 // TODO: tekur inn continuous program, skrifar í gagnagrunninn og skilar physioProgram (með program id og physio id)
 export async function createPhysioProgram(
-  continuousProgram: TContinuousProgram,
+  continuousProgram: TProgramRead,
+  days: Record<`d${number}`, TProgramDayRead>,
   physioId: string
-  // continuousProgram: Omit<TPhysioProgram, "physioProgramId">
-) {
-  const physioRef = doc(db, "physios", physioId);
-  const programsRef = collection(physioRef, "programs");
+): Promise<TPhysioProgram> {
+  try {
+    const physioRef = doc(db, "physios", physioId);
+    const programsRef = collection(physioRef, "programs");
+    const programRef = await addDoc(
+      programsRef.withConverter(programConverter),
+      continuousProgram // * There is no error because
+    );
 
-  const programRef = await addDoc(
-    programsRef.withConverter(continuousProgramConverter),
-    continuousProgram // * There is no error because
-  );
-  const daysRef = collection(programRef, "days");
+    const daysRef = collection(programRef, "days");
 
-  const dayRef = await addDoc(daysRef, continuousProgram.days);
+    await setDoc(
+      doc(daysRef.withConverter(programDayConverter), "d1"),
+      days["d1"],
+      { merge: true }
+    );
 
-  const physioProgram: TPhysioProgram = {
-    ...continuousProgram,
-    physioId,
-    physioProgramId: programRef.id,
-  };
+    const physioProgram: TPhysioProgram = {
+      ...continuousProgram,
+      days,
+      mode: "continuous",
+      physioProgramId: programRef.id,
+      physioId,
+    };
 
-  return physioProgram;
+    return physioProgram;
+  } catch (error) {
+    console.error("Error creating physio program:", error, {
+      continuousProgram,
+      days,
+      physioId,
+    });
+  }
+  throw new Error("Error creating physio program");
 }

@@ -14,6 +14,8 @@ export type TProgramDayExercise = {
 
 export type TProgramDay = { exercises: TProgramDayExercise[] };
 
+export type TProgramDayRead = TProgramDay;
+
 // Common Types
 export type TProgramMode = "continuous" | "phase";
 
