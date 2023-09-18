@@ -86,3 +86,5 @@ export type TPhysioProgram = TContinuousProgram & {
   physioProgramId: string;
   physioId: string;
 };
+
+export type TProgram = TEuneoProgram | TPhysioProgram;

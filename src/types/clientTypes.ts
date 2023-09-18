@@ -82,6 +82,8 @@ export type TClientPhysicalInformation = {
 };
 export type TConditionAssessmentAnswer = boolean | string;
 
+// ------------------------------
+
 /**
  * @description This is the base for the client program
  */
@@ -98,17 +100,30 @@ export type TClientProgramBase = {
 /**
  * Everything between the base and read is specific to each type of program
  */
-export type TClientEuneoProgram = TClientProgramBase & {
+export type TClientEuneoProgramRead = TClientProgramBase & {
   euneoProgramId: string;
 };
 
 // Specific properties for each case
-export type TClientPhysioProgram = TClientProgramBase & {
+export type TClientPhysioProgramRead = TClientProgramBase & {
   physioProgramId: string;
   physioId: string;
 };
 
-export type TClientProgramRead = TClientEuneoProgram | TClientPhysioProgram;
+export type TClientProgramRead =
+  | TClientEuneoProgramRead
+  | TClientPhysioProgramRead;
+
+// * Here are types after converter
+
+type TClientProgramId = {
+  clientProgramId: string;
+  days: TClientProgramDay[];
+};
+
+export type TClientPhysioProgram = TClientPhysioProgramRead & TClientProgramId;
+
+export type TClientEuneoProgram = TClientEuneoProgramRead & TClientProgramId;
 
 /**
  * @description this is the converted reference to the program
@@ -116,7 +131,4 @@ export type TClientProgramRead = TClientEuneoProgram | TClientPhysioProgram;
  * and the subcollection data
  * /clients/{clientId}/programs/{programId}/days/{dayId}
  */
-export type TClientProgram = TClientProgramRead & {
-  clientProgramId: string;
-  days: TClientProgramDay[];
-};
+export type TClientProgram = TClientPhysioProgram | TClientEuneoProgram;
