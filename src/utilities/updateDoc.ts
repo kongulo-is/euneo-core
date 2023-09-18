@@ -11,10 +11,9 @@ import {
   ClientProgramDayWrite,
   PhysioWrite,
   PhysioClientWrite,
-  EuneoProgramWrite,
-  PhysioProgramWrite,
   ProgramDayWrite,
   ExerciseDayWrite,
+  ProgramWrite,
 } from "../types/converterTypes";
 
 type AllWrites =
@@ -23,8 +22,7 @@ type AllWrites =
   | ClientProgramDayWrite
   | PhysioWrite
   | PhysioClientWrite
-  | EuneoProgramWrite
-  | PhysioProgramWrite
+  | ProgramWrite
   | ProgramDayWrite
   | ExerciseDayWrite;
 
