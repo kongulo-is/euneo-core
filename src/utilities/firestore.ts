@@ -17,9 +17,7 @@ import {
   PhysioClientWrite,
   PrescriptionWrite,
   ClientProgramWrite,
-  ClientWrite,
 } from "../types/converterTypes";
-import { TPhysioClient } from "../types/baseTypes";
 import {
   programDayConverter,
   physioClientConverter,
@@ -32,19 +30,12 @@ import runtimeChecks from "./runtimeChecks";
 import {
   TPhysioProgram,
   TEuneoProgram,
-  TProgramDay,
-  TContinuousProgram,
   TProgramDayRead,
   TProgramRead,
 } from "../types/programTypes";
-import {
-  TClientEuneoProgram,
-  TClientPhysioProgram,
-  TClientProgram,
-  TClientProgramBase,
-  TClientProgramDay,
-} from "../types/clientTypes";
+import { TClientProgram } from "../types/clientTypes";
 import { updateDoc } from "./updateDoc";
+import { TPhysioClient, TPhysioClientBase } from "../types/physioTypes";
 
 async function _getProgramFromRef(
   programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>
@@ -237,52 +228,23 @@ export async function getPhysioClients(
     );
 
     // get clients program data from programs subcollection to client.
-    const clientsData = await Promise.all(
+    const clientsData: TPhysioClient[] = await Promise.all(
       snapshot.docs.map(async (c) => {
-        const clientData = c.data();
-        // if clientId, get program data (date, status, etc.) from prescribed program.
-        // TODO: remove this. This is just for testing.
+        const clientData: TPhysioClientBase = c.data();
+        let clientProgram: TClientProgram | undefined;
+        // Get client program data if client has accepted a prescription
+        if (clientData.clientId && clientData.prescription?.programId) {
+          const clientProgramWithDays = await getClientProgram(
+            clientData.clientId,
+            clientData.prescription.programId
+          );
+          clientProgram = clientProgramWithDays;
+        }
         return {
           ...clientData,
-          program: undefined,
-        } as TPhysioClient;
-        // if (clientData.clientId && clientData.prescription?.programId) {
-        //   let programRef: DocumentReference<ClientProgramWrite>;
-        //   let clientRef: DocumentReference<ClientWrite>;
-        //   clientRef = doc(
-        //     db,
-        //     "clients",
-        //     clientData.clientId
-        //   ) as DocumentReference<ClientWrite>;
-        //   programRef = doc(
-        //     clientRef,
-        //     "programs",
-        //     clientData.prescription.programId
-        //   ) as DocumentReference<ClientProgramWrite>;
-
-        //   const programSnap = await getDoc(
-        //     programRef.withConverter(clientProgramConverter)
-        //   );
-        //   const programData = programSnap.data();
-
-        //   const daySnapshots = await getDocs(
-        //     collection(programRef, "days").withConverter(
-        //       clientProgramDayConverter
-        //     )
-        //   );
-
-        //   const days = daySnapshots.docs.map((doc) => doc.data());
-
-        //   const physioClient: TPhysioClient = {
-        //     ...clientData,
-        //     program: {
-        //       ...programData,
-        //       days,
-        //     },
-        //   };
-
-        //   return physioClient;
-        // }
+          physioClientId: c.id,
+          ...(clientProgram && { clientProgram }),
+        };
       })
     ).catch((err) => {
       console.error(err);
@@ -433,3 +395,43 @@ export async function createPhysioProgram(
   }
   throw new Error("Error creating physio program");
 }
+
+// // client ref
+// const clientRef = doc(
+//   db,
+//   "clients",
+//   clientData.clientId
+// ) as DocumentReference<ClientWrite>;
+
+// // client program
+// const programRef = doc(
+//   clientRef,
+//   "programs",
+//   clientData.prescription.programId
+// ) as DocumentReference<ClientProgramWrite>;
+
+// // client program days
+// const programDaysRef = collection(
+//   programRef,
+//   "days"
+// ) as CollectionReference<ClientProgramDayWrite>;
+
+// const programSnap = await getDoc(
+//   programRef.withConverter(clientProgramConverter)
+// );
+
+// const programBase: TClientProgramBase = programSnap.data();
+
+// const programDays = await getDocs(
+//   programDaysRef.withConverter(clientProgramDayConverter)
+// );
+
+// const days: TClientProgramDay[] = programDays.docs.map((doc) =>
+//   doc.data()
+// );
+
+// const clientProgramData: TClientProgram = {
+//   ...programSnap.data(),
+//   clientProgramId: programSnap.id,
+//   days,
+// }

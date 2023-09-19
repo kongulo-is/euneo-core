@@ -102,7 +102,7 @@ export type PhysioClientWrite = {
  * @path /physios/{physioId}/clients/{physioClientId}
  */
 export type PrescriptionWrite = {
-  programRef: DocumentReference<ContinuousProgramWrite | PhaseProgramWrite>;
+  programRef: DocumentReference;
   prescriptionDate: Timestamp;
   status: TPrescriptionStatus;
 };

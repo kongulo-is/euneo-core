@@ -10,11 +10,12 @@ import {
   ContinuousProgramWrite,
   PhaseProgramWrite,
   ProgramWrite,
+  ClientWrite,
 } from "../types/converterTypes";
 import {
   TExercise,
   TOutcomeMeasureId,
-  TPhysioClient,
+  TPrescription,
 } from "../types/baseTypes";
 
 import {
@@ -35,8 +36,10 @@ import {
   TOutcomeMeasureAnswers,
   TClientProgramDay,
   TClientProgramRead,
+  TClientEuneoProgramRead,
 } from "../types/clientTypes";
 import runtimeChecks from "./runtimeChecks";
+import { TPhysioClientRead } from "../types/physioTypes";
 
 // sdkofjdsalkfjsa
 
@@ -121,7 +124,7 @@ export const programConverter = {
 };
 
 export const physioClientConverter = {
-  toFirestore(client: TPhysioClient): PhysioClientWrite {
+  toFirestore(client: TPhysioClientRead): PhysioClientWrite {
     const data: PhysioClientWrite = {
       name: client.name,
       email: client.email,
@@ -134,7 +137,7 @@ export const physioClientConverter = {
           db,
           "programs",
           client.prescription.programId
-        ) as DocumentReference<EuneoProgramWrite>,
+        ) as DocumentReference<ProgramWrite>,
         prescriptionDate: Timestamp.fromDate(
           client.prescription.prescriptionDate
         ),
@@ -142,7 +145,11 @@ export const physioClientConverter = {
     }
 
     if (client.clientId) {
-      data.clientRef = doc(db, "clients", client.clientId);
+      data.clientRef = doc(
+        db,
+        "clients",
+        client.clientId
+      ) as DocumentReference<ClientWrite>;
     }
 
     return data;
@@ -151,25 +158,27 @@ export const physioClientConverter = {
   fromFirestore(
     snapshot: QueryDocumentSnapshot<PhysioClientWrite>,
     options: SnapshotOptions
-  ): TPhysioClient {
+  ): TPhysioClientRead {
     const data = snapshot.data(options);
     let { clientRef, prescription, ...rest } = data;
 
     const clientId = clientRef?.id;
 
-    const newPrescription = prescription
-      ? {
-          ...prescription,
-          prescriptionDate: prescription.prescriptionDate.toDate(),
-          programId: prescription.programRef?.id,
-        }
-      : undefined;
+    console.log("prescription", prescription);
+
+    let prescriptionRead: TPrescription | undefined;
+    if (prescription) {
+      prescriptionRead = {
+        status: prescription.status,
+        prescriptionDate: prescription.prescriptionDate.toDate(),
+        programId: prescription.programRef?.id,
+      };
+    }
 
     return {
       ...rest,
       ...(clientId && { clientId }),
-      ...(newPrescription && { prescription: newPrescription }),
-      physioClientId: snapshot.id,
+      ...(prescriptionRead && { prescription: prescriptionRead }),
     };
   },
 };
