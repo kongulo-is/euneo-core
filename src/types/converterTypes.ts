@@ -10,11 +10,7 @@ import {
   TClientPhysicalInformation,
   TOutcomeMeasureAnswerSection,
 } from "./clientTypes";
-import {
-  TConditionAssessmentQuestion,
-  TProgramMode,
-  TProgramQuestion,
-} from "./programTypes";
+import { TConditionAssessmentQuestion, TProgramMode } from "./programTypes";
 import { DocumentData } from "firebase/firestore";
 
 /**
@@ -128,7 +124,7 @@ export type PhaseProgramWrite = {
   name: string;
   conditionId: TConditionId;
   outcomeMeasureRefs: DocumentReference[];
-  conditionAssessment?: TProgramQuestion[];
+  conditionAssessment?: TConditionAssessmentQuestion[];
   mode: "phase";
   version: string;
 };
@@ -151,6 +147,22 @@ export type ContinuousProgramWrite = {
  */
 export type ProgramDayWrite = {
   exercises: ExerciseDayWrite[];
+};
+
+/**
+ * @description custom day in subcollection days in program subcollection in physio or programs collection
+ * @path /physios/{physioId}/programs/{programId}/days/{dayId}
+ * @path /programs/{programId}/days/{dayId}
+ */
+export type ProgramPhaseWrite = {
+  days: `d${number}`[];
+  length: number;
+  nextPhase?: Array<{
+    phaseId: `p${number}`;
+    length: number;
+    maxPainLevel: number;
+    minPainLevel: number;
+  }>;
 };
 
 /**

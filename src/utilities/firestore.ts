@@ -17,6 +17,9 @@ import {
   PhysioClientWrite,
   PrescriptionWrite,
   ClientProgramWrite,
+  ClientWrite,
+  ContinuousProgramWrite,
+  PhaseProgramWrite,
 } from "../types/converterTypes";
 import {
   programDayConverter,
@@ -25,6 +28,7 @@ import {
   clientProgramDayConverter,
   exerciseConverter,
   programConverter,
+  programPhaseConverter,
 } from "./converters";
 import runtimeChecks from "./runtimeChecks";
 import {
@@ -32,50 +36,65 @@ import {
   TEuneoProgram,
   TProgramDayRead,
   TProgramRead,
+  TProgram,
+  TPhaseProgram,
 } from "../types/programTypes";
 import { TClientProgram } from "../types/clientTypes";
 import { updateDoc } from "./updateDoc";
 import { TPhysioClient, TPhysioClientBase } from "../types/physioTypes";
 
 async function _getProgramFromRef(
-  programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>
-): Promise<TPhysioProgram | TEuneoProgram> {
-  const [programSnap, daySnapshots] = await Promise.all([
+  programRef: DocumentReference<ContinuousProgramWrite | PhaseProgramWrite>
+): Promise<TProgram> {
+  const [programSnap, daySnapshots, phaseSnapshots] = await Promise.all([
     getDoc(programRef.withConverter(programConverter)),
     getDocs(collection(programRef, "days").withConverter(programDayConverter)),
+    getDocs(
+      collection(programRef, "phases").withConverter(programPhaseConverter)
+    ),
   ]);
 
   // TODO: vantar error check ef programRef er ekki til
-  const program = programSnap.data();
-  // ! const program = programSnap.data()!; ef þú unkommentar þetta þá fer villan niðri
-  // ! en þetta var commentað af því að programRef getur verið undefined
+  const programBase = programSnap.data()!;
 
   const days = Object.fromEntries(
     daySnapshots.docs.map((doc) => [doc.id, doc.data()])
   );
 
-  // TODO: Add phases
+  let programMode: TPhaseProgram | TContinuousProgram;
 
-  // TODO: check if program is undefined
-  return { ...program!, days };
+  if (programBase.mode === "phase" && !phaseSnapshots.empty) {
+    programBase;
+    const phases = Object.fromEntries(
+      phaseSnapshots.docs.map((doc) => [doc.id, doc.data()])
+    );
+    programMode = { ...programBase, days, phases, mode: "phase" };
+  } else {
+    programMode = { ...programBase, days, mode: "continuous" };
+  }
+
+  let program: TProgram;
+
+  if (programRef.parent.parent) {
+    program = {
+      ...programMode,
+      physioId: programRef.parent.parent.id,
+      physioProgramId: programSnap.id,
+      mode: "continuous",
+    };
+  } else {
+    program = { ...programMode!, euneoProgramId: programSnap.id };
+  }
+
+  return program;
 }
 
-export async function getProgramWithDays(
-  programPath: TProgramPath
+export async function getEuneoProgramWithDays(
+  euneoProgramId: string
 ): Promise<TPhysioProgram | TEuneoProgram> {
-  let programRef: DocumentReference<EuneoProgramWrite | PhysioProgramWrite>;
-
-  // Determine if it's a program or a physio program based on the path format
-  const parts = programPath.split("/");
-  if (parts.length === 2) {
-    // It's a program ID
-    programRef = doc(db, programPath) as DocumentReference<EuneoProgramWrite>;
-  } else if (parts.length === 4) {
-    // It's a physio program ID
-    programRef = doc(db, programPath) as DocumentReference<PhysioProgramWrite>;
-  } else {
-    throw new Error("Invalid program path format");
-  }
+  let programRef = doc(db, "testPrograms", euneoProgramId) as DocumentReference<
+    ContinuousProgramWrite | PhaseProgramWrite
+  >;
 
   return _getProgramFromRef(programRef);
 }

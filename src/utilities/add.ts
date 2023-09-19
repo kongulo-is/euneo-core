@@ -190,7 +190,6 @@ export async function addPhysioProgramToClient(
 
 export async function addEuneoProgramToClient(
   clientId: string,
-  programId: string,
   clientProgramRead: TClientEuneoProgramRead,
   days: { [key: string]: TProgramDay }
 ): Promise<{ clientProgram: TClientEuneoProgram }> {

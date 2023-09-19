@@ -66,7 +66,7 @@ export type TOutcomeMeasureAnswerSection = {
  * @param exercises array completed exercises in a day (0 = not completed, 1 = completed)
  */
 export type TClientProgramDay = {
-  dayId: string;
+  dayId: `d${number}`;
   phaseId?: string;
   date: Date;
   finished: boolean;

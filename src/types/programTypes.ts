@@ -19,8 +19,7 @@ export type TProgramDayRead = TProgramDay;
 // Common Types
 export type TProgramMode = "continuous" | "phase";
 
-type TProgramPhase = {
-  phaseId: `p${number}`;
+export type TProgramPhaseBase = {
   days: `d${number}`[];
   length: number;
   nextPhase?: Array<{
@@ -30,6 +29,10 @@ type TProgramPhase = {
     minPainLevel: number;
   }>;
 };
+
+export type TProgramPhaseRead = TProgramPhaseBase;
+
+export type TProgramPhase = TProgramPhaseRead;
 
 export type TConditionAssessmentQuestion = {
   question: string;
