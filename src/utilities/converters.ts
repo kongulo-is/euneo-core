@@ -145,6 +145,7 @@ export const physioClientConverter = {
     const data: PhysioClientWrite = {
       name: client.name,
       email: client.email,
+      ...(client.conditionId && { conditionId: client.conditionId }),
     };
 
     if (client.prescription && client.prescription.programId) {
@@ -268,15 +269,21 @@ export const clientProgramConverter = {
     console.log("Here1");
     let { programRef, painLevels, ...rest } = data;
 
+    //TODO: remove check... Þetta a að vera painLevels. Bara nota til að ná þessu i gegn með gamla painLevel.
+    // if (!painLevels) painLevels = (data as any).painLevel;
     // create program id and by.
 
     // convert timestamps to dates in outcomeMeasures and painLevels
-    const outcomeMeasuresAnswers: TOutcomeMeasureAnswers[] =
-      data.outcomeMeasuresAnswers.map((measure) => ({
+    let outcomeMeasuresAnswers: TOutcomeMeasureAnswers[] =
+      data.outcomeMeasuresAnswers?.map((measure) => ({
         ...measure,
         date: measure.date.toDate(),
       }));
     console.log("Here2", painLevels);
+
+    // TODO: Þetta er bara til að ná þessu i gegn með gamla assessments. þarf að eyða þessu!!
+    // if (!outcomeMeasuresAnswers)
+    //   outcomeMeasuresAnswers = (data as any).assessments;
 
     let clientProgram;
 
@@ -337,7 +344,6 @@ export const clientProgramDayConverter = {
     options: SnapshotOptions
   ): TClientProgramDay {
     const data = snapshot.data(options);
-
     const clientProgramDay: TClientProgramDay = {
       ...data,
       date: data.date.toDate(),

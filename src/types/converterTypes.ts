@@ -27,7 +27,7 @@ export type ClientWrite = {
 };
 
 export type ClientProgramDayWrite = {
-  dayId: string;
+  dayId: `d${number}`;
   phaseId?: string;
   date: Timestamp;
   finished: boolean;
