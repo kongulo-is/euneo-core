@@ -9,6 +9,11 @@ import {
   TClientProgramOmitted,
 } from "../types/clientTypes";
 import { conditions } from "../constants/conditions";
+import {
+  TConditionAssessmentQuestion,
+  TPhysioProgram,
+  TProgramDayExercise,
+} from "../types/programTypes";
 
 const assertTConditionId = (id: TConditionId): void => {
   const validIds = Object.keys(conditions);
@@ -79,7 +84,7 @@ const assertTypeString = (val: any, fieldName: string): void => {
   }
 };
 
-type AssertFunction<T> = (item: T) => void;
+type AssertFunction<T> = (item: T, fieldName: string) => void;
 
 const assertArray = <T>(
   arr: any[],
@@ -90,7 +95,7 @@ const assertArray = <T>(
     !Array.isArray(arr) ||
     !arr.every((item) => {
       try {
-        assertFunc(item);
+        assertFunc(item, fieldName);
         return true;
       } catch {
         return false;
@@ -146,7 +151,59 @@ const runtimeChecks = {
       assertTClientPhysicalInformation(obj.physicalInformation);
     }
   },
-  getClientProgram(clientProgram: TClientProgram) {},
+  assertTPhysioProgram(obj: TPhysioProgram): void {
+    assertTypeString(obj.name, "name");
+    assertTypeString(obj.physioProgramId, "physioProgramId");
+    assertTypeString(obj.physioId, "physioId");
+    assertTypeString(obj.mode, "mode");
+
+    assertTConditionId(obj.conditionId);
+
+    if (obj.outcomeMeasureIds) {
+      assertArray<string>(
+        obj.outcomeMeasureIds,
+        assertTypeString,
+        "outcomeMeasureIds"
+      );
+    }
+
+    if (obj.conditionAssessment) {
+      assertArray<TConditionAssessmentQuestion>(
+        obj.conditionAssessment,
+        (item: TConditionAssessmentQuestion) => {
+          assertTypeString(item.question, "question");
+          assertTypeString(item.title, "title");
+          assertTypeString(item.type, "type");
+          assertArray<string>(item.options, assertTypeString, "options");
+        },
+        "conditionAssessment"
+      );
+    }
+
+    Object.keys(obj.days).forEach((dayKey: string) => {
+      const day = obj.days[dayKey as `d${number}`];
+      assertArray<TProgramDayExercise>(
+        day.exercises,
+        (exercise: TProgramDayExercise) => {
+          assertTypeString(exercise.exerciseId, "exerciseId");
+          if (
+            typeof exercise.quantity !== "number" ||
+            typeof exercise.sets !== "number" ||
+            typeof exercise.reps !== "number"
+          ) {
+            throw new Error("Invalid TProgramDayExercise");
+          }
+        },
+        "exercises"
+      );
+    });
+
+    if (obj.mode === "continuous") {
+      // Continuous mode specific validation, if any
+    } else {
+      throw new Error("Invalid mode");
+    }
+  },
 };
 
 export default runtimeChecks;

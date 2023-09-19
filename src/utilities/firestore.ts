@@ -48,31 +48,46 @@ import {
   TPhysioClientRead,
 } from "../types/physioTypes";
 
+async function fetchProgramBase(programRef: DocumentReference) {
+  const programSnap = await getDoc(programRef.withConverter(programConverter));
+  if (!programSnap.exists()) {
+    throw new Error("Program does not exist.");
+  }
+  return programSnap.data()!;
+}
+
+async function fetchDays(programRef: DocumentReference) {
+  const daySnapshots = await getDocs(
+    collection(programRef, "days").withConverter(programDayConverter)
+  );
+  return Object.fromEntries(
+    daySnapshots.docs.map((doc) => [doc.id, doc.data()])
+  );
+}
+
+async function fetchPhases(programRef: DocumentReference) {
+  const phaseSnapshots = await getDocs(
+    collection(programRef, "phases").withConverter(programPhaseConverter)
+  );
+  return Object.fromEntries(
+    phaseSnapshots.docs.map((doc) => [doc.id, doc.data()])
+  );
+}
+
 async function _getProgramFromRef(
   programRef: DocumentReference<ContinuousProgramWrite | PhaseProgramWrite>
 ): Promise<TProgram> {
-  const [programSnap, daySnapshots, phaseSnapshots] = await Promise.all([
-    getDoc(programRef.withConverter(programConverter)),
-    getDocs(collection(programRef, "days").withConverter(programDayConverter)),
-    getDocs(
-      collection(programRef, "phases").withConverter(programPhaseConverter)
-    ),
+  const [programBase, days] = await Promise.all([
+    fetchProgramBase(programRef),
+    fetchDays(programRef),
   ]);
 
-  // TODO: vantar error check ef programRef er ekki til
-  const programBase = programSnap.data()!;
-
-  const days = Object.fromEntries(
-    daySnapshots.docs.map((doc) => [doc.id, doc.data()])
-  );
+  const programId = programRef.id; // Save the id here for later use
 
   let programMode: TPhaseProgram | TContinuousProgram;
 
-  if (programBase.mode === "phase" && !phaseSnapshots.empty) {
-    programBase;
-    const phases = Object.fromEntries(
-      phaseSnapshots.docs.map((doc) => [doc.id, doc.data()])
-    );
+  if (programBase.mode === "phase") {
+    const phases = await fetchPhases(programRef);
     programMode = { ...programBase, days, phases, mode: "phase" };
   } else {
     programMode = { ...programBase, days, mode: "continuous" };
@@ -84,11 +99,11 @@ async function _getProgramFromRef(
     program = {
       ...programMode,
       physioId: programRef.parent.parent.id,
-      physioProgramId: programSnap.id,
+      physioProgramId: programId,
       mode: "continuous",
     };
   } else {
-    program = { ...programMode!, euneoProgramId: programSnap.id };
+    program = { ...programMode!, euneoProgramId: programId };
   }
 
   return program;
@@ -169,7 +184,13 @@ export async function getProgramFromCode(
 
   // TODO: delete the invitation from db
 
-  const program = await _getProgramFromRef(programRef);
+  console.log("programRef", programRef);
+
+  const program = (await _getProgramFromRef(programRef)) as TPhysioProgram;
+
+  runtimeChecks.assertTPhysioProgram(program);
+
+  console.log("-----------program", program);
 
   return program;
 }
