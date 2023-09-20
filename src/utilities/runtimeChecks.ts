@@ -1,4 +1,4 @@
-import { TConditionId, TPhase } from "../types/baseTypes";
+import { TConditionId } from "../types/baseTypes";
 import {
   TOutcomeMeasureAnswers,
   TPainLevel,
@@ -6,7 +6,8 @@ import {
   TConditionAssessmentAnswer,
   TClientPhysicalInformation,
   TClientProgram,
-  TClientProgramOmitted,
+  TPhase,
+  TClientProgramRead,
 } from "../types/clientTypes";
 import { conditions } from "../constants/conditions";
 import {
@@ -108,7 +109,7 @@ const assertArray = <T>(
 
 const runtimeChecks = {
   assertTClientProgram(
-    obj: TClientProgram | TClientProgramOmitted<"days" | "clientProgramId">,
+    obj: TClientProgram | TClientProgramRead,
     write?: boolean
   ): void {
     if (

@@ -2,12 +2,13 @@ import { DocumentReference, doc } from "firebase/firestore";
 import {
   TPhysioProgram,
   TProgramDayRead,
+  TProgramDayWrite,
   TProgramRead,
+  TProgramWrite,
 } from "../types/programTypes";
 import { db } from "../firebase/db";
 import { programConverter, programDayConverter } from "./converters";
 import { updateDoc } from "./updateDoc";
-import { ProgramDayWrite, ProgramWrite } from "../types/converterTypes";
 
 export async function updatePhysioProgram(
   physioProgram: TProgramRead,
@@ -22,7 +23,7 @@ export async function updatePhysioProgram(
       physioId,
       "programs",
       physioProgramId
-    ) as DocumentReference<ProgramWrite>;
+    ) as DocumentReference<TProgramWrite>;
 
     // convert and update program.
     const programConverted = programConverter.toFirestore(physioProgram);
@@ -38,7 +39,7 @@ export async function updatePhysioProgram(
       physioProgramId,
       "days",
       "d1"
-    ) as DocumentReference<ProgramDayWrite>;
+    ) as DocumentReference<TProgramDayWrite>;
     await updateDoc(dayRef, day);
 
     return {

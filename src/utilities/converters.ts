@@ -1,22 +1,11 @@
 //TODO: Ætti þessi file að heita eitthvað annað? eins og t.d. writeTypes eða firebaseTypes?
 
 import { db } from "../firebase/db";
-import {
-  ProgramDayWrite,
-  PhysioClientWrite,
-  ClientProgramDayWrite,
-  ClientProgramWrite,
-  ExerciseWrite,
-  ContinuousProgramWrite,
-  PhaseProgramWrite,
-  ProgramWrite,
-  ClientWrite,
-  ProgramPhaseWrite,
-} from "../types/converterTypes";
+
 import {
   TExercise,
+  TExerciseWrite,
   TOutcomeMeasureId,
-  TPrescription,
 } from "../types/baseTypes";
 
 import {
@@ -28,25 +17,36 @@ import {
 } from "@firebase/firestore";
 import {
   TConditionAssessmentQuestion,
+  TPhysioProgram,
   TProgramDayRead,
+  TProgramDayWrite,
   TProgramPhase,
   TProgramPhaseRead,
+  TProgramPhaseWrite,
   TProgramRead,
+  TProgramWrite,
 } from "../types/programTypes";
 import {
   TOutcomeMeasureAnswers,
   TClientProgramDay,
   TClientProgramRead,
   TClientEuneoProgramRead,
+  TClientProgramWrite,
+  TClientProgramDayWrite,
+  TClient,
 } from "../types/clientTypes";
 import runtimeChecks from "./runtimeChecks";
-import { TPhysioClientRead } from "../types/physioTypes";
+import {
+  TPhysioClientRead,
+  TPhysioClientWrite,
+  TPrescription,
+} from "../types/physioTypes";
 
 // sdkofjdsalkfjsa
 
 // Program Day converter
 export const programDayConverter = {
-  toFirestore(day: TProgramDayRead): ProgramDayWrite {
+  toFirestore(day: TProgramDayRead): TProgramDayWrite {
     return {
       exercises: day.exercises.map((e) => ({
         reference: doc(db, "exercises", e.exerciseId),
@@ -58,7 +58,7 @@ export const programDayConverter = {
   },
 
   fromFirestore(
-    snapshot: QueryDocumentSnapshot<ProgramDayWrite>,
+    snapshot: QueryDocumentSnapshot<TProgramDayWrite>,
     options: SnapshotOptions
   ): TProgramDayRead {
     const data = snapshot.data(options);
@@ -80,7 +80,7 @@ export const programDayConverter = {
 };
 
 export const programPhaseConverter = {
-  toFirestore(phase: TProgramPhaseRead): ProgramPhaseWrite {
+  toFirestore(phase: TProgramPhaseRead): TProgramPhaseWrite {
     return {
       ...phase,
       days: phase.days.map((day) =>
@@ -90,7 +90,7 @@ export const programPhaseConverter = {
   },
 
   fromFirestore(
-    snapshot: QueryDocumentSnapshot<ProgramPhaseWrite>,
+    snapshot: QueryDocumentSnapshot<TProgramPhaseWrite>,
     options: SnapshotOptions
   ): TProgramPhaseRead {
     const data = snapshot.data(options);
@@ -102,7 +102,7 @@ export const programPhaseConverter = {
 };
 
 export const programConverter = {
-  toFirestore(program: TProgramRead): ProgramWrite {
+  toFirestore(program: TProgramRead): TProgramWrite {
     // * we only create/edit physio programs
     let outcomeMeasureRefs: DocumentReference[] = [];
     if (program.outcomeMeasureIds) {
@@ -116,7 +116,7 @@ export const programConverter = {
       conditionAssessment = program.conditionAssessment;
     }
 
-    const data: ProgramWrite = {
+    const data: TProgramWrite = {
       name: program.name,
       conditionId: program.conditionId,
       mode: program.mode,
@@ -127,7 +127,7 @@ export const programConverter = {
     return data;
   },
   fromFirestore(
-    snapshot: QueryDocumentSnapshot<ProgramWrite>,
+    snapshot: QueryDocumentSnapshot<TProgramWrite>,
     options: SnapshotOptions
   ): TProgramRead {
     const data = snapshot.data(options);
@@ -147,8 +147,8 @@ export const programConverter = {
 };
 
 export const physioClientConverter = {
-  toFirestore(client: TPhysioClientRead): PhysioClientWrite {
-    const data: PhysioClientWrite = {
+  toFirestore(client: TPhysioClientRead): TPhysioClientWrite {
+    const data: TPhysioClientWrite = {
       name: client.name,
       email: client.email,
       ...(client.conditionId && { conditionId: client.conditionId }),
@@ -161,7 +161,7 @@ export const physioClientConverter = {
           db,
           "programs",
           client.prescription.programId
-        ) as DocumentReference<ProgramWrite>,
+        ) as DocumentReference<TPhysioProgram>,
         prescriptionDate: Timestamp.fromDate(
           client.prescription.prescriptionDate
         ),
@@ -173,14 +173,14 @@ export const physioClientConverter = {
         db,
         "clients",
         client.clientId
-      ) as DocumentReference<ClientWrite>;
+      ) as DocumentReference<TClient>;
     }
 
     return data;
   },
 
   fromFirestore(
-    snapshot: QueryDocumentSnapshot<PhysioClientWrite>,
+    snapshot: QueryDocumentSnapshot<TPhysioClientWrite>,
     options: SnapshotOptions
   ): TPhysioClientRead {
     const data = snapshot.data(options);
@@ -208,7 +208,7 @@ export const physioClientConverter = {
 };
 
 export const clientProgramConverter = {
-  toFirestore(program: TClientProgramRead): ClientProgramWrite {
+  toFirestore(program: TClientProgramRead): TClientProgramWrite {
     // Perform runtime checks
     runtimeChecks.assertTClientProgram(program, true); // Assertion done here if needed
 
@@ -224,9 +224,7 @@ export const clientProgramConverter = {
       date: Timestamp.fromDate(pain.date),
     }));
 
-    let programRef: DocumentReference<
-      PhaseProgramWrite | ContinuousProgramWrite
-    >;
+    let programRef: DocumentReference<TProgramWrite>;
 
     if ("euneoProgramId" in program && program.euneoProgramId) {
       program;
@@ -234,7 +232,7 @@ export const clientProgramConverter = {
         db,
         "programs",
         program.euneoProgramId
-      ) as DocumentReference<PhaseProgramWrite | ContinuousProgramWrite>;
+      ) as DocumentReference<TProgramWrite>;
     } else if ("physioId" in program) {
       programRef = doc(
         db,
@@ -242,12 +240,12 @@ export const clientProgramConverter = {
         program.physioId,
         "programs",
         program.physioProgramId
-      ) as DocumentReference<PhaseProgramWrite | ContinuousProgramWrite>;
+      ) as DocumentReference<TProgramWrite>;
     } else {
       throw new Error("Program must have either euneoProgramId or physioId");
     }
 
-    const data: ClientProgramWrite = {
+    const data: TClientProgramWrite = {
       outcomeMeasuresAnswers,
       conditionId: program.conditionId,
       painLevels,
@@ -267,7 +265,7 @@ export const clientProgramConverter = {
     return data;
   },
   fromFirestore(
-    snapshot: QueryDocumentSnapshot<ClientProgramWrite>,
+    snapshot: QueryDocumentSnapshot<TClientProgramWrite>,
     options: SnapshotOptions
   ): TClientProgramRead {
     // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
@@ -329,8 +327,8 @@ export const clientProgramConverter = {
 };
 
 export const clientProgramDayConverter = {
-  toFirestore(day: TClientProgramDay): ClientProgramDayWrite {
-    const data: ClientProgramDayWrite = {
+  toFirestore(day: TClientProgramDay): TClientProgramDayWrite {
+    const data: TClientProgramDayWrite = {
       dayId: day.dayId,
       date: Timestamp.fromDate(day.date),
       finished: day.finished,
@@ -346,7 +344,7 @@ export const clientProgramDayConverter = {
     return data;
   },
   fromFirestore(
-    snapshot: QueryDocumentSnapshot<ClientProgramDayWrite>,
+    snapshot: QueryDocumentSnapshot<TClientProgramDayWrite>,
     options: SnapshotOptions
   ): TClientProgramDay {
     const data = snapshot.data(options);
@@ -360,16 +358,16 @@ export const clientProgramDayConverter = {
 };
 
 export const exerciseConverter = {
-  toFirestore(exercise: TExercise): ExerciseWrite {
+  toFirestore(exercise: TExercise): TExerciseWrite {
     const { id, ...rest } = exercise;
-    const data: ExerciseWrite = {
+    const data: TExerciseWrite = {
       ...rest,
     };
 
     return data;
   },
   fromFirestore(
-    snapshot: QueryDocumentSnapshot<ExerciseWrite>,
+    snapshot: QueryDocumentSnapshot<TExerciseWrite>,
     options: SnapshotOptions
   ): TExercise {
     const data = snapshot.data(options);

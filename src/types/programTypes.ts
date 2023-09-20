@@ -1,3 +1,4 @@
+import { DocumentReference } from "firebase/firestore";
 import { TConditionId, TOutcomeMeasureId } from "./baseTypes";
 
 /**
@@ -96,3 +97,51 @@ export type TPhysioProgram = TContinuousProgram & {
 };
 
 export type TProgram = TEuneoProgram | TPhysioProgram;
+
+//  ! Write types
+
+/**
+ * @description custom program data as it is stored in the database in program subcollection in physio collection
+ * @path /physios/{physioId}/programs/{programId}
+ */
+export type TProgramWrite = {
+  name: string;
+  conditionId: TConditionId;
+  outcomeMeasureRefs: DocumentReference[]; // TODO: add the refernece type // Always exists but might be empty
+  conditionAssessment: TConditionAssessmentQuestion[]; // Always exists but might be empty
+  mode: TProgramMode;
+  version: string;
+};
+
+/**
+ * @description custom day in subcollection days in program subcollection in physio or programs collection
+ * @path /physios/{physioId}/programs/{programId}/days/{dayId}
+ * @path /programs/{programId}/days/{dayId}
+ */
+export type TProgramDayWrite = {
+  exercises: TExerciseDayWrite[];
+};
+
+/**
+ * @description custom day in subcollection days in program subcollection in physio or programs collection
+ * @path /physios/{physioId}/programs/{programId}/days/{dayId}
+ * @path /programs/{programId}/days/{dayId}
+ */
+export type TProgramPhaseWrite = {
+  days: DocumentReference[];
+  length: number;
+  nextPhase?: TNextPhase[];
+  finalPhase: boolean;
+};
+
+/**
+ * @description exercise in custom day in subcollection days in program subcollection in physio collection
+ * @path /physios/{physioId}/programs/{programId}/days/{dayId}/exercises/{exerciseId}
+ * @path /programs/{programId}/days/{dayId}/exercises/{exerciseId}
+ */
+export type TExerciseDayWrite = {
+  reference: DocumentReference;
+  quantity: number;
+  sets: number;
+  reps: number;
+};

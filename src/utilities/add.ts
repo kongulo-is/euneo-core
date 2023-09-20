@@ -5,6 +5,7 @@ import {
   setDoc,
   DocumentReference,
   updateDoc,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "../firebase/db";
 import {
@@ -14,14 +15,24 @@ import {
   TClientPhysioProgramRead,
   TClientProgram,
   TClientProgramDay,
+  TClientWrite,
 } from "../types/clientTypes";
-import { ClientWrite, ProgramWrite } from "../types/converterTypes";
-import { TProgramDay } from "../types/programTypes";
+import {
+  TPhysioProgram,
+  TProgram,
+  TProgramDay,
+  TProgramWrite,
+} from "../types/programTypes";
 import {
   clientProgramConverter,
   clientProgramDayConverter,
 } from "./converters";
-import { TPrescription } from "../types/baseTypes";
+import {
+  TPhysioClient,
+  TPhysioClientWrite,
+  TPrescription,
+  TPrescriptionWrite,
+} from "../types/physioTypes";
 
 // Overloads
 // export function addProgramToClient(
@@ -166,7 +177,7 @@ export async function addPrescriptionToPhysioClient(
   prescription: TPrescription
 ) {
   try {
-    let programRef: DocumentReference<ProgramWrite>;
+    let programRef: DocumentReference<TPhysioProgram>;
     // Determine if it's a program or a physio program based on the path format
 
     const clientRef = doc(
@@ -175,9 +186,9 @@ export async function addPrescriptionToPhysioClient(
       physioId,
       "clients",
       physioClientId
-    ) as DocumentReference<PhysioClientWrite>;
+    ) as DocumentReference<TPhysioClient>;
 
-    const prescription: PrescriptionWrite = {
+    const prescription: TPrescriptionWrite = {
       programRef,
       prescriptionDate: Timestamp.now(),
       status: "Invited",
@@ -251,7 +262,7 @@ export async function addPhysioProgramToClient(
     db,
     "clients",
     clientId
-  ) as DocumentReference<ClientWrite>;
+  ) as DocumentReference<TClientWrite>;
 
   updateDoc(clientRef, { currentProgramId: program.id });
 
@@ -336,7 +347,7 @@ export async function addEuneoProgramToClient(
     db,
     "clients",
     clientId
-  ) as DocumentReference<ClientWrite>;
+  ) as DocumentReference<TClientWrite>;
 
   updateDoc(clientRef, { currentProgramId: program.id });
 

@@ -74,3 +74,17 @@ export type TConditionId =
   | "no-condition";
 
 export type TEuneoProgramId = "plantar-heel-pain";
+
+// ! Write types
+
+export type TExerciseWrite = {
+  description: string;
+  name: string;
+  steps: string[];
+  tips: string[];
+  videoLink: {
+    displayID: string;
+    assetID: string;
+  };
+  type: TExerciseType;
+};

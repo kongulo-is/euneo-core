@@ -2,29 +2,28 @@ import {
   DocumentReference,
   UpdateData,
   updateDoc as firestoreUpdateDoc,
-  addDoc as firestoreAddDoc,
-  CollectionReference,
 } from "firebase/firestore";
 import {
-  ClientProgramWrite,
-  ClientWrite,
-  ClientProgramDayWrite,
-  PhysioWrite,
-  PhysioClientWrite,
-  ProgramDayWrite,
-  ExerciseDayWrite,
-  ProgramWrite,
-} from "../types/converterTypes";
+  TClientProgramDayWrite,
+  TClientProgramWrite,
+  TClientWrite,
+} from "../types/clientTypes";
+import { TPhysioWrite, TPhysioClientWrite } from "../types/physioTypes";
+import {
+  TProgramWrite,
+  TProgramDayWrite,
+  TExerciseDayWrite,
+} from "../types/programTypes";
 
 type AllWrites =
-  | ClientProgramWrite
-  | ClientWrite
-  | ClientProgramDayWrite
-  | PhysioWrite
-  | PhysioClientWrite
-  | ProgramWrite
-  | ProgramDayWrite
-  | ExerciseDayWrite;
+  | TClientProgramWrite
+  | TClientWrite
+  | TClientProgramDayWrite
+  | TPhysioWrite
+  | TPhysioClientWrite
+  | TProgramWrite
+  | TProgramDayWrite
+  | TExerciseDayWrite;
 
 export function updateDoc<T extends AllWrites>(
   ref: DocumentReference<T, any>,

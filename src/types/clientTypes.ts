@@ -2,7 +2,9 @@
  * ! Þetta er ekki physioClient heldur client
  */
 
+import { Timestamp, DocumentReference, DocumentData } from "firebase/firestore";
 import { TConditionId, TOutcomeMeasureId } from "./baseTypes";
+import { TProgramWrite } from "./programTypes";
 
 /**
  * @description Client data from client collection
@@ -10,7 +12,7 @@ import { TConditionId, TOutcomeMeasureId } from "./baseTypes";
  * @param currentProgramId Id of the program the client is currently doing
  * @param programs Array of programs progress data from programs subcollection to client
  */
-export type TClientProfile = {
+export type TClient = {
   name: string;
   birthDate: Date;
   gender: "male" | "female" | "other";
@@ -141,3 +143,51 @@ export type TClientEuneoProgram = TClientEuneoProgramRead & TClientProgramId;
  * /clients/{clientId}/programs/{programId}/days/{dayId}
  */
 export type TClientProgram = TClientPhysioProgram | TClientEuneoProgram;
+
+// ! Write types
+
+/**
+ * @description client data as it is stored in the database in client collection
+ * @path /clients/{clientId}
+ */
+export type TClientWrite = {
+  name: string;
+  gender: "male" | "female" | "other";
+  platform: "android" | "ios";
+  birthDate: Timestamp;
+  email: string;
+  currentProgramId?: string;
+};
+
+export type TClientProgramDayWrite = {
+  dayId: `d${number}`;
+  phaseId?: string;
+  date: Timestamp;
+  finished: boolean;
+  adherence: number;
+  restDay: boolean;
+  exercises: number[];
+};
+
+export type TClientProgramWrite = {
+  programRef: DocumentReference<TProgramWrite, DocumentData>;
+  conditionId: TConditionId;
+  outcomeMeasuresAnswers: TOutcomeMeasureAnswerWrite[];
+  painLevels: TPainLevelWrite[];
+  conditionAssessmentAnswers?: Array<boolean | string>;
+  trainingDays: boolean[]; //TODO: ? Tékka hvort þetta sé einhverntíman ekki sett í gagnagrunninn.
+  physicalInformation: TClientPhysicalInformation;
+  phases?: TPhase[];
+};
+
+type TOutcomeMeasureAnswerWrite = {
+  date: Timestamp;
+  name: TOutcomeMeasureId;
+  type: string | "foot&ankle";
+  sections: TOutcomeMeasureAnswerSection[];
+};
+
+type TPainLevelWrite = {
+  date: Timestamp;
+  painIndex: number;
+};

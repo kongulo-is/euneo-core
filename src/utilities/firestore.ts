@@ -8,20 +8,10 @@ import {
   query,
   setDoc,
   where,
-  Timestamp,
   addDoc,
-  orderBy,
 } from "firebase/firestore";
 import { db } from "../firebase/db";
-import {
-  InvitationWrite,
-  PhysioClientWrite,
-  PrescriptionWrite,
-  ClientProgramWrite,
-  ContinuousProgramWrite,
-  PhaseProgramWrite,
-  ClientWrite,
-} from "../types/converterTypes";
+
 import {
   programDayConverter,
   physioClientConverter,
@@ -41,23 +31,30 @@ import {
   TPhaseProgram,
   TContinuousProgram,
 } from "../types/programTypes";
-import { TClientProgram } from "../types/clientTypes";
+import {
+  TClientProgram,
+  TClientProgramWrite,
+  TClientWrite,
+} from "../types/clientTypes";
 import { updateDoc } from "./updateDoc";
 import {
+  TInvitationWrite,
   TPhysioClient,
   TPhysioClientBase,
   TPhysioClientRead,
+  TPhysioClientWrite,
 } from "../types/physioTypes";
 
-async function fetchProgramBase(programRef: DocumentReference) {
+async function _fetchProgramBase(programRef: DocumentReference<TProgram>) {
   const programSnap = await getDoc(programRef.withConverter(programConverter));
   if (!programSnap.exists()) {
     throw new Error("Program does not exist.");
   }
-  return programSnap.data()!;
+  const programData = programSnap.data();
+  return programData;
 }
 
-async function fetchDays(programRef: DocumentReference) {
+async function _fetchDays(programRef: DocumentReference) {
   const daySnapshots = await getDocs(
     collection(programRef, "days").withConverter(programDayConverter)
   );
@@ -66,7 +63,7 @@ async function fetchDays(programRef: DocumentReference) {
   );
 }
 
-async function fetchPhases(programRef: DocumentReference) {
+async function _fetchPhases(programRef: DocumentReference) {
   const phaseSnapshots = await getDocs(
     collection(programRef, "phases").withConverter(programPhaseConverter)
   );
@@ -75,12 +72,12 @@ async function fetchPhases(programRef: DocumentReference) {
   );
 }
 
-async function _getProgramFromRef(
-  programRef: DocumentReference<ContinuousProgramWrite | PhaseProgramWrite>
-): Promise<TProgram> {
+async function _getProgramFromRef<T extends TProgram>(
+  programRef: DocumentReference<T>
+): Promise<T> {
   const [programBase, days] = await Promise.all([
-    fetchProgramBase(programRef),
-    fetchDays(programRef),
+    _fetchProgramBase(programRef),
+    _fetchDays(programRef),
   ]);
 
   const programId = programRef.id; // Save the id here for later use
@@ -88,23 +85,22 @@ async function _getProgramFromRef(
   let programMode: TPhaseProgram | TContinuousProgram;
 
   if (programBase.mode === "phase") {
-    const phases = await fetchPhases(programRef);
+    const phases = await _fetchPhases(programRef);
     programMode = { ...programBase, days, phases, mode: "phase" };
   } else {
     programMode = { ...programBase, days, mode: "continuous" };
   }
 
-  let program: TProgram;
+  let program: T;
 
   if (programRef.parent.parent) {
     program = {
       ...programMode,
       physioId: programRef.parent.parent.id,
       physioProgramId: programId,
-      mode: "continuous",
-    };
+    } as T;
   } else {
-    program = { ...programMode!, euneoProgramId: programId };
+    program = { ...programMode, euneoProgramId: programId } as T;
   }
 
   return program;
@@ -112,10 +108,12 @@ async function _getProgramFromRef(
 
 export async function getEuneoProgramWithDays(
   euneoProgramId: string
-): Promise<TPhysioProgram | TEuneoProgram> {
-  let programRef = doc(db, "testPrograms", euneoProgramId) as DocumentReference<
-    ContinuousProgramWrite | PhaseProgramWrite
-  >;
+): Promise<TEuneoProgram> {
+  let programRef = doc(
+    db,
+    "testPrograms",
+    euneoProgramId
+  ) as DocumentReference<TEuneoProgram>;
 
   return _getProgramFromRef(programRef);
 }
@@ -163,7 +161,7 @@ export async function getProgramFromCode(
   // We dont need a converter here because it would not convert anything
   const q = query(collection(db, "invitations"), where("code", "==", code));
 
-  const querySnapshot = (await getDocs(q)) as QuerySnapshot<InvitationWrite>;
+  const querySnapshot = (await getDocs(q)) as QuerySnapshot<TInvitationWrite>;
 
   if (querySnapshot.empty) {
     console.log("No matching invitation found.");
@@ -241,7 +239,7 @@ export async function getPhysioClients(
             db,
             "clients",
             clientData.clientId
-          ) as DocumentReference<ClientWrite>;
+          ) as DocumentReference<TClientWrite>;
           const clientSnap = await getDoc(clientRef);
           const currentProgramId = clientSnap.data()!.currentProgramId || "";
           const clientProgramWithDays = await getClientProgram(
@@ -282,7 +280,7 @@ export async function getPhysioClient(
       physioId,
       "clients",
       physioClientId
-    ) as DocumentReference<PhysioClientWrite>;
+    ) as DocumentReference<TPhysioClientWrite>;
 
     const clientSnap = await getDoc(
       physioClientRef.withConverter(physioClientConverter)
@@ -299,7 +297,7 @@ export async function getPhysioClient(
         db,
         "clients",
         clientData.clientId
-      ) as DocumentReference<ClientWrite>;
+      ) as DocumentReference<TClientWrite>;
       const clientSnap = await getDoc(clientRef);
       const currentProgramId = clientSnap.data()!.currentProgramId || "";
       const clientProgramWithDays = await getClientProgram(
@@ -336,7 +334,7 @@ export async function getClientProgram(
         clientId,
         "programs",
         clientProgramId
-      ) as DocumentReference<ClientProgramWrite>
+      ) as DocumentReference<TClientProgramWrite>
     ).withConverter(clientProgramConverter);
 
     const clientProgramSnap = await getDoc(clientProgramRef);
