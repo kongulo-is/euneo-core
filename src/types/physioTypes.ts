@@ -5,7 +5,7 @@ import {
   TPhysioReferenceIds,
 } from "./baseTypes";
 import { TClientProgram, TClientStatus } from "./clientTypes";
-import { TPhysioProgram, TProgram } from "./programTypes";
+import { TPhysioProgram, TProgram, TProgramWrite } from "./programTypes";
 
 /** @memberof TPrescription */
 export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
@@ -95,7 +95,7 @@ export type TPhysioClientWrite = {
  * @path /physios/{physioId}/clients/{physioClientId}
  */
 export type TPrescriptionWrite = {
-  programRef: DocumentReference<TProgram>;
+  programRef: DocumentReference<TProgramWrite>; // TODO: add reference type
   prescriptionDate: Timestamp;
   status: TPrescriptionStatus;
 };
