@@ -114,6 +114,7 @@ export async function getEuneoProgramWithDays(
     "testPrograms",
     euneoProgramId
   ) as DocumentReference<TProgramWrite>;
+  console.log("hi");
 
   const euneoProgram = await _getProgramFromRef(programRef);
 
