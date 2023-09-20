@@ -13,23 +13,16 @@ import {
   TClientEuneoProgramRead,
   TClientPhysioProgram,
   TClientPhysioProgramRead,
-  TClientProgram,
   TClientProgramDay,
   TClientWrite,
 } from "../types/clientTypes";
-import {
-  TPhysioProgram,
-  TProgram,
-  TProgramDay,
-  TProgramWrite,
-} from "../types/programTypes";
+import { TPhysioProgram, TProgramDay } from "../types/programTypes";
 import {
   clientProgramConverter,
   clientProgramDayConverter,
 } from "./converters";
 import {
   TPhysioClient,
-  TPhysioClientWrite,
   TPrescription,
   TPrescriptionWrite,
 } from "../types/physioTypes";

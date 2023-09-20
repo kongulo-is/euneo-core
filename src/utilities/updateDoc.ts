@@ -4,16 +4,26 @@ import {
   updateDoc as firestoreUpdateDoc,
 } from "firebase/firestore";
 import {
+  TClient,
+  TClientProgramDay,
   TClientProgramDayWrite,
+  TClientProgramRead,
   TClientProgramWrite,
   TClientWrite,
 } from "../types/clientTypes";
-import { TPhysioWrite, TPhysioClientWrite } from "../types/physioTypes";
+import {
+  TPhysioWrite,
+  TPhysioClientWrite,
+  TPhysioClientRead,
+} from "../types/physioTypes";
 import {
   TProgramWrite,
   TProgramDayWrite,
   TExerciseDayWrite,
+  TProgramRead,
+  TProgramDayRead,
 } from "../types/programTypes";
+import { TExercise } from "../types/baseTypes";
 
 type AllWrites =
   | TClientProgramWrite
@@ -24,6 +34,15 @@ type AllWrites =
   | TProgramWrite
   | TProgramDayWrite
   | TExerciseDayWrite;
+
+type AllReads =
+  | TClientProgramRead
+  | TClient
+  | TClientProgramDay
+  | TPhysioClientRead
+  | TProgramRead
+  | TProgramDayRead
+  | TExercise;
 
 export function updateDoc<T extends AllWrites>(
   ref: DocumentReference<T, any>,

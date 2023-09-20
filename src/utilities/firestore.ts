@@ -30,13 +30,13 @@ import {
   TProgram,
   TPhaseProgram,
   TContinuousProgram,
+  TProgramWrite,
 } from "../types/programTypes";
 import {
   TClientProgram,
   TClientProgramWrite,
   TClientWrite,
 } from "../types/clientTypes";
-import { updateDoc } from "./updateDoc";
 import {
   TInvitationWrite,
   TPhysioClient,
@@ -45,7 +45,7 @@ import {
   TPhysioClientWrite,
 } from "../types/physioTypes";
 
-async function _fetchProgramBase(programRef: DocumentReference<TProgram>) {
+async function _fetchProgramBase(programRef: DocumentReference<TProgramWrite>) {
   const programSnap = await getDoc(programRef.withConverter(programConverter));
   if (!programSnap.exists()) {
     throw new Error("Program does not exist.");
@@ -72,15 +72,15 @@ async function _fetchPhases(programRef: DocumentReference) {
   );
 }
 
-async function _getProgramFromRef<T extends TProgram>(
-  programRef: DocumentReference<T>
-): Promise<T> {
+async function _getProgramFromRef(
+  programRef: DocumentReference<TProgramWrite>
+): Promise<TProgram> {
   const [programBase, days] = await Promise.all([
     _fetchProgramBase(programRef),
     _fetchDays(programRef),
   ]);
 
-  const programId = programRef.id; // Save the id here for later use
+  const programId = programRef.id;
 
   let programMode: TPhaseProgram | TContinuousProgram;
 
@@ -91,19 +91,19 @@ async function _getProgramFromRef<T extends TProgram>(
     programMode = { ...programBase, days, mode: "continuous" };
   }
 
-  let program: T;
+  let program: TProgram;
 
   if (programRef.parent.parent) {
     program = {
       ...programMode,
+      mode: "continuous",
       physioId: programRef.parent.parent.id,
       physioProgramId: programId,
-    } as T;
+    };
+    return program;
   } else {
-    program = { ...programMode, euneoProgramId: programId } as T;
+    return { ...programMode, euneoProgramId: programId };
   }
-
-  return program;
 }
 
 export async function getEuneoProgramWithDays(
@@ -113,9 +113,15 @@ export async function getEuneoProgramWithDays(
     db,
     "testPrograms",
     euneoProgramId
-  ) as DocumentReference<TEuneoProgram>;
+  ) as DocumentReference<TProgramWrite>;
 
-  return _getProgramFromRef(programRef);
+  const euneoProgram = await _getProgramFromRef(programRef);
+
+  if (!("euneoProgramId" in euneoProgram)) {
+    throw new Error("Program is not an euneo program");
+  }
+
+  return euneoProgram;
 }
 
 export async function getPhysioProgramsWithDays(
