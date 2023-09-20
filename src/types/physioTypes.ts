@@ -1,7 +1,7 @@
 import { DocumentReference, Timestamp } from "firebase/firestore";
 import { TConditionId } from "./baseTypes";
 import { TClientProgram, TClientStatus } from "./clientTypes";
-import { TPhysioProgram } from "./programTypes";
+import { TPhysioProgram, TProgramWrite } from "./programTypes";
 
 /** @memberof TPrescription */
 export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
@@ -93,7 +93,7 @@ export type TPhysioClientWrite = {
  * @path /physios/{physioId}/clients/{physioClientId}
  */
 export type TPrescriptionWrite = {
-  programRef: DocumentReference<TPhysioProgram>; // TODO: add reference type
+  programRef: DocumentReference<TProgramWrite>; // TODO: add reference type
   prescriptionDate: Timestamp;
   status: TPrescriptionStatus;
 };
