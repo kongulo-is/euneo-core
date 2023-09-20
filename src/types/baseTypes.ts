@@ -1,17 +1,13 @@
-// export type TPrescriptionBase = {
-//   prescriptionDate: Date;
-//   status: TPrescriptionStatus;
-// };
+import { TOutcomeMeasureId } from "./physioTypes";
 
-// export type TEuneoPrescription = TPrescriptionBase & {
-//   euneoProgramId: TEuneoProgramId;
-// };
+export type TEuneoReferenceIds = {
+  euneoProgramId: TEuneoProgramId;
+};
 
-// export type TPhysioPrescription = TPrescriptionBase & {
-//   physioProgramId: string;
-// };
-
-export type TOutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis";
+export type TPhysioReferenceIds = {
+  physioProgramId: string;
+  physioId: string;
+};
 
 // Component types
 // export type TOption = {
@@ -54,11 +50,16 @@ export type TExercise = {
 
 export type TExerciseType = "Stretch" | "Strength" | "Release" | "Other";
 
-export type TOutcomeMeasure = {
-  id: TOutcomeMeasureId;
+export type TOutcomeMeasureBase = {
   name: string;
   acronym: string;
 };
+
+export type TOutcomeMeasure = TOutcomeMeasureBase & {
+  id: string;
+};
+
+export type TOutcomeMeasureWrite = TOutcomeMeasureBase;
 
 export type TConditionId =
   | "plantar-heel-pain"

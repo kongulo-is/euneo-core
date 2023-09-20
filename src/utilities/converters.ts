@@ -1,11 +1,11 @@
 //TODO: Ætti þessi file að heita eitthvað annað? eins og t.d. writeTypes eða firebaseTypes?
 
-import { db } from "../firebase/db";
-
 import {
+  TEuneoProgramId,
   TExercise,
   TExerciseWrite,
-  TOutcomeMeasureId,
+  TOutcomeMeasure,
+  TOutcomeMeasureWrite,
 } from "../types/baseTypes";
 
 import {
@@ -30,17 +30,19 @@ import {
   TOutcomeMeasureAnswers,
   TClientProgramDay,
   TClientProgramRead,
-  TClientEuneoProgramRead,
   TClientProgramWrite,
   TClientProgramDayWrite,
   TClient,
 } from "../types/clientTypes";
 import runtimeChecks from "./runtimeChecks";
 import {
+  TOutcomeMeasureId,
   TPhysioClientRead,
   TPhysioClientWrite,
   TPrescription,
+  TPrescriptionWrite,
 } from "../types/physioTypes";
+import { db } from "../firebase/db";
 
 // sdkofjdsalkfjsa
 
@@ -192,11 +194,20 @@ export const physioClientConverter = {
 
     let prescriptionRead: TPrescription | undefined;
     if (prescription) {
-      prescriptionRead = {
-        status: prescription.status,
-        prescriptionDate: prescription.prescriptionDate.toDate(),
-        programId: prescription.programRef?.id,
-      };
+      if (prescription?.programRef.parent.parent) {
+        prescriptionRead = {
+          status: prescription.status,
+          prescriptionDate: prescription.prescriptionDate.toDate(),
+          physioId: prescription.programRef.parent.parent.id,
+          physioProgramId: prescription.programRef.id,
+        };
+      } else {
+        prescriptionRead = {
+          status: prescription.status,
+          prescriptionDate: prescription.prescriptionDate.toDate(),
+          euneoProgramId: prescription.programRef.id as TEuneoProgramId,
+        };
+      }
     }
 
     return {
@@ -378,6 +389,85 @@ export const exerciseConverter = {
     };
 
     return exercise;
+  },
+};
+
+export const outcomeMeasureConverter = {
+  toFirestore(measure: TOutcomeMeasure): TOutcomeMeasureWrite {
+    const { id, ...rest } = measure;
+    const data: TOutcomeMeasureWrite = {
+      ...rest,
+    };
+
+    return data;
+  },
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<TOutcomeMeasureWrite>,
+    options: SnapshotOptions
+  ): TOutcomeMeasure {
+    const data = snapshot.data(options);
+
+    const measure: TOutcomeMeasure = {
+      ...data,
+      id: snapshot.id,
+    };
+
+    return measure;
+  },
+};
+
+export const prescriptionConverter = {
+  toFirestore(prescription: TPrescription): TPrescriptionWrite {
+    if ("euneoProgramId" in prescription) {
+      return {
+        programRef: doc(
+          db,
+          "programs",
+          prescription.euneoProgramId
+        ) as DocumentReference<TPhysioProgram>,
+        prescriptionDate: Timestamp.fromDate(prescription.prescriptionDate),
+        status: prescription.status,
+      };
+    } else {
+      return {
+        programRef: doc(
+          db,
+          "physios",
+          prescription.physioId,
+          "programs",
+          prescription.physioProgramId
+        ) as DocumentReference<TPhysioProgram>,
+        prescriptionDate: Timestamp.fromDate(prescription.prescriptionDate),
+        status: prescription.status,
+      };
+    }
+  },
+
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<TPrescriptionWrite>,
+    options: SnapshotOptions
+  ): TPrescription {
+    const data = snapshot.data(options);
+    let { programRef, ...rest } = data;
+
+    let prescription: TPrescription;
+
+    if (programRef.parent.parent) {
+      prescription = {
+        ...rest,
+        prescriptionDate: rest.prescriptionDate.toDate(),
+        physioId: programRef.parent.parent.id,
+        physioProgramId: programRef.id,
+      };
+    } else {
+      prescription = {
+        ...rest,
+        prescriptionDate: rest.prescriptionDate.toDate(),
+        euneoProgramId: programRef.id as TEuneoProgramId,
+      };
+    }
+
+    return prescription;
   },
 };
 

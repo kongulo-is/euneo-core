@@ -9,6 +9,7 @@ import {
   setDoc,
   where,
   addDoc,
+  CollectionReference,
 } from "firebase/firestore";
 import { db } from "../firebase/db";
 
@@ -20,6 +21,7 @@ import {
   exerciseConverter,
   programConverter,
   programPhaseConverter,
+  outcomeMeasureConverter,
 } from "./converters";
 import runtimeChecks from "./runtimeChecks";
 import {
@@ -44,6 +46,12 @@ import {
   TPhysioClientRead,
   TPhysioClientWrite,
 } from "../types/physioTypes";
+import {
+  TExercise,
+  TExerciseWrite,
+  TOutcomeMeasure,
+  TOutcomeMeasureWrite,
+} from "../types/baseTypes";
 
 async function _fetchProgramBase(programRef: DocumentReference<TProgramWrite>) {
   const programSnap = await getDoc(programRef.withConverter(programConverter));
@@ -381,19 +389,49 @@ export async function getClientProgram(
   return {} as TClientProgram;
 }
 
-export async function getAllExercises() {
-  const exercisesRef = collection(db, "exercises");
-  const exercisesSnap = await getDocs(
-    exercisesRef.withConverter(exerciseConverter)
-  );
-  const exercisesList = exercisesSnap.docs.map((doc) => doc.data());
+export async function getAllExercises(): Promise<Record<string, TExercise>> {
+  try {
+    const exercisesRef = collection(
+      db,
+      "exercises"
+    ) as CollectionReference<TExerciseWrite>;
+    const exercisesSnap = await getDocs(
+      exercisesRef.withConverter(exerciseConverter)
+    );
+    const exercisesList = exercisesSnap.docs.map((doc) => doc.data());
 
-  // create a map of exercises
-  const exercises = Object.fromEntries(
-    exercisesList.map((exercise) => [exercise.id, exercise])
-  );
+    // create a map of exercises
+    const exercises = Object.fromEntries(
+      exercisesList.map((exercise) => [exercise.id, exercise])
+    );
 
-  return exercises;
+    return exercises;
+  } catch (error) {
+    console.error("Error fetching exercises:", error);
+    throw error;
+  }
+}
+
+export async function getAllOutcomeMeasures(): Promise<
+  Record<string, TOutcomeMeasure>
+> {
+  try {
+    const outcomeMeasuresRef = collection(
+      db,
+      "outcomeMeasures"
+    ) as CollectionReference<TOutcomeMeasureWrite>;
+    const outcomeMeasuresSnapshot = await getDocs(
+      outcomeMeasuresRef.withConverter(outcomeMeasureConverter)
+    );
+    const outcomeMeasures = Object.fromEntries(
+      outcomeMeasuresSnapshot.docs.map((doc) => [doc.id, doc.data()])
+    );
+
+    return outcomeMeasures;
+  } catch (error) {
+    console.log("Error getting outcomeMeasures: ", error);
+    throw error;
+  }
 }
 
 // TODO: tekur inn continuous program, skrifar í gagnagrunninn og skilar physioProgram (með program id og physio id)

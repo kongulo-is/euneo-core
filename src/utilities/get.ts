@@ -1,5 +1,18 @@
-import { doc, getDoc } from "firebase/firestore";
+import {
+  CollectionReference,
+  DocumentReference,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+} from "firebase/firestore";
 import { db } from "../firebase/db";
+import {
+  TExercise,
+  TExerciseWrite,
+  TOutcomeMeasure,
+  TOutcomeMeasureWrite,
+} from "../types/baseTypes";
 
 export async function getClient(uid: string) {
   const userRef = doc(db, "clients", uid);
