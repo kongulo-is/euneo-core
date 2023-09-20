@@ -121,19 +121,36 @@ function _createDays(
   let d = new Date();
   d.setHours(0, 0, 0, 0);
 
+  // Get an array of day keys from programDays
+  const dayKeys = Object.keys(programDays);
+  console.log("Keys: " + dayKeys);
+
+  if (dayKeys.length === 0) {
+    // Handle the case where programDays is empty
+    return clientProgramDays;
+  }
+
+  let currentDayIndex = 0; // Initialize to 0
+
   for (let i = 0; i < amountOfDays; i++) {
-    const dayId = "d1";
+    // Get the current program day based on the currentDayIndex
+    const currentProgramDayKey = dayKeys[currentDayIndex] as `d${number}`;
     const isRestDay = !trainingDays[d.getDay()];
-    const infoDay = programDays[dayId];
+    const infoDay = programDays[currentProgramDayKey];
 
     clientProgramDays.push({
-      dayId,
+      dayId: currentProgramDayKey,
       date: new Date(d),
       finished: false,
       adherence: 0,
       exercises: infoDay?.exercises.map(() => 0) || [],
       restDay: isRestDay,
     });
+
+    if (!isRestDay) {
+      // Increment currentDayIndex and use modulo to cycle through days
+      currentDayIndex = (currentDayIndex + 1) % dayKeys.length;
+    }
 
     d.setDate(d.getDate() + 1);
   }
@@ -191,7 +208,8 @@ export async function addPhysioProgramToClient(
 export async function addEuneoProgramToClient(
   clientId: string,
   clientProgramRead: TClientEuneoProgramRead,
-  days: { [key: string]: TProgramDay }
+  days: { [key: string]: TProgramDay },
+  phaseId: `p${number}`
 ): Promise<{ clientProgram: TClientEuneoProgram }> {
   // const { physioId, conditionId, physioProgramId, days } = physioProgram;
 
@@ -213,12 +231,14 @@ export async function addEuneoProgramToClient(
   const { trainingDays } = clientProgramRead;
 
   for (let i = 0; i < iterator; i++) {
+    // TODO: Make this dynamic based on phase days
     const dayId = "d1";
     const isRestDay = !trainingDays[d.getDay()];
     const infoDay = days[dayId];
 
     dayList.push({
       dayId,
+      phaseId: phaseId,
       date: new Date(d),
       finished: false,
       adherence: 0,

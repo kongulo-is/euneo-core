@@ -12,6 +12,13 @@ export type TProgramDayExercise = {
   reps: number;
 };
 
+export type TNextPhase = {
+  phaseId: `p${number}`;
+  length: number;
+  maxPainLevel: number;
+  minPainLevel: number;
+};
+
 export type TProgramDay = { exercises: TProgramDayExercise[] };
 
 export type TProgramDayRead = TProgramDay;
@@ -22,12 +29,8 @@ export type TProgramMode = "continuous" | "phase";
 export type TProgramPhaseBase = {
   days: `d${number}`[];
   length: number;
-  nextPhase?: Array<{
-    phaseId: `p${number}`;
-    length: number;
-    maxPainLevel: number;
-    minPainLevel: number;
-  }>;
+  nextPhase?: TNextPhase[];
+  finalPhase: boolean;
 };
 
 export type TProgramPhaseRead = TProgramPhaseBase;

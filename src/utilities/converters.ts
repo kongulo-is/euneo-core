@@ -12,11 +12,7 @@ import {
   ProgramWrite,
   ProgramPhaseWrite,
 } from "../types/converterTypes";
-import {
-  TExercise,
-  TOutcomeMeasureId,
-  TPhysioClient,
-} from "../types/baseTypes";
+import { TExercise, TOutcomeMeasureId } from "../types/baseTypes";
 
 import {
   doc,
@@ -27,8 +23,6 @@ import {
 } from "@firebase/firestore";
 import {
   TConditionAssessmentQuestion,
-  TProgramBase,
-  TProgramDay,
   TProgramDayRead,
   TProgramPhase,
   TProgramPhaseRead,
@@ -40,6 +34,7 @@ import {
   TClientProgramRead,
 } from "../types/clientTypes";
 import runtimeChecks from "./runtimeChecks";
+import { TPhysioClient } from "../types/physioTypes";
 
 // sdkofjdsalkfjsa
 
@@ -80,7 +75,12 @@ export const programDayConverter = {
 
 export const programPhaseConverter = {
   toFirestore(phase: TProgramPhaseRead): ProgramPhaseWrite {
-    return phase;
+    return {
+      ...phase,
+      days: phase.days.map((day) =>
+        doc(db, "testPrograms", programId, "days", day)
+      ),
+    };
   },
 
   fromFirestore(
@@ -88,7 +88,10 @@ export const programPhaseConverter = {
     options: SnapshotOptions
   ): TProgramPhaseRead {
     const data = snapshot.data(options);
-    return data;
+    return {
+      ...data,
+      days: data.days.map((day) => day.id as `d${number}`),
+    };
   },
 };
 

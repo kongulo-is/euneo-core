@@ -10,6 +10,7 @@ import {
   where,
   Timestamp,
   addDoc,
+  orderBy,
 } from "firebase/firestore";
 import { db } from "../firebase/db";
 import {
@@ -17,11 +18,9 @@ import {
   PhysioClientWrite,
   PrescriptionWrite,
   ClientProgramWrite,
-  ClientWrite,
   ContinuousProgramWrite,
   PhaseProgramWrite,
 } from "../types/converterTypes";
-import { TPhysioClient } from "../types/baseTypes";
 import {
   programDayConverter,
   physioClientConverter,
@@ -35,21 +34,15 @@ import runtimeChecks from "./runtimeChecks";
 import {
   TPhysioProgram,
   TEuneoProgram,
-  TProgramDay,
   TContinuousProgram,
   TProgramDayRead,
   TProgramRead,
   TProgram,
   TPhaseProgram,
 } from "../types/programTypes";
-import {
-  TClientEuneoProgram,
-  TClientPhysioProgram,
-  TClientProgram,
-  TClientProgramBase,
-  TClientProgramDay,
-} from "../types/clientTypes";
+import { TClientProgram } from "../types/clientTypes";
 import { updateDoc } from "./updateDoc";
+import { TPhysioClient } from "../types/physioTypes";
 
 async function _getProgramFromRef(
   programRef: DocumentReference<ContinuousProgramWrite | PhaseProgramWrite>
@@ -376,7 +369,7 @@ export async function getClientProgram(
 
   // add days to clientProgram
   const daysSnap = await getDocs(
-    collection(clientProgramRef, "days").withConverter(
+    query(collection(clientProgramRef, "days"), orderBy("date")).withConverter(
       clientProgramDayConverter
     )
   );

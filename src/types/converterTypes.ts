@@ -10,7 +10,11 @@ import {
   TClientPhysicalInformation,
   TOutcomeMeasureAnswerSection,
 } from "./clientTypes";
-import { TConditionAssessmentQuestion, TProgramMode } from "./programTypes";
+import {
+  TConditionAssessmentQuestion,
+  TNextPhase,
+  TProgramMode,
+} from "./programTypes";
 import { DocumentData } from "firebase/firestore";
 
 /**
@@ -155,14 +159,10 @@ export type ProgramDayWrite = {
  * @path /programs/{programId}/days/{dayId}
  */
 export type ProgramPhaseWrite = {
-  days: `d${number}`[];
+  days: DocumentReference[];
   length: number;
-  nextPhase?: Array<{
-    phaseId: `p${number}`;
-    length: number;
-    maxPainLevel: number;
-    minPainLevel: number;
-  }>;
+  nextPhase?: TNextPhase[];
+  finalPhase: boolean;
 };
 
 /**
