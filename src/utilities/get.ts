@@ -13,6 +13,7 @@ import {
   TOutcomeMeasure,
   TOutcomeMeasureWrite,
 } from "../types/baseTypes";
+import { TPhysio } from "../types/physioTypes";
 
 export async function getClient(uid: string) {
   const userRef = doc(db, "clients", uid);
@@ -27,4 +28,21 @@ export async function getClient(uid: string) {
   };
 
   return userData;
+}
+
+export async function getPhysio(uid: string): Promise<TPhysio> {
+  try {
+    const physioRef = doc(db, "physios", uid) as DocumentReference<TPhysio>;
+
+    const physioDoc = await getDoc(physioRef);
+
+    const physio = physioDoc.data();
+
+    if (!physio) throw new Error("No physio found");
+
+    return physio;
+  } catch (error) {
+    console.error("Error fetching physio", error, { uid });
+    throw error;
+  }
 }

@@ -156,18 +156,34 @@ export const physioClientConverter = {
       ...(client.conditionId && { conditionId: client.conditionId }),
     };
 
-    if (client.prescription && client.prescription.programId) {
-      data.prescription = {
-        ...client.prescription,
-        programRef: doc(
-          db,
-          "programs",
-          client.prescription.programId
-        ) as DocumentReference<TPhysioProgram>,
-        prescriptionDate: Timestamp.fromDate(
-          client.prescription.prescriptionDate
-        ),
-      };
+    if (client.prescription) {
+      if ("euneoProgramId" in client.prescription) {
+        data.prescription = {
+          ...client.prescription,
+          programRef: doc(
+            db,
+            "programs",
+            client.prescription.euneoProgramId
+          ) as DocumentReference<TProgramWrite>,
+          prescriptionDate: Timestamp.fromDate(
+            client.prescription.prescriptionDate
+          ),
+        };
+      } else {
+        data.prescription = {
+          ...client.prescription,
+          programRef: doc(
+            db,
+            "physios",
+            client.prescription.physioId,
+            "programs",
+            client.prescription.physioProgramId
+          ) as DocumentReference<TProgramWrite>,
+          prescriptionDate: Timestamp.fromDate(
+            client.prescription.prescriptionDate
+          ),
+        };
+      }
     }
 
     if (client.clientId) {
@@ -424,7 +440,7 @@ export const prescriptionConverter = {
           db,
           "programs",
           prescription.euneoProgramId
-        ) as DocumentReference<TPhysioProgram>,
+        ) as DocumentReference<TProgramWrite>,
         prescriptionDate: Timestamp.fromDate(prescription.prescriptionDate),
         status: prescription.status,
       };
@@ -436,7 +452,7 @@ export const prescriptionConverter = {
           prescription.physioId,
           "programs",
           prescription.physioProgramId
-        ) as DocumentReference<TPhysioProgram>,
+        ) as DocumentReference<TProgramWrite>,
         prescriptionDate: Timestamp.fromDate(prescription.prescriptionDate),
         status: prescription.status,
       };
