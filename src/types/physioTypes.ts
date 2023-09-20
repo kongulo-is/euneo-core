@@ -1,5 +1,22 @@
-import { TConditionId, TPrescription } from "./baseTypes";
+import { TConditionId } from "./baseTypes";
 import { TClientProgram, TClientStatus } from "./clientTypes";
+
+/** @memberof TPrescription */
+export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
+
+/**
+ * @memberof TPhysioClient
+ * @description Prescription given to the client by physio
+ * @param programId Id of the program (custom or euneo)
+ * @param status Status of the invitation to client. (Invited, Accepted, Started)
+ * @param programBy Euneo or Physio - is not in database
+ */
+export type TPrescription = {
+  programId: string;
+  programBy?: "Euneo" | "Physio"; //? bæta þessu við?
+  prescriptionDate: Date;
+  status: TPrescriptionStatus;
+};
 
 /**
  * @description Physician data type
