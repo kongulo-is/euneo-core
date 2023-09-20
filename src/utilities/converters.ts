@@ -10,9 +10,14 @@ import {
   ContinuousProgramWrite,
   PhaseProgramWrite,
   ProgramWrite,
+  ClientWrite,
   ProgramPhaseWrite,
 } from "../types/converterTypes";
-import { TExercise, TOutcomeMeasureId } from "../types/baseTypes";
+import {
+  TExercise,
+  TOutcomeMeasureId,
+  TPrescription,
+} from "../types/baseTypes";
 
 import {
   doc,
@@ -32,9 +37,10 @@ import {
   TOutcomeMeasureAnswers,
   TClientProgramDay,
   TClientProgramRead,
+  TClientEuneoProgramRead,
 } from "../types/clientTypes";
 import runtimeChecks from "./runtimeChecks";
-import { TPhysioClient } from "../types/physioTypes";
+import { TPhysioClientRead } from "../types/physioTypes";
 
 // sdkofjdsalkfjsa
 
@@ -141,10 +147,11 @@ export const programConverter = {
 };
 
 export const physioClientConverter = {
-  toFirestore(client: TPhysioClient): PhysioClientWrite {
+  toFirestore(client: TPhysioClientRead): PhysioClientWrite {
     const data: PhysioClientWrite = {
       name: client.name,
       email: client.email,
+      ...(client.conditionId && { conditionId: client.conditionId }),
     };
 
     if (client.prescription && client.prescription.programId) {
@@ -154,7 +161,7 @@ export const physioClientConverter = {
           db,
           "programs",
           client.prescription.programId
-        ) as DocumentReference<EuneoProgramWrite>,
+        ) as DocumentReference<ProgramWrite>,
         prescriptionDate: Timestamp.fromDate(
           client.prescription.prescriptionDate
         ),
@@ -162,7 +169,11 @@ export const physioClientConverter = {
     }
 
     if (client.clientId) {
-      data.clientRef = doc(db, "clients", client.clientId);
+      data.clientRef = doc(
+        db,
+        "clients",
+        client.clientId
+      ) as DocumentReference<ClientWrite>;
     }
 
     return data;
@@ -171,25 +182,27 @@ export const physioClientConverter = {
   fromFirestore(
     snapshot: QueryDocumentSnapshot<PhysioClientWrite>,
     options: SnapshotOptions
-  ): TPhysioClient {
+  ): TPhysioClientRead {
     const data = snapshot.data(options);
     let { clientRef, prescription, ...rest } = data;
 
     const clientId = clientRef?.id;
 
-    const newPrescription = prescription
-      ? {
-          ...prescription,
-          prescriptionDate: prescription.prescriptionDate.toDate(),
-          programId: prescription.programRef?.id,
-        }
-      : undefined;
+    console.log("prescription", prescription);
+
+    let prescriptionRead: TPrescription | undefined;
+    if (prescription) {
+      prescriptionRead = {
+        status: prescription.status,
+        prescriptionDate: prescription.prescriptionDate.toDate(),
+        programId: prescription.programRef?.id,
+      };
+    }
 
     return {
       ...rest,
       ...(clientId && { clientId }),
-      ...(newPrescription && { prescription: newPrescription }),
-      physioClientId: snapshot.id,
+      ...(prescriptionRead && { prescription: prescriptionRead }),
     };
   },
 };
@@ -262,15 +275,21 @@ export const clientProgramConverter = {
     console.log("Here1");
     let { programRef, painLevels, ...rest } = data;
 
+    //TODO: remove check... Þetta a að vera painLevels. Bara nota til að ná þessu i gegn með gamla painLevel.
+    // if (!painLevels) painLevels = (data as any).painLevel;
     // create program id and by.
 
     // convert timestamps to dates in outcomeMeasures and painLevels
-    const outcomeMeasuresAnswers: TOutcomeMeasureAnswers[] =
-      data.outcomeMeasuresAnswers.map((measure) => ({
+    let outcomeMeasuresAnswers: TOutcomeMeasureAnswers[] =
+      data.outcomeMeasuresAnswers?.map((measure) => ({
         ...measure,
         date: measure.date.toDate(),
       }));
     console.log("Here2", painLevels);
+
+    // TODO: Þetta er bara til að ná þessu i gegn með gamla assessments. þarf að eyða þessu!!
+    // if (!outcomeMeasuresAnswers)
+    //   outcomeMeasuresAnswers = (data as any).assessments;
 
     let clientProgram;
 
@@ -331,7 +350,6 @@ export const clientProgramDayConverter = {
     options: SnapshotOptions
   ): TClientProgramDay {
     const data = snapshot.data(options);
-
     const clientProgramDay: TClientProgramDay = {
       ...data,
       date: data.date.toDate(),

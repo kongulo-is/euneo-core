@@ -18,8 +18,8 @@ export type TPhysioClientBase = {
   name: string;
   email: string;
   conditionId?: TConditionId;
-  prescription?: TPrescription;
   clientId?: string;
+  prescription?: TPrescription;
 };
 
 export type TPhysioClientRead = TPhysioClientBase;

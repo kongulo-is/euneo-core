@@ -15,12 +15,13 @@ import {
   TClientProgram,
   TClientProgramDay,
 } from "../types/clientTypes";
-import { ClientWrite } from "../types/converterTypes";
+import { ClientWrite, ProgramWrite } from "../types/converterTypes";
 import { TProgramDay } from "../types/programTypes";
 import {
   clientProgramConverter,
   clientProgramDayConverter,
 } from "./converters";
+import { TPrescription } from "../types/baseTypes";
 
 // Overloads
 // export function addProgramToClient(
@@ -156,6 +157,64 @@ function _createDays(
   }
 
   return clientProgramDays;
+}
+
+// TODO: skoða prescription type og laga svo...
+export async function addPrescriptionToPhysioClient(
+  physioId: string,
+  physioClientId: string,
+  prescription: TPrescription
+) {
+  try {
+    let programRef: DocumentReference<ProgramWrite>;
+    // Determine if it's a program or a physio program based on the path format
+
+    const clientRef = doc(
+      db,
+      "physios",
+      physioId,
+      "clients",
+      physioClientId
+    ) as DocumentReference<PhysioClientWrite>;
+
+    const prescription: PrescriptionWrite = {
+      programRef,
+      prescriptionDate: Timestamp.now(),
+      status: "Invited",
+    };
+
+    await updateDoc(clientRef, {
+      prescription,
+    });
+    return true;
+
+    // TODO: create invitation???
+    // creade a random 6 digit code
+    //  const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+    //  console.log("Code", code);
+
+    //  const invitationRef = collection(db, "invitations");
+    //  console.log("physioClientRef", invitationRef);
+
+    //  const physioClientRef = doc(db, "physios", uid, "clients", clientId);
+
+    //  console.log("physioClientRef", physioClientRef, invitationRef);
+
+    //  await addDoc(invitationRef, {
+    //    physioClientRef,
+    //    code,
+    //  });
+
+    //  return code;
+  } catch (error) {
+    console.error("Error adding prescription to physio client:", error, {
+      programPath,
+      physioId,
+      physioClientId,
+    });
+    throw error;
+  }
 }
 
 export async function addPhysioProgramToClient(

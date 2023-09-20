@@ -12,6 +12,19 @@ export type TPrescription = {
   status: TPrescriptionStatus;
 };
 
+// export type TPrescriptionBase = {
+//   prescriptionDate: Date;
+//   status: TPrescriptionStatus;
+// };
+
+// export type TEuneoPrescription = TPrescriptionBase & {
+//   euneoProgramId: TEuneoProgramId;
+// };
+
+// export type TPhysioPrescription = TPrescriptionBase & {
+//   physioProgramId: string;
+// };
+
 /** @memberof TPrescription */
 export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
 
