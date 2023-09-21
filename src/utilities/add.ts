@@ -20,6 +20,8 @@ import {
   TClientWrite,
 } from "../types/clientTypes";
 import {
+  TEuneoProgram,
+  TPhaseProgram,
   TPhysioProgram,
   TProgramDay,
   TProgramWrite,
@@ -278,36 +280,39 @@ export async function addPhysioProgramToClient(
 export async function addEuneoProgramToClient(
   clientId: string,
   clientProgramRead: TClientEuneoProgramRead,
-  days: { [key: string]: TProgramDay },
+  program: TEuneoProgram & TPhaseProgram, // TODO: Er þetta ugly hack?
   phaseId: `p${number}`
 ): Promise<{ clientProgram: TClientEuneoProgram }> {
   // const { physioId, conditionId, physioProgramId, days } = physioProgram;
-
+  const currentPhase = program.phases[phaseId];
+  const phaseDays = currentPhase.days;
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
 
-  const program = await addDoc(
+  const clientProgramRef = await addDoc(
     userProgramDoc.withConverter(clientProgramConverter),
     clientProgramRead
   );
 
-  let dayList: TClientProgramDay[] = [];
+  let clientProgramDays: TClientProgramDay[] = [];
   let d = new Date();
   d.setHours(0, 0, 0, 0);
-  const iterator = 14;
+  const iterator = currentPhase.length;
 
   console.log("here3");
 
   const { trainingDays } = clientProgramRead;
 
-  for (let i = 0; i < iterator; i++) {
-    // TODO: Make this dynamic based on phase days
-    const dayId = "d1";
-    const isRestDay = !trainingDays[d.getDay()];
-    const infoDay = days[dayId];
+  let currentDayIndex = 0; // Initialize to 0
 
-    dayList.push({
-      dayId,
+  for (let i = 0; i < iterator; i++) {
+    // Get the current program day based on the currentDayIndex
+    const currentProgramDayKey = phaseDays[currentDayIndex] as `d${number}`;
+    const isRestDay = !trainingDays[d.getDay()];
+    const infoDay = program.days[currentProgramDayKey];
+
+    clientProgramDays.push({
+      dayId: currentProgramDayKey,
       phaseId: phaseId,
       date: new Date(d),
       finished: false,
@@ -316,24 +321,29 @@ export async function addEuneoProgramToClient(
       restDay: isRestDay,
     });
 
+    if (!isRestDay) {
+      // Increment currentDayIndex and use modulo to cycle through days
+      currentDayIndex = (currentDayIndex + 1) % phaseDays.length;
+    }
+
     d.setDate(d.getDate() + 1);
   }
   console.log("here4");
 
   const clientProgram: TClientEuneoProgram = {
     ...clientProgramRead,
-    days: dayList,
-    euneoProgramId: program.id,
-    clientProgramId: program.id,
+    days: clientProgramDays,
+    euneoProgramId: clientProgramRead.euneoProgramId,
+    clientProgramId: clientProgramRef.id,
   };
   await Promise.all(
-    dayList.map((day, i) => {
+    clientProgramDays.map((day, i) => {
       const dayCol = doc(
         db,
         "clients",
         clientId,
         "programs",
-        program.id,
+        clientProgram.clientProgramId,
         "days",
         i.toString()
       );

@@ -66,6 +66,7 @@ async function _fetchDays(programRef: DocumentReference) {
   const daySnapshots = await getDocs(
     collection(programRef, "days").withConverter(programDayConverter)
   );
+
   return Object.fromEntries(
     daySnapshots.docs.map((doc) => [doc.id, doc.data()])
   );
@@ -387,9 +388,10 @@ export async function getClientProgram(
     console.log("clientProgram", clientProgram);
     // add days to clientProgram
     const daysSnap = await getDocs(
-      collection(clientProgramRef, "days").withConverter(
-        clientProgramDayConverter
-      )
+      query(
+        collection(clientProgramRef, "days"),
+        orderBy("date")
+      ).withConverter(clientProgramDayConverter)
     );
     console.log("daySnap", daysSnap);
 

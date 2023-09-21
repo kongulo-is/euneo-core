@@ -282,7 +282,7 @@ export const clientProgramConverter = {
     };
 
     if ("conditionAssessmentAnswers" in program) {
-      data.conditionAssessmentAnswers = program.conditionAssessmentAnswers;
+      data["conditionAssessmentAnswers"] = program.conditionAssessmentAnswers;
     }
 
     if ("phases" in program) {
