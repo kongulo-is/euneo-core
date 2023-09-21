@@ -15,8 +15,17 @@ import {
   TClientProgram,
   TClientProgramDay,
 } from "../types/clientTypes";
-import { ClientWrite, ProgramWrite } from "../types/converterTypes";
-import { TProgramDay } from "../types/programTypes";
+import {
+  ClientWrite,
+  PhysioClientWrite,
+  PrescriptionWrite,
+  ProgramWrite,
+} from "../types/converterTypes";
+import {
+  TEuneoProgram,
+  TPhaseProgram,
+  TProgramDay,
+} from "../types/programTypes";
 import {
   clientProgramConverter,
   clientProgramDayConverter,
@@ -209,7 +218,7 @@ export async function addPrescriptionToPhysioClient(
     //  return code;
   } catch (error) {
     console.error("Error adding prescription to physio client:", error, {
-      programPath,
+      // programPath,
       physioId,
       physioClientId,
     });
@@ -267,11 +276,12 @@ export async function addPhysioProgramToClient(
 export async function addEuneoProgramToClient(
   clientId: string,
   clientProgramRead: TClientEuneoProgramRead,
-  days: { [key: string]: TProgramDay },
+  programInfo: TEuneoProgram & TPhaseProgram, // TODO: Er þetta ugly hack?
   phaseId: `p${number}`
 ): Promise<{ clientProgram: TClientEuneoProgram }> {
   // const { physioId, conditionId, physioProgramId, days } = physioProgram;
-
+  const currentPhase = programInfo.phases[phaseId];
+  const phaseDays = currentPhase.days;
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
 
@@ -280,23 +290,25 @@ export async function addEuneoProgramToClient(
     clientProgramRead
   );
 
-  let dayList: TClientProgramDay[] = [];
+  let clientProgramDays: TClientProgramDay[] = [];
   let d = new Date();
   d.setHours(0, 0, 0, 0);
-  const iterator = 14;
+  const iterator = currentPhase.length;
 
   console.log("here3");
 
   const { trainingDays } = clientProgramRead;
 
-  for (let i = 0; i < iterator; i++) {
-    // TODO: Make this dynamic based on phase days
-    const dayId = "d1";
-    const isRestDay = !trainingDays[d.getDay()];
-    const infoDay = days[dayId];
+  let currentDayIndex = 0; // Initialize to 0
 
-    dayList.push({
-      dayId,
+  for (let i = 0; i < iterator; i++) {
+    // Get the current program day based on the currentDayIndex
+    const currentProgramDayKey = phaseDays[currentDayIndex] as `d${number}`;
+    const isRestDay = !trainingDays[d.getDay()];
+    const infoDay = programInfo.days[currentProgramDayKey];
+
+    clientProgramDays.push({
+      dayId: currentProgramDayKey,
       phaseId: phaseId,
       date: new Date(d),
       finished: false,
@@ -305,18 +317,23 @@ export async function addEuneoProgramToClient(
       restDay: isRestDay,
     });
 
+    if (!isRestDay) {
+      // Increment currentDayIndex and use modulo to cycle through days
+      currentDayIndex = (currentDayIndex + 1) % phaseDays.length;
+    }
+
     d.setDate(d.getDate() + 1);
   }
   console.log("here4");
 
   const clientProgram: TClientEuneoProgram = {
     ...clientProgramRead,
-    days: dayList,
+    days: clientProgramDays,
     euneoProgramId: program.id,
     clientProgramId: program.id,
   };
   await Promise.all(
-    dayList.map((day, i) => {
+    clientProgramDays.map((day, i) => {
       const dayCol = doc(
         db,
         "clients",

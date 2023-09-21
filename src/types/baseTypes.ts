@@ -28,9 +28,6 @@ export type TPrescription = {
 /** @memberof TPrescription */
 export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
 
-/** @memberof TClientProgram */
-export type TPhase = { key: string; value: number };
-
 /** @memberof TOutcomeMeasureAnswers */
 export type TOutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis";
 

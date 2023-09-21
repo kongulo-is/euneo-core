@@ -89,7 +89,8 @@ export type TClientPhysicalInformation = {
   unit: "metric" | "imperial";
   physicalActivity: "None" | "Low" | "Moderate" | "High";
 };
-export type TConditionAssessmentAnswer = boolean | string;
+// Answers are null when initialized
+export type TConditionAssessmentAnswer = boolean | string | null;
 
 // ------------------------------
 

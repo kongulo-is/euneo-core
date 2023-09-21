@@ -2,13 +2,13 @@ import { Timestamp, DocumentReference } from "@firebase/firestore";
 import {
   TConditionId,
   TPrescriptionStatus,
-  TPhase,
   TOutcomeMeasureId,
   TExerciseType,
 } from "./baseTypes";
 import {
   TClientPhysicalInformation,
   TOutcomeMeasureAnswerSection,
+  TPhase,
 } from "./clientTypes";
 import {
   TConditionAssessmentQuestion,
