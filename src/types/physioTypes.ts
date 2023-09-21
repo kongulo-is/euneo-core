@@ -1,5 +1,26 @@
-import { TConditionId, TPrescription } from "./baseTypes";
+import { DocumentReference, Timestamp } from "firebase/firestore";
+import {
+  TConditionId,
+  TEuneoReferenceIds,
+  TPhysioReferenceIds,
+} from "./baseTypes";
 import { TClientProgram, TClientStatus } from "./clientTypes";
+import { TPhysioProgram, TProgram, TProgramWrite } from "./programTypes";
+
+/** @memberof TPrescription */
+export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
+
+export type TPrescriptionBase = {
+  prescriptionDate: Date;
+  status: TPrescriptionStatus;
+};
+
+export type TEuneoPrescription = TPrescriptionBase & TEuneoReferenceIds;
+
+export type TPhysioPrescription = TPrescriptionBase & TPhysioReferenceIds;
+export type TPrescription = TEuneoPrescription | TPhysioPrescription;
+
+export type TOutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis";
 
 /**
  * @description Physician data type
@@ -34,4 +55,47 @@ export type TPhysioClient = TPhysioClientBase & {
   physioClientId: string;
   status?: TClientStatus;
   clientProgram?: TClientProgram;
+};
+
+// ! Write types
+
+/**
+ * @description physio invite to client.
+ * @path /invitations/{invitationId}
+ */
+export type TInvitationWrite = {
+  code: string;
+  physioClientRef: DocumentReference<TPhysioClientWrite>;
+};
+
+/**
+ * @description physio data as it is stored in the database in physio collection
+ * @path /physios/{physioId}
+ */
+export type TPhysioWrite = {
+  email: string;
+  name: string;
+};
+
+/**
+ * @description physio client data as it is stored in client subcollection in physio collection
+ * @path /physios/{physioId}/clients/{physioClientId}
+ */
+export type TPhysioClientWrite = {
+  name: string;
+  email: string;
+  conditionId?: TConditionId;
+  clientRef?: DocumentReference;
+  prescription?: TPrescriptionWrite;
+  // status?: TClientStatus; //* Ekki geymt í firestore
+};
+
+/**
+ * @description prescription data as it is stored in client subcollection in physio collection
+ * @path /physios/{physioId}/clients/{physioClientId}
+ */
+export type TPrescriptionWrite = {
+  programRef: DocumentReference<TProgramWrite>; // TODO: add reference type
+  prescriptionDate: Timestamp;
+  status: TPrescriptionStatus;
 };

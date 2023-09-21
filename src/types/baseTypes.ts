@@ -1,35 +1,13 @@
-/**
- * @memberof TPhysioClient
- * @description Prescription given to the client by physio
- * @param programId Id of the program (custom or euneo)
- * @param status Status of the invitation to client. (Invited, Accepted, Started)
- * @param programBy Euneo or Physio - is not in database
- */
-export type TPrescription = {
-  programId: string;
-  programBy?: "Euneo" | "Physio"; //? bæta þessu við?
-  prescriptionDate: Date;
-  status: TPrescriptionStatus;
+import { TOutcomeMeasureId } from "./physioTypes";
+
+export type TEuneoReferenceIds = {
+  euneoProgramId: TEuneoProgramId;
 };
 
-// export type TPrescriptionBase = {
-//   prescriptionDate: Date;
-//   status: TPrescriptionStatus;
-// };
-
-// export type TEuneoPrescription = TPrescriptionBase & {
-//   euneoProgramId: TEuneoProgramId;
-// };
-
-// export type TPhysioPrescription = TPrescriptionBase & {
-//   physioProgramId: string;
-// };
-
-/** @memberof TPrescription */
-export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
-
-/** @memberof TOutcomeMeasureAnswers */
-export type TOutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis";
+export type TPhysioReferenceIds = {
+  physioProgramId: string;
+  physioId: string;
+};
 
 // Component types
 // export type TOption = {
@@ -72,11 +50,16 @@ export type TExercise = {
 
 export type TExerciseType = "Stretch" | "Strength" | "Release" | "Other";
 
-export type TOutcomeMeasure = {
-  id: TOutcomeMeasureId;
+export type TOutcomeMeasureBase = {
   name: string;
   acronym: string;
 };
+
+export type TOutcomeMeasure = TOutcomeMeasureBase & {
+  id: string;
+};
+
+export type TOutcomeMeasureWrite = TOutcomeMeasureBase;
 
 export type TConditionId =
   | "plantar-heel-pain"
@@ -92,3 +75,17 @@ export type TConditionId =
   | "no-condition";
 
 export type TEuneoProgramId = "plantar-heel-pain";
+
+// ! Write types
+
+export type TExerciseWrite = {
+  description: string;
+  name: string;
+  steps: string[];
+  tips: string[];
+  videoLink: {
+    displayID: string;
+    assetID: string;
+  };
+  type: TExerciseType;
+};

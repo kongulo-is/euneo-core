@@ -5,6 +5,7 @@ import {
   setDoc,
   DocumentReference,
   updateDoc,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "../firebase/db";
 import {
@@ -12,25 +13,27 @@ import {
   TClientEuneoProgramRead,
   TClientPhysioProgram,
   TClientPhysioProgramRead,
-  TClientProgram,
   TClientProgramDay,
+  TClientWrite,
 } from "../types/clientTypes";
-import {
-  ClientWrite,
-  PhysioClientWrite,
-  PrescriptionWrite,
-  ProgramWrite,
-} from "../types/converterTypes";
 import {
   TEuneoProgram,
   TPhaseProgram,
+  TPhysioProgram,
   TProgramDay,
+  TProgramWrite,
 } from "../types/programTypes";
 import {
   clientProgramConverter,
   clientProgramDayConverter,
+  prescriptionConverter,
 } from "./converters";
-import { TPrescription } from "../types/baseTypes";
+import {
+  TPhysioClient,
+  TPhysioClientWrite,
+  TPrescription,
+  TPrescriptionWrite,
+} from "../types/physioTypes";
 
 // Overloads
 // export function addProgramToClient(
@@ -168,60 +171,45 @@ function _createDays(
   return clientProgramDays;
 }
 
-// TODO: skoða prescription type og laga svo...
 export async function addPrescriptionToPhysioClient(
   physioId: string,
   physioClientId: string,
   prescription: TPrescription
 ) {
   try {
-    let programRef: DocumentReference<ProgramWrite>;
-    // Determine if it's a program or a physio program based on the path format
+    const prescriptionConverted =
+      prescriptionConverter.toFirestore(prescription);
 
-    const clientRef = doc(
+    const physioClientRef = doc(
       db,
       "physios",
       physioId,
       "clients",
       physioClientId
-    ) as DocumentReference<PhysioClientWrite>;
+    ) as DocumentReference<TPhysioClientWrite>;
 
-    const prescription: PrescriptionWrite = {
-      programRef,
-      prescriptionDate: Timestamp.now(),
-      status: "Invited",
-    };
-
-    await updateDoc(clientRef, {
-      prescription,
+    await updateDoc(physioClientRef, {
+      prescription: prescriptionConverted,
     });
+
+    // Create invitation for client
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const invitationRef = collection(db, "invitations");
+    await addDoc(invitationRef, {
+      physioClientRef,
+      code,
+    });
+
     return true;
-
-    // TODO: create invitation???
-    // creade a random 6 digit code
-    //  const code = Math.floor(100000 + Math.random() * 900000).toString();
-
-    //  console.log("Code", code);
-
-    //  const invitationRef = collection(db, "invitations");
-    //  console.log("physioClientRef", invitationRef);
-
-    //  const physioClientRef = doc(db, "physios", uid, "clients", clientId);
-
-    //  console.log("physioClientRef", physioClientRef, invitationRef);
-
-    //  await addDoc(invitationRef, {
-    //    physioClientRef,
-    //    code,
-    //  });
-
-    //  return code;
   } catch (error) {
-    console.error("Error adding prescription to physio client:", error, {
-      // programPath,
+    console.error(
+      "Error adding prescription to physio client",
+      error,
+      prescription,
       physioId,
-      physioClientId,
-    });
+      physioClientId
+    );
+
     throw error;
   }
 }
@@ -260,7 +248,7 @@ export async function addPhysioProgramToClient(
     db,
     "clients",
     clientId
-  ) as DocumentReference<ClientWrite>;
+  ) as DocumentReference<TClientWrite>;
 
   updateDoc(clientRef, { currentProgramId: program.id });
 
@@ -276,16 +264,16 @@ export async function addPhysioProgramToClient(
 export async function addEuneoProgramToClient(
   clientId: string,
   clientProgramRead: TClientEuneoProgramRead,
-  programInfo: TEuneoProgram & TPhaseProgram, // TODO: Er þetta ugly hack?
+  program: TEuneoProgram & TPhaseProgram, // TODO: Er þetta ugly hack?
   phaseId: `p${number}`
 ): Promise<{ clientProgram: TClientEuneoProgram }> {
   // const { physioId, conditionId, physioProgramId, days } = physioProgram;
-  const currentPhase = programInfo.phases[phaseId];
+  const currentPhase = program.phases[phaseId];
   const phaseDays = currentPhase.days;
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
 
-  const program = await addDoc(
+  const clientProgramRef = await addDoc(
     userProgramDoc.withConverter(clientProgramConverter),
     clientProgramRead
   );
@@ -305,7 +293,7 @@ export async function addEuneoProgramToClient(
     // Get the current program day based on the currentDayIndex
     const currentProgramDayKey = phaseDays[currentDayIndex] as `d${number}`;
     const isRestDay = !trainingDays[d.getDay()];
-    const infoDay = programInfo.days[currentProgramDayKey];
+    const infoDay = program.days[currentProgramDayKey];
 
     clientProgramDays.push({
       dayId: currentProgramDayKey,
@@ -329,8 +317,8 @@ export async function addEuneoProgramToClient(
   const clientProgram: TClientEuneoProgram = {
     ...clientProgramRead,
     days: clientProgramDays,
-    euneoProgramId: program.id,
-    clientProgramId: program.id,
+    euneoProgramId: clientProgramRead.euneoProgramId,
+    clientProgramId: clientProgramRef.id,
   };
   await Promise.all(
     clientProgramDays.map((day, i) => {
@@ -339,7 +327,7 @@ export async function addEuneoProgramToClient(
         "clients",
         clientId,
         "programs",
-        program.id,
+        clientProgram.clientProgramId,
         "days",
         i.toString()
       );
@@ -353,7 +341,7 @@ export async function addEuneoProgramToClient(
     db,
     "clients",
     clientId
-  ) as DocumentReference<ClientWrite>;
+  ) as DocumentReference<TClientWrite>;
 
   updateDoc(clientRef, { currentProgramId: program.id });
 

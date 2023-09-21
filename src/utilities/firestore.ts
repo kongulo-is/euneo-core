@@ -8,20 +8,11 @@ import {
   query,
   setDoc,
   where,
-  Timestamp,
   addDoc,
-  orderBy,
+  CollectionReference,
 } from "firebase/firestore";
 import { db } from "../firebase/db";
-import {
-  InvitationWrite,
-  PhysioClientWrite,
-  PrescriptionWrite,
-  ClientProgramWrite,
-  ContinuousProgramWrite,
-  PhaseProgramWrite,
-  ClientWrite,
-} from "../types/converterTypes";
+
 import {
   programDayConverter,
   physioClientConverter,
@@ -30,6 +21,7 @@ import {
   exerciseConverter,
   programConverter,
   programPhaseConverter,
+  outcomeMeasureConverter,
 } from "./converters";
 import runtimeChecks from "./runtimeChecks";
 import {
@@ -40,24 +32,37 @@ import {
   TProgram,
   TPhaseProgram,
   TContinuousProgram,
+  TProgramWrite,
 } from "../types/programTypes";
-import { TClientProgram } from "../types/clientTypes";
-import { updateDoc } from "./updateDoc";
 import {
+  TClientProgram,
+  TClientProgramWrite,
+  TClientWrite,
+} from "../types/clientTypes";
+import {
+  TInvitationWrite,
   TPhysioClient,
   TPhysioClientBase,
   TPhysioClientRead,
+  TPhysioClientWrite,
 } from "../types/physioTypes";
+import {
+  TExercise,
+  TExerciseWrite,
+  TOutcomeMeasure,
+  TOutcomeMeasureWrite,
+} from "../types/baseTypes";
 
-async function fetchProgramBase(programRef: DocumentReference) {
+async function _fetchProgramBase(programRef: DocumentReference<TProgramWrite>) {
   const programSnap = await getDoc(programRef.withConverter(programConverter));
   if (!programSnap.exists()) {
     throw new Error("Program does not exist.");
   }
-  return programSnap.data()!;
+  const programData = programSnap.data();
+  return programData;
 }
 
-async function fetchDays(programRef: DocumentReference) {
+async function _fetchDays(programRef: DocumentReference) {
   const daySnapshots = await getDocs(
     collection(programRef, "days").withConverter(programDayConverter)
   );
@@ -67,7 +72,7 @@ async function fetchDays(programRef: DocumentReference) {
   );
 }
 
-async function fetchPhases(programRef: DocumentReference) {
+async function _fetchPhases(programRef: DocumentReference) {
   const phaseSnapshots = await getDocs(
     collection(programRef, "phases").withConverter(programPhaseConverter)
   );
@@ -77,19 +82,19 @@ async function fetchPhases(programRef: DocumentReference) {
 }
 
 async function _getProgramFromRef(
-  programRef: DocumentReference<ContinuousProgramWrite | PhaseProgramWrite>
+  programRef: DocumentReference<TProgramWrite>
 ): Promise<TProgram> {
   const [programBase, days] = await Promise.all([
-    fetchProgramBase(programRef),
-    fetchDays(programRef),
+    _fetchProgramBase(programRef),
+    _fetchDays(programRef),
   ]);
 
-  const programId = programRef.id; // Save the id here for later use
+  const programId = programRef.id;
 
   let programMode: TPhaseProgram | TContinuousProgram;
 
   if (programBase.mode === "phase") {
-    const phases = await fetchPhases(programRef);
+    const phases = await _fetchPhases(programRef);
     programMode = { ...programBase, days, phases, mode: "phase" };
   } else {
     programMode = { ...programBase, days, mode: "continuous" };
@@ -100,25 +105,54 @@ async function _getProgramFromRef(
   if (programRef.parent.parent) {
     program = {
       ...programMode,
+      mode: "continuous",
       physioId: programRef.parent.parent.id,
       physioProgramId: programId,
-      mode: "continuous",
     };
+    return program;
   } else {
-    program = { ...programMode!, euneoProgramId: programId };
+    return { ...programMode, euneoProgramId: programId };
   }
-
-  return program;
 }
 
 export async function getEuneoProgramWithDays(
   euneoProgramId: string
-): Promise<TPhysioProgram | TEuneoProgram> {
-  let programRef = doc(db, "testPrograms", euneoProgramId) as DocumentReference<
-    ContinuousProgramWrite | PhaseProgramWrite
-  >;
+): Promise<TEuneoProgram> {
+  let programRef = doc(
+    db,
+    "testPrograms",
+    euneoProgramId
+  ) as DocumentReference<TProgramWrite>;
+  console.log("hi");
 
-  return _getProgramFromRef(programRef);
+  const euneoProgram = await _getProgramFromRef(programRef);
+
+  if (!("euneoProgramId" in euneoProgram)) {
+    throw new Error("Program is not an euneo program");
+  }
+
+  return euneoProgram;
+}
+
+export async function getPhysioProgramWithDays(
+  physioId: string,
+  physioProgramId: string
+): Promise<TPhysioProgram> {
+  let programRef = doc(
+    db,
+    "physios",
+    physioId,
+    "programs",
+    physioProgramId
+  ) as DocumentReference<TProgramWrite>;
+
+  const physioProgram = await _getProgramFromRef(programRef);
+
+  if (!("physioId" in physioProgram)) {
+    throw new Error("Program is not an euneo program");
+  }
+
+  return physioProgram;
 }
 
 export async function getPhysioProgramsWithDays(
@@ -164,7 +198,7 @@ export async function getProgramFromCode(
   // We dont need a converter here because it would not convert anything
   const q = query(collection(db, "invitations"), where("code", "==", code));
 
-  const querySnapshot = (await getDocs(q)) as QuerySnapshot<InvitationWrite>;
+  const querySnapshot = (await getDocs(q)) as QuerySnapshot<TInvitationWrite>;
 
   if (querySnapshot.empty) {
     console.log("No matching invitation found.");
@@ -242,7 +276,7 @@ export async function getPhysioClients(
             db,
             "clients",
             clientData.clientId
-          ) as DocumentReference<ClientWrite>;
+          ) as DocumentReference<TClientWrite>;
           const clientSnap = await getDoc(clientRef);
           const currentProgramId = clientSnap.data()!.currentProgramId || "";
           const clientProgramWithDays = await getClientProgram(
@@ -283,7 +317,7 @@ export async function getPhysioClient(
       physioId,
       "clients",
       physioClientId
-    ) as DocumentReference<PhysioClientWrite>;
+    ) as DocumentReference<TPhysioClientWrite>;
 
     const clientSnap = await getDoc(
       physioClientRef.withConverter(physioClientConverter)
@@ -300,7 +334,7 @@ export async function getPhysioClient(
         db,
         "clients",
         clientData.clientId
-      ) as DocumentReference<ClientWrite>;
+      ) as DocumentReference<TClientWrite>;
       const clientSnap = await getDoc(clientRef);
       const currentProgramId = clientSnap.data()!.currentProgramId || "";
       const clientProgramWithDays = await getClientProgram(
@@ -337,7 +371,7 @@ export async function getClientProgram(
         clientId,
         "programs",
         clientProgramId
-      ) as DocumentReference<ClientProgramWrite>
+      ) as DocumentReference<TClientProgramWrite>
     ).withConverter(clientProgramConverter);
 
     const clientProgramSnap = await getDoc(clientProgramRef);
@@ -378,22 +412,51 @@ export async function getClientProgram(
   return {} as TClientProgram;
 }
 
-export async function getAllExercises() {
-  const exercisesRef = collection(db, "exercises");
-  const exercisesSnap = await getDocs(
-    exercisesRef.withConverter(exerciseConverter)
-  );
-  const exercisesList = exercisesSnap.docs.map((doc) => doc.data());
+export async function getAllExercises(): Promise<Record<string, TExercise>> {
+  try {
+    const exercisesRef = collection(
+      db,
+      "exercises"
+    ) as CollectionReference<TExerciseWrite>;
+    const exercisesSnap = await getDocs(
+      exercisesRef.withConverter(exerciseConverter)
+    );
+    const exercisesList = exercisesSnap.docs.map((doc) => doc.data());
 
-  // create a map of exercises
-  const exercises = Object.fromEntries(
-    exercisesList.map((exercise) => [exercise.id, exercise])
-  );
+    // create a map of exercises
+    const exercises = Object.fromEntries(
+      exercisesList.map((exercise) => [exercise.id, exercise])
+    );
 
-  return exercises;
+    return exercises;
+  } catch (error) {
+    console.error("Error fetching exercises:", error);
+    throw error;
+  }
 }
 
-// TODO: tekur inn continuous program, skrifar í gagnagrunninn og skilar physioProgram (með program id og physio id)
+export async function getAllOutcomeMeasures(): Promise<
+  Record<string, TOutcomeMeasure>
+> {
+  try {
+    const outcomeMeasuresRef = collection(
+      db,
+      "outcomeMeasures"
+    ) as CollectionReference<TOutcomeMeasureWrite>;
+    const outcomeMeasuresSnapshot = await getDocs(
+      outcomeMeasuresRef.withConverter(outcomeMeasureConverter)
+    );
+    const outcomeMeasures = Object.fromEntries(
+      outcomeMeasuresSnapshot.docs.map((doc) => [doc.id, doc.data()])
+    );
+
+    return outcomeMeasures;
+  } catch (error) {
+    console.log("Error getting outcomeMeasures: ", error);
+    throw error;
+  }
+}
+
 export async function createPhysioProgram(
   continuousProgram: TProgramRead,
   days: Record<`d${number}`, TProgramDayRead>,
@@ -432,6 +495,25 @@ export async function createPhysioProgram(
     });
   }
   throw new Error("Error creating physio program");
+}
+
+export async function createPhysio(
+  physioId: string,
+  email: string,
+  name: string
+): Promise<boolean> {
+  try {
+    const physioRef = doc(db, "physios", physioId);
+    await setDoc(physioRef, { email, name });
+    return true;
+  } catch (error) {
+    console.error("Error creating physio:", error, {
+      physioId,
+      email,
+      name,
+    });
+    return false;
+  }
 }
 
 // // client ref

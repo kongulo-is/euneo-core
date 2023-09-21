@@ -2,12 +2,18 @@ import { DocumentReference, doc } from "firebase/firestore";
 import {
   TPhysioProgram,
   TProgramDayRead,
+  TProgramDayWrite,
   TProgramRead,
+  TProgramWrite,
 } from "../types/programTypes";
 import { db } from "../firebase/db";
-import { programConverter, programDayConverter } from "./converters";
+import {
+  physioClientConverter,
+  programConverter,
+  programDayConverter,
+} from "./converters";
 import { updateDoc } from "./updateDoc";
-import { ProgramDayWrite, ProgramWrite } from "../types/converterTypes";
+import { TPhysioClientRead, TPhysioClientWrite } from "../types/physioTypes";
 
 export async function updatePhysioProgram(
   physioProgram: TProgramRead,
@@ -22,7 +28,7 @@ export async function updatePhysioProgram(
       physioId,
       "programs",
       physioProgramId
-    ) as DocumentReference<ProgramWrite>;
+    ) as DocumentReference<TProgramWrite>;
 
     // convert and update program.
     const programConverted = programConverter.toFirestore(physioProgram);
@@ -38,7 +44,7 @@ export async function updatePhysioProgram(
       physioProgramId,
       "days",
       "d1"
-    ) as DocumentReference<ProgramDayWrite>;
+    ) as DocumentReference<TProgramDayWrite>;
     await updateDoc(dayRef, day);
 
     return {
@@ -59,4 +65,34 @@ export async function updatePhysioProgram(
     );
   }
   throw new Error("Error updating physio program");
+}
+
+export async function updatePhysioClient(
+  physioId: string,
+  physioClientId: string,
+  physioClient: TPhysioClientRead
+): Promise<boolean> {
+  try {
+    const physioClientRef = doc(
+      db,
+      "physios",
+      physioId,
+      "clients",
+      physioClientId
+    ) as DocumentReference<TPhysioClientWrite>;
+
+    const physioClientConverted =
+      physioClientConverter.toFirestore(physioClient);
+
+    await updateDoc(physioClientRef, physioClientConverted);
+
+    return true;
+  } catch (error) {
+    console.error("Error updating physio client: ", error, {
+      physioClientId,
+      physioId,
+      physioClient,
+    });
+    throw error;
+  }
 }
