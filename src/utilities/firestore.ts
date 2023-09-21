@@ -125,6 +125,27 @@ export async function getEuneoProgramWithDays(
   return euneoProgram;
 }
 
+export async function getPhysioProgramWithDays(
+  physioId: string,
+  physioProgramId: string
+): Promise<TPhysioProgram> {
+  let programRef = doc(
+    db,
+    "physios",
+    physioId,
+    "programs",
+    physioProgramId
+  ) as DocumentReference<TProgramWrite>;
+
+  const physioProgram = await _getProgramFromRef(programRef);
+
+  if (!("physioId" in physioProgram)) {
+    throw new Error("Program is not an euneo program");
+  }
+
+  return physioProgram;
+}
+
 export async function getPhysioProgramsWithDays(
   physioId: string
 ): Promise<TPhysioProgram[]> {
