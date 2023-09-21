@@ -56,7 +56,7 @@ export type TOutcomeMeasureBase = {
 };
 
 export type TOutcomeMeasure = TOutcomeMeasureBase & {
-  id: string;
+  id: TOutcomeMeasureId;
 };
 
 export type TOutcomeMeasureWrite = TOutcomeMeasureBase;
@@ -74,7 +74,7 @@ export type TConditionId =
   | "achilles-tendonitis"
   | "no-condition";
 
-export type TEuneoProgramId = "plantar-heel-pain";
+export type TEuneoProgramId = "plantar-heel-pain" | "plantar-heel-pain-2.0";
 
 // ! Write types
 

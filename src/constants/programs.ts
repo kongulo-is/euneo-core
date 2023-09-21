@@ -4,6 +4,7 @@ type Programs = Record<TEuneoProgramId, string>;
 
 export const programs: Programs = {
   "plantar-heel-pain": "Plantar Heel Pain",
+  "plantar-heel-pain-2.0": "Plantar Heel Pain 2.0",
 };
 
 export const programOptions = Object.entries(programs).map(

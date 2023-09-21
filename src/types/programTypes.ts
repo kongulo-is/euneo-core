@@ -1,5 +1,6 @@
 import { DocumentReference } from "firebase/firestore";
-import { TConditionId, TOutcomeMeasureId } from "./baseTypes";
+import { TConditionId } from "./baseTypes";
+import { TOutcomeMeasureId } from "./physioTypes";
 
 /**
  * @memberof TProgramDay

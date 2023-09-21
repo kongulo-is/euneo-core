@@ -6,10 +6,10 @@ import { Timestamp, DocumentReference, DocumentData } from "firebase/firestore";
 import {
   TConditionId,
   TEuneoReferenceIds,
-  TOutcomeMeasureId,
   TPhysioReferenceIds,
 } from "./baseTypes";
 import { TProgramWrite } from "./programTypes";
+import { TOutcomeMeasureId } from "./physioTypes";
 
 /**
  * @description Client data from client collection

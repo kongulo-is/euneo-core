@@ -6,6 +6,9 @@ import {
   DocumentReference,
   updateDoc,
   Timestamp,
+  CollectionReference,
+  deleteField,
+  getDoc,
 } from "firebase/firestore";
 import { db } from "../firebase/db";
 import {
@@ -175,9 +178,6 @@ export async function addPrescriptionToPhysioClient(
   prescription: TPrescription
 ) {
   try {
-    const prescriptionConverted =
-      prescriptionConverter.toFirestore(prescription);
-
     const physioClientRef = doc(
       db,
       "physios",
@@ -185,6 +185,22 @@ export async function addPrescriptionToPhysioClient(
       "clients",
       physioClientId
     ) as DocumentReference<TPhysioClientWrite>;
+
+    // check if user has a current prescription
+    const physioClientSnapshot = await getDoc(physioClientRef);
+    const currentPrescription = physioClientSnapshot.data()?.prescription;
+    if (currentPrescription) {
+      // store current prescription in past prescription sub collection
+      const pastPrescriptionRef = collection(
+        physioClientRef,
+        "pastPrescriptions"
+      ) as CollectionReference<TPrescriptionWrite>;
+      await addDoc(pastPrescriptionRef, currentPrescription);
+    }
+
+    // change the physio client's prescription
+    const prescriptionConverted =
+      prescriptionConverter.toFirestore(prescription);
 
     await updateDoc(physioClientRef, {
       prescription: prescriptionConverted,
