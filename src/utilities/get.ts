@@ -7,12 +7,6 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "../firebase/db";
-import {
-  TExercise,
-  TExerciseWrite,
-  TOutcomeMeasure,
-  TOutcomeMeasureWrite,
-} from "../types/baseTypes";
 import { TPhysio } from "../types/physioTypes";
 
 export async function getClient(uid: string) {
@@ -30,9 +24,13 @@ export async function getClient(uid: string) {
   return userData;
 }
 
-export async function getPhysio(uid: string): Promise<TPhysio> {
+export async function getPhysio(physioId: string): Promise<TPhysio> {
   try {
-    const physioRef = doc(db, "physios", uid) as DocumentReference<TPhysio>;
+    const physioRef = doc(
+      db,
+      "physios",
+      physioId
+    ) as DocumentReference<TPhysio>;
 
     const physioDoc = await getDoc(physioRef);
 
@@ -42,7 +40,20 @@ export async function getPhysio(uid: string): Promise<TPhysio> {
 
     return physio;
   } catch (error) {
-    console.error("Error fetching physio", error, { uid });
+    console.error("Error fetching physio", error, { physioId });
+    throw error;
+  }
+}
+
+export async function checkIfPhysioExists(physioId: string): Promise<boolean> {
+  try {
+    const physioRef = doc(db, "physios", physioId);
+
+    const physioDoc = await getDoc(physioRef);
+
+    return physioDoc.exists();
+  } catch (error) {
+    console.error("Error fetching physio", error, { physioId });
     throw error;
   }
 }

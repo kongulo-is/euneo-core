@@ -434,7 +434,6 @@ export async function getAllOutcomeMeasures(): Promise<
   }
 }
 
-// TODO: tekur inn continuous program, skrifar í gagnagrunninn og skilar physioProgram (með program id og physio id)
 export async function createPhysioProgram(
   continuousProgram: TProgramRead,
   days: Record<`d${number}`, TProgramDayRead>,
@@ -473,6 +472,25 @@ export async function createPhysioProgram(
     });
   }
   throw new Error("Error creating physio program");
+}
+
+export async function createPhysio(
+  physioId: string,
+  email: string,
+  name: string
+): Promise<boolean> {
+  try {
+    const physioRef = doc(db, "physios", physioId);
+    await setDoc(physioRef, { email, name });
+    return true;
+  } catch (error) {
+    console.error("Error creating physio:", error, {
+      physioId,
+      email,
+      name,
+    });
+    return false;
+  }
 }
 
 // // client ref
