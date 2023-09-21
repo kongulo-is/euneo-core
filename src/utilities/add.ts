@@ -16,13 +16,19 @@ import {
   TClientProgramDay,
   TClientWrite,
 } from "../types/clientTypes";
-import { TPhysioProgram, TProgramDay } from "../types/programTypes";
+import {
+  TPhysioProgram,
+  TProgramDay,
+  TProgramWrite,
+} from "../types/programTypes";
 import {
   clientProgramConverter,
   clientProgramDayConverter,
+  prescriptionConverter,
 } from "./converters";
 import {
   TPhysioClient,
+  TPhysioClientWrite,
   TPrescription,
   TPrescriptionWrite,
 } from "../types/physioTypes";
@@ -163,60 +169,45 @@ function _createDays(
   return clientProgramDays;
 }
 
-// TODO: skoða prescription type og laga svo...
 export async function addPrescriptionToPhysioClient(
   physioId: string,
   physioClientId: string,
   prescription: TPrescription
 ) {
   try {
-    let programRef: DocumentReference<TPhysioProgram>;
-    // Determine if it's a program or a physio program based on the path format
+    const prescriptionConverted =
+      prescriptionConverter.toFirestore(prescription);
 
-    const clientRef = doc(
+    const physioClientRef = doc(
       db,
       "physios",
       physioId,
       "clients",
       physioClientId
-    ) as DocumentReference<TPhysioClient>;
+    ) as DocumentReference<TPhysioClientWrite>;
 
-    const prescription: TPrescriptionWrite = {
-      programRef,
-      prescriptionDate: Timestamp.now(),
-      status: "Invited",
-    };
-
-    await updateDoc(clientRef, {
-      prescription,
+    await updateDoc(physioClientRef, {
+      prescription: prescriptionConverted,
     });
+
+    // Create invitation for client
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const invitationRef = collection(db, "invitations");
+    await addDoc(invitationRef, {
+      physioClientRef,
+      code,
+    });
+
     return true;
-
-    // TODO: create invitation???
-    // creade a random 6 digit code
-    //  const code = Math.floor(100000 + Math.random() * 900000).toString();
-
-    //  console.log("Code", code);
-
-    //  const invitationRef = collection(db, "invitations");
-    //  console.log("physioClientRef", invitationRef);
-
-    //  const physioClientRef = doc(db, "physios", uid, "clients", clientId);
-
-    //  console.log("physioClientRef", physioClientRef, invitationRef);
-
-    //  await addDoc(invitationRef, {
-    //    physioClientRef,
-    //    code,
-    //  });
-
-    //  return code;
   } catch (error) {
-    console.error("Error adding prescription to physio client:", error, {
-      programPath,
+    console.error(
+      "Error adding prescription to physio client",
+      error,
+      prescription,
       physioId,
-      physioClientId,
-    });
+      physioClientId
+    );
+
     throw error;
   }
 }

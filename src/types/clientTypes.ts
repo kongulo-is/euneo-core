@@ -3,7 +3,12 @@
  */
 
 import { Timestamp, DocumentReference, DocumentData } from "firebase/firestore";
-import { TConditionId, TOutcomeMeasureId } from "./baseTypes";
+import {
+  TConditionId,
+  TEuneoReferenceIds,
+  TOutcomeMeasureId,
+  TPhysioReferenceIds,
+} from "./baseTypes";
 import { TProgramWrite } from "./programTypes";
 
 /**
@@ -111,15 +116,10 @@ export type TClientProgramBase = {
 /**
  * Everything between the base and read is specific to each type of program
  */
-export type TClientEuneoProgramRead = TClientProgramBase & {
-  euneoProgramId: string;
-};
+export type TClientEuneoProgramRead = TClientProgramBase & TEuneoReferenceIds;
 
 // Specific properties for each case
-export type TClientPhysioProgramRead = TClientProgramBase & {
-  physioProgramId: string;
-  physioId: string;
-};
+export type TClientPhysioProgramRead = TClientProgramBase & TPhysioReferenceIds;
 
 export type TClientProgramRead =
   | TClientEuneoProgramRead
