@@ -9,8 +9,8 @@ import {
 import { db } from "../firebase/db";
 import { TPhysio } from "../types/physioTypes";
 
-export async function getClient(uid: string) {
-  const userRef = doc(db, "clients", uid);
+export async function getClient(clientId: string) {
+  const userRef = doc(db, "clients", clientId);
 
   const userDoc = await getDoc(userRef);
 
@@ -18,7 +18,7 @@ export async function getClient(uid: string) {
 
   const userData = {
     ...userDoc.data(),
-    uid: uid,
+    clientId: clientId,
   };
 
   return userData;

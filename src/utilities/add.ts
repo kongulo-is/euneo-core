@@ -343,7 +343,7 @@ export async function addEuneoProgramToClient(
     clientId
   ) as DocumentReference<TClientWrite>;
 
-  updateDoc(clientRef, { currentProgramId: program.id });
+  updateDoc(clientRef, { currentProgramId: clientProgram.clientProgramId });
 
   return { clientProgram: clientProgram };
 }

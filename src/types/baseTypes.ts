@@ -1,5 +1,3 @@
-import { TOutcomeMeasureId } from "./physioTypes";
-
 export type TEuneoReferenceIds = {
   euneoProgramId: TEuneoProgramId;
 };
@@ -88,4 +86,16 @@ export type TExerciseWrite = {
     assetID: string;
   };
   type: TExerciseType;
+};
+
+// TODO: Store this in app instead?
+export type TGender = "male" | "female" | "other";
+export type TPlatform = "ios" | "android" | "windows" | "macos" | "web";
+export type TMeasurementUnit = "metric" | "imperial";
+export type TPhysicalActivity = "none" | "low" | "moderate" | "high";
+
+export type TReminder = {
+  enabled: boolean;
+  hour?: number;
+  minute?: number;
 };

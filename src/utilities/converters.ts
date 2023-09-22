@@ -33,6 +33,7 @@ import {
   TClientProgramWrite,
   TClientProgramDayWrite,
   TClient,
+  TClientProgram,
 } from "../types/clientTypes";
 import runtimeChecks from "./runtimeChecks";
 import {
@@ -86,6 +87,7 @@ export const programPhaseConverter = {
     return {
       ...phase,
       days: phase.days.map((day) =>
+        // TODO: Skoða þetta (vantar programId til að geta skrifað í db en það er ekki í phase)
         doc(db, "testPrograms", programId, "days", day)
       ),
     };
@@ -316,7 +318,7 @@ export const clientProgramConverter = {
     // if (!outcomeMeasuresAnswers)
     //   outcomeMeasuresAnswers = (data as any).assessments;
 
-    let clientProgram;
+    let clientProgram: TClientProgramRead | TClientProgram;
 
     const painLevelsClient = painLevels.map((pain) => ({
       ...pain,
@@ -334,7 +336,7 @@ export const clientProgramConverter = {
         phases: rest.phases,
         outcomeMeasuresAnswers,
         painLevels: painLevelsClient,
-        euneoProgramId: programRef.id,
+        euneoProgramId: programRef.id as TEuneoProgramId,
       };
       runtimeChecks.assertTClientProgram(clientProgram, true);
     } else {

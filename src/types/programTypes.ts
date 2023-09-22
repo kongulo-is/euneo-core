@@ -1,5 +1,5 @@
 import { DocumentReference } from "firebase/firestore";
-import { TConditionId } from "./baseTypes";
+import { TConditionId, TEuneoProgramId } from "./baseTypes";
 import { TOutcomeMeasureId } from "./physioTypes";
 
 /**
@@ -89,7 +89,7 @@ export type TPhaseProgram = TProgramRead & {
 };
 
 export type TEuneoProgram = (TContinuousProgram | TPhaseProgram) & {
-  euneoProgramId: string;
+  euneoProgramId: TEuneoProgramId;
 };
 
 export type TPhysioProgram = TContinuousProgram & {

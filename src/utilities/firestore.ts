@@ -10,6 +10,7 @@ import {
   where,
   addDoc,
   CollectionReference,
+  orderBy,
 } from "firebase/firestore";
 import { db } from "../firebase/db";
 
@@ -47,6 +48,7 @@ import {
   TPhysioClientWrite,
 } from "../types/physioTypes";
 import {
+  TEuneoProgramId,
   TExercise,
   TExerciseWrite,
   TOutcomeMeasure,
@@ -111,12 +113,13 @@ async function _getProgramFromRef(
     };
     return program;
   } else {
-    return { ...programMode, euneoProgramId: programId };
+    return { ...programMode, euneoProgramId: programId as TEuneoProgramId };
   }
 }
 
+// TODO: Breyta testPrograms í programs þegar við erum búnir að uppfæra db
 export async function getEuneoProgramWithDays(
-  euneoProgramId: string
+  euneoProgramId: TEuneoProgramId
 ): Promise<TEuneoProgram> {
   let programRef = doc(
     db,
@@ -149,7 +152,7 @@ export async function getPhysioProgramWithDays(
   const physioProgram = await _getProgramFromRef(programRef);
 
   if (!("physioId" in physioProgram)) {
-    throw new Error("Program is not an euneo program");
+    throw new Error("Program is not a physio program");
   }
 
   return physioProgram;
