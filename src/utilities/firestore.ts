@@ -274,7 +274,10 @@ export async function getPhysioClients(
         const clientData: TPhysioClientBase = c.data();
         let clientProgram: TClientProgram | undefined;
         // Get client program data if client has accepted a prescription
-        if (clientData.clientId && clientData.prescription?.programId) {
+        if (
+          clientData.clientId &&
+          clientData.prescription?.status === "Accepted"
+        ) {
           const clientRef = doc(
             db,
             "clients",
@@ -332,7 +335,7 @@ export async function getPhysioClient(
     // get clients program data.
     let clientProgram: TClientProgram | undefined;
     // Get client program data if client has accepted a prescription
-    if (clientData.clientId && clientData.prescription?.programId) {
+    if (clientData.clientId && clientData.prescription?.status === "Accepted") {
       const clientRef = doc(
         db,
         "clients",
