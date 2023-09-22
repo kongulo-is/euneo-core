@@ -17,10 +17,8 @@ import {
 } from "@firebase/firestore";
 import {
   TConditionAssessmentQuestion,
-  TPhysioProgram,
   TProgramDayRead,
   TProgramDayWrite,
-  TProgramPhase,
   TProgramPhaseRead,
   TProgramPhaseWrite,
   TProgramRead,
@@ -427,7 +425,7 @@ export const outcomeMeasureConverter = {
 
     const measure: TOutcomeMeasure = {
       ...data,
-      id: snapshot.id,
+      id: snapshot.id as TOutcomeMeasureId,
     };
 
     return measure;

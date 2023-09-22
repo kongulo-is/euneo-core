@@ -17,3 +17,7 @@ export const daysBetweenDates = (date1: Date, date2: Date): number => {
   d2.setHours(0, 0, 0, 0);
   return Math.floor((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
 };
+
+export const capitalizeFirstLetter = (str: string) => {
+  return str[0].toUpperCase() + str.slice(1);
+};

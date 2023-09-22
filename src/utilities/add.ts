@@ -5,9 +5,7 @@ import {
   setDoc,
   DocumentReference,
   updateDoc,
-  Timestamp,
   CollectionReference,
-  deleteField,
   getDoc,
 } from "firebase/firestore";
 import { db } from "../firebase/db";
@@ -22,9 +20,7 @@ import {
 import {
   TEuneoProgram,
   TPhaseProgram,
-  TPhysioProgram,
   TProgramDay,
-  TProgramWrite,
 } from "../types/programTypes";
 import {
   clientProgramConverter,
@@ -32,7 +28,6 @@ import {
   prescriptionConverter,
 } from "./converters";
 import {
-  TPhysioClient,
   TPhysioClientWrite,
   TPrescription,
   TPrescriptionWrite,

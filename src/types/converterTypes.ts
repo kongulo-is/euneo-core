@@ -1,10 +1,5 @@
 import { Timestamp, DocumentReference } from "@firebase/firestore";
-import {
-  TConditionId,
-  TPrescriptionStatus,
-  TOutcomeMeasureId,
-  TExerciseType,
-} from "./baseTypes";
+import { TConditionId, TExerciseType } from "./baseTypes";
 import {
   TClientPhysicalInformation,
   TOutcomeMeasureAnswerSection,
@@ -16,6 +11,7 @@ import {
   TProgramMode,
 } from "./programTypes";
 import { DocumentData } from "firebase/firestore";
+import { TOutcomeMeasureId, TPrescriptionStatus } from "./physioTypes";
 
 /**
  * @description client data as it is stored in the database in client collection
