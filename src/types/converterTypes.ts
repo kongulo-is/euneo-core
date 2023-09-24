@@ -21,7 +21,7 @@ export type ClientWrite = {
   name: string;
   gender: "male" | "female" | "other";
   platform: "android" | "ios";
-  birthDate: Timestamp;
+  birthDate: string;
   email: string;
   currentProgramId?: string;
 };
