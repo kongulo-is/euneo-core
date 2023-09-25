@@ -8,20 +8,27 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase/db";
 import { TPhysio } from "../types/physioTypes";
+import { TClient } from "../types/clientTypes";
 
-export async function getClient(clientId: string) {
-  const userRef = doc(db, "clients", clientId);
+export async function getClient(clientId: string): Promise<TClient> {
+  const clientRef = doc(db, "clients", clientId) as DocumentReference<TClient>;
 
-  const userDoc = await getDoc(userRef);
+  const clientDoc = await getDoc(clientRef);
 
-  console.log("userDoc.data()", userDoc.data());
+  console.log("userDoc.data()", clientDoc.data());
 
-  const userData = {
-    ...userDoc.data(),
+  const clientData = clientDoc.data();
+
+  if (!clientData) {
+    throw new Error("No client found");
+  }
+
+  const client = {
+    ...clientData,
     clientId: clientId,
   };
 
-  return userData;
+  return client;
 }
 
 export async function getPhysio(physioId: string): Promise<TPhysio> {

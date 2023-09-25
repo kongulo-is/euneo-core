@@ -1,3 +1,5 @@
+import { TOutcomeMeasureId } from "./physioTypes";
+
 export type TEuneoReferenceIds = {
   euneoProgramId: TEuneoProgramId;
 };

@@ -5,7 +5,7 @@ import {
   TPhysioReferenceIds,
 } from "./baseTypes";
 import { TClientProgram, TClientStatus } from "./clientTypes";
-import { TPhysioProgram, TProgram, TProgramWrite } from "./programTypes";
+import { TProgramWrite } from "./programTypes";
 
 /** @memberof TPrescription */
 export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
