@@ -5,123 +5,25 @@ import {
   setDoc,
   DocumentReference,
   updateDoc,
-  CollectionReference,
-  getDoc,
 } from "firebase/firestore";
-import { db } from "../firebase/db";
+import { db } from "../../../firebase/db";
 import {
-  TClientEuneoProgram,
-  TClientEuneoProgramRead,
-  TClientPhysioProgram,
   TClientPhysioProgramRead,
-  TClientProgramDay,
+  TClientPhysioProgram,
   TClientWrite,
-} from "../types/clientTypes";
+  TClientEuneoProgramRead,
+  TClientEuneoProgram,
+  TClientProgramDay,
+} from "../../../types/clientTypes";
 import {
+  TProgramDay,
   TEuneoProgram,
   TPhaseProgram,
-  TProgramDay,
-} from "../types/programTypes";
+} from "../../../types/programTypes";
 import {
   clientProgramConverter,
   clientProgramDayConverter,
-  prescriptionConverter,
-} from "./converters";
-import {
-  TPhysioClientWrite,
-  TPrescription,
-  TPrescriptionWrite,
-} from "../types/physioTypes";
-
-// Overloads
-// export function addProgramToClient(
-//   clientId: string,
-//   clientProgram: TClientEuneoProgramRead,
-//   days: { [key: string]: TProgramDay }
-// ): Promise<TClientEuneoProgram>;
-// export function addProgramToClient(
-//   clientId: string,
-//   clientProgram: TClientPhysioProgramRead,
-//   days: { [key: string]: TProgramDay }
-// ): Promise<TClientPhysioProgram>;
-// // Implementation
-// export async function addProgramToClient(
-//   clientId: string,
-//   clientProgram: TClientEuneoProgramRead | TClientPhysioProgramRead,
-//   days: { [key: string]: TProgramDay }
-// ): Promise<TClientProgram> {
-//   if ("euneoProgramId" in clientProgram) {
-//     return clientProgram;
-//   } else {
-//     const clientPhysioProgram = await addPhysioProgramToClient(
-//       clientId,
-//       clientProgram,
-//       days
-//     );
-//     return clientPhysioProgram;
-//   }
-// }
-
-// Usage
-// const euneoProgramProps: {
-//   clientId: string;
-//   clientProgram: TClientEuneoProgram;
-//   days: any;
-// } = {
-//   clientId: "client1",
-//   clientProgram: {
-//     conditionId: "plantar-heel-pain",
-//     euneoProgramId: "euneo1",
-//     outcomeMeasuresAnswers: [] as TOutcomeMeasureAnswers[],
-//     painLevels: [] as TPainLevel[],
-//     physicalInformation: {
-//       athlete: false,
-//       height: 0,
-//       weight: 0,
-//       unit: "metric",
-//       physicalActivity: "None",
-//     },
-//     trainingDays: [] as boolean[],
-//     conditionAssessmentAnswers: [] as Array<boolean | string>,
-//   },
-//   days: {},
-// };
-
-// const physioProgramProps: {
-//   clientId: string;
-//   clientProgram: TClientPhysioProgram;
-//   days: any;
-// } = {
-//   clientId: "client2",
-//   clientProgram: {
-//     conditionId: "plantar-heel-pain",
-//     physioProgramId: "physio1",
-//     physioId: "physio2",
-//     outcomeMeasuresAnswers: [],
-//     painLevels: [],
-//     physicalInformation: {
-//       athlete: false,
-//       height: 0,
-//       weight: 0,
-//       unit: "metric",
-//       physicalActivity: "None",
-//     },
-//     trainingDays: [],
-//     conditionAssessmentAnswers: [],
-//   },
-//   days: {},
-// };
-
-// const euneoResult = addProgramToClient(
-//   euneoProgramProps.clientId,
-//   euneoProgramProps.clientProgram,
-//   euneoProgramProps.days
-// );
-// const physioResult = addProgramToClient(
-//   physioProgramProps.clientId,
-//   physioProgramProps.clientProgram,
-//   physioProgramProps.days
-// );
+} from "../../converters";
 
 function _createDays(
   programDays: Record<`d${number}`, TProgramDay>,
@@ -167,62 +69,6 @@ function _createDays(
   }
 
   return clientProgramDays;
-}
-
-export async function addPrescriptionToPhysioClient(
-  physioId: string,
-  physioClientId: string,
-  prescription: TPrescription
-) {
-  try {
-    const physioClientRef = doc(
-      db,
-      "physios",
-      physioId,
-      "clients",
-      physioClientId
-    ) as DocumentReference<TPhysioClientWrite>;
-
-    // check if user has a current prescription
-    const physioClientSnapshot = await getDoc(physioClientRef);
-    const currentPrescription = physioClientSnapshot.data()?.prescription;
-    if (currentPrescription) {
-      // store current prescription in past prescription sub collection
-      const pastPrescriptionRef = collection(
-        physioClientRef,
-        "pastPrescriptions"
-      ) as CollectionReference<TPrescriptionWrite>;
-      await addDoc(pastPrescriptionRef, currentPrescription);
-    }
-
-    // change the physio client's prescription
-    const prescriptionConverted =
-      prescriptionConverter.toFirestore(prescription);
-
-    await updateDoc(physioClientRef, {
-      prescription: prescriptionConverted,
-    });
-
-    // Create invitation for client
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const invitationRef = collection(db, "invitations");
-    await addDoc(invitationRef, {
-      physioClientRef,
-      code,
-    });
-
-    return true;
-  } catch (error) {
-    console.error(
-      "Error adding prescription to physio client",
-      error,
-      prescription,
-      physioId,
-      physioClientId
-    );
-
-    throw error;
-  }
 }
 
 export async function addPhysioProgramToClient(

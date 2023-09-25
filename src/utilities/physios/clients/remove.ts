@@ -1,17 +1,20 @@
 import {
-  CollectionReference,
-  DocumentReference,
-  addDoc,
-  collection,
-  deleteDoc,
-  deleteField,
   doc,
+  DocumentReference,
+  collection,
+  CollectionReference,
   getDoc,
-  getDocs,
+  addDoc,
   updateDoc,
+  deleteField,
+  getDocs,
+  deleteDoc,
 } from "firebase/firestore";
-import { db } from "../firebase/db";
-import { TPhysioClientWrite, TPrescriptionWrite } from "../types/physioTypes";
+import { db } from "../../../firebase/db";
+import {
+  TPhysioClientWrite,
+  TPrescriptionWrite,
+} from "../../../types/physioTypes";
 
 export async function removePhysioClientPrescription(
   physioClientId: string,
