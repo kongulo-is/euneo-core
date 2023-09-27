@@ -85,7 +85,7 @@ export const programPhaseConverter = {
     return {
       ...phase,
       days: phase.days.map((day) =>
-        // TODO: Skoða þetta (vantar programId til að geta skrifað í db en það er ekki í phase)
+        // @ts-ignore // TODO: Skoða þetta (vantar programId til að geta skrifað í db en það er ekki í phase)
         doc(db, "testPrograms", programId, "days", day)
       ),
     };
