@@ -154,6 +154,7 @@ export const physioClientConverter = {
       name: client.name,
       email: client.email,
       ...(client.conditionId && { conditionId: client.conditionId }),
+      date: Timestamp.fromDate(client.date),
     };
 
     if (client.prescription) {
@@ -230,6 +231,7 @@ export const physioClientConverter = {
       ...rest,
       ...(clientId && { clientId }),
       ...(prescriptionRead && { prescription: prescriptionRead }),
+      date: rest.date.toDate(),
     };
   },
 };
