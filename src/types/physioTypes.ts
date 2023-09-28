@@ -38,6 +38,7 @@ export type TPhysio = {
 export type TPhysioClientBase = {
   name: string;
   email: string;
+  date: Date;
   conditionId?: TConditionId;
   clientId?: string;
   prescription?: TPrescription;
@@ -84,6 +85,7 @@ export type TPhysioWrite = {
 export type TPhysioClientWrite = {
   name: string;
   email: string;
+  date: Timestamp;
   conditionId?: TConditionId;
   clientRef?: DocumentReference;
   prescription?: TPrescriptionWrite;
