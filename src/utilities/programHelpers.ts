@@ -10,12 +10,15 @@ import {
   TProgram,
   TPhaseProgram,
   TContinuousProgram,
+  TEuneoProgram,
+  TPhysioProgram,
 } from "../types/programTypes";
 import {
   programConverter,
   programDayConverter,
   programPhaseConverter,
 } from "./converters";
+import { TClientProgramDay } from "../types/clientTypes";
 
 export async function _fetchProgramBase(
   programRef: DocumentReference<TProgramWrite>
@@ -79,4 +82,87 @@ export async function _getProgramFromRef(
   } else {
     return { ...programMode, euneoProgramId: programId as TEuneoProgramId };
   }
+}
+
+export function createPhase(
+  trainingDays: boolean[],
+  program: TEuneoProgram & TPhaseProgram,
+  phaseId: `p${number}`,
+  date?: Date,
+  length?: number,
+  startDayIndex?: number
+): TClientProgramDay[] {
+  const phase = program.phases[phaseId];
+  let dayList = [] as Array<TClientProgramDay>;
+
+  let restIndex = startDayIndex || 0;
+
+  let d = date ? date : new Date();
+
+  const iterator = length ? length : phase.length;
+
+  d.setHours(0, 0, 0, 0);
+  for (let i = 0; i < iterator; i++) {
+    const dayId = phase.days[restIndex % phase.days.length];
+    const infoDay = program.days[dayId];
+
+    const isRestDay = !trainingDays[d.getDay()];
+
+    dayList.push({
+      dayId: dayId,
+      date: new Date(d),
+      phaseId: phaseId,
+      finished: false,
+      adherence: 0,
+      exercises: infoDay?.exercises.map(() => 0),
+      restDay: isRestDay,
+    });
+
+    d.setDate(d.getDate() + 1);
+    !isRestDay && restIndex++;
+  }
+
+  return dayList;
+}
+
+export function createContinuousDays(
+  trainingDays: Array<boolean>,
+  program: TEuneoProgram | TPhysioProgram,
+  date: Date,
+  length?: number,
+  startDayIndex?: number
+) {
+  const dayIdList = Object.keys(program.days) as Array<`d${number}`>;
+  let dayList = [] as Array<TClientProgramDay>;
+
+  let dayIndex = startDayIndex || 0;
+
+  let d = date ? date : new Date();
+
+  // TODO: Should 14 be dynamic number insted? (no. days that are created each time)
+  const iterator = length ? length : 14;
+
+  d.setHours(0, 0, 0, 0);
+  for (let i = 0; i < iterator; i++) {
+    console.log(`Date ${i + 1}: `, d.toDateString());
+
+    const dayId = dayIdList[dayIndex % dayIdList.length];
+    const infoDay = program.days[dayId];
+
+    const isRestDay = !trainingDays[d.getDay()];
+
+    dayList.push({
+      dayId: dayId,
+      date: new Date(d),
+      finished: false,
+      adherence: 0,
+      exercises: infoDay?.exercises.map(() => 0),
+      restDay: isRestDay,
+    });
+
+    d.setDate(d.getDate() + 1);
+    !isRestDay && dayIndex++;
+  }
+
+  return dayList;
 }
