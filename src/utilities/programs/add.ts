@@ -1,5 +1,4 @@
 import { DocumentReference, doc, setDoc } from "firebase/firestore";
-import { TEuneoProgram, TPhaseProgram } from "../../types/programTypes";
 import { db } from "../../firebase/db";
 import { updateDoc } from "../updateDoc";
 import { clientProgramDayConverter } from "../converters";
@@ -49,10 +48,27 @@ export async function addPhaseToClientProgram(
 }
 
 export async function addContinuousDaysToClientProgram(
-  trainingDays: boolean[],
-  program: TEuneoProgram & TPhaseProgram,
-  startDayIndex: number
-) {}
+  clientId: string,
+  clientProgramId: string,
+  newDays: TClientProgramDay[],
+  firstDocIndex: number
+) {
+  await Promise.all(
+    newDays.map((day, i) => {
+      const dayNumber = i + firstDocIndex;
+      const dayCol = doc(
+        db,
+        "clients",
+        clientId,
+        "programs",
+        clientProgramId,
+        "days",
+        dayNumber.toString()
+      );
+      return setDoc(dayCol.withConverter(clientProgramDayConverter), day);
+    })
+  );
+}
 
 export async function updateTrainingDays(
   clientId: string,
