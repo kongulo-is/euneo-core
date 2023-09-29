@@ -153,7 +153,8 @@ export const physioClientConverter = {
     const data: TPhysioClientWrite = {
       name: client.name,
       email: client.email,
-      ...(client.conditionId && { conditionId: client.conditionId }),
+      conditionId: client.conditionId,
+      // ...(client.conditionId && { conditionId: client.conditionId }),
       date: Timestamp.fromDate(client.date),
     };
 

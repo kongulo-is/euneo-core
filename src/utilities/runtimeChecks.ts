@@ -159,7 +159,7 @@ const runtimeChecks = {
     assertTypeString(obj.physioId, "physioId");
     assertTypeString(obj.mode, "mode");
 
-    assertTConditionId(obj.conditionId);
+    obj.conditionId && assertTConditionId(obj.conditionId);
 
     if (obj.outcomeMeasureIds) {
       assertArray<string>(

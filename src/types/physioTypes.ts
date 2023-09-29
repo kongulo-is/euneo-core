@@ -39,7 +39,7 @@ export type TPhysioClientBase = {
   name: string;
   email: string;
   date: Date;
-  conditionId?: TConditionId;
+  conditionId: TConditionId | null;
   clientId?: string;
   prescription?: TPrescription;
 };
@@ -86,7 +86,7 @@ export type TPhysioClientWrite = {
   name: string;
   email: string;
   date: Timestamp;
-  conditionId?: TConditionId;
+  conditionId: TConditionId | null;
   clientRef?: DocumentReference;
   prescription?: TPrescriptionWrite;
   // status?: TClientStatus; //* Ekki geymt í firestore

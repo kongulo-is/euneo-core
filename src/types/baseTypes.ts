@@ -71,8 +71,8 @@ export type TConditionId =
   | "post-surgery"
   | "ankle-sprain"
   | "knee-replacement"
-  | "achilles-tendonitis"
-  | "no-condition";
+  | "achilles-tendonitis";
+// | "no-condition";
 
 export type TEuneoProgramId = "plantar-heel-pain" | "plantar-heel-pain-2.0";
 

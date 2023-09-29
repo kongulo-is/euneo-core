@@ -69,10 +69,10 @@ export type TConditionAssessmentQuestion = {
 
 export type TProgramBase = {
   name: string;
-  conditionId: TConditionId;
   mode: TProgramMode;
   outcomeMeasureIds?: TOutcomeMeasureId[];
   conditionAssessment?: TConditionAssessmentQuestion[];
+  conditionId: TConditionId | null;
 };
 
 export type TProgramRead = TProgramBase;
@@ -107,7 +107,7 @@ export type TProgram = TEuneoProgram | TPhysioProgram;
  */
 export type TProgramWrite = {
   name: string;
-  conditionId: TConditionId;
+  conditionId: TConditionId | null;
   outcomeMeasureRefs: DocumentReference[]; // TODO: add the refernece type // Always exists but might be empty
   conditionAssessment: TConditionAssessmentQuestion[]; // Always exists but might be empty
   mode: TProgramMode;
