@@ -1,16 +1,16 @@
 {
-    "files.exclude": {
-        "**/.git": true,
-        "**/.svn": true,
-        "**/.hg": true,
-        "**/CVS": true,
-        "**/.DS_Store": true,
-        "**/Thumbs.db": true
-    },
-    "hide-files.files": [],
-    "workbench.colorCustomizations": {
-        "activityBar.background": "#4F0E58",
-        "titleBar.activeBackground": "#6E147B",
-        "titleBar.activeForeground": "#FEFCFE"
-    }
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true
+  },
+  "hide-files.files": [],
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#49164f",
+    "titleBar.activeBackground": "#6E147B",
+    "titleBar.activeForeground": "#FEFCFE"
+  }
 }
