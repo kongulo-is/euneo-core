@@ -90,7 +90,6 @@ export type TExerciseWrite = {
   type: TExerciseType;
 };
 
-// TODO: Store this in app instead?
 export type TGender = "male" | "female" | "other";
 export type TPlatform = "ios" | "android" | "windows" | "macos" | "web";
 export type TMeasurementUnit = "metric" | "imperial";

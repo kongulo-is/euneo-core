@@ -97,7 +97,7 @@ export type TPhysioClientWrite = {
  * @path /physios/{physioId}/clients/{physioClientId}
  */
 export type TPrescriptionWrite = {
-  programRef: DocumentReference<TProgramWrite>; // TODO: add reference type
+  programRef: DocumentReference<TProgramWrite>;
   prescriptionDate: Timestamp;
   status: TPrescriptionStatus;
 };

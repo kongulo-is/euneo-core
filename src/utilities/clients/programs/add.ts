@@ -14,6 +14,10 @@ import {
   TClientEuneoProgramRead,
   TClientEuneoProgram,
   TClientProgramDay,
+  TOutcomeMeasureAnswers,
+  TClientProgramWrite,
+  TPainLevel,
+  TPhase,
 } from "../../../types/clientTypes";
 import {
   TProgramDay,
@@ -69,6 +73,29 @@ function _createDays(
   }
 
   return clientProgramDays;
+}
+
+async function _addDaysToFirestore(
+  clientId: string,
+  clientProgramId: string,
+  days: TClientProgramDay[],
+  firstDocIndex: number
+) {
+  const programRef = doc(
+    db,
+    "clients",
+    clientId,
+    "programs",
+    clientProgramId
+  ) as DocumentReference<TClientProgramWrite>;
+  // Update days documents
+  await Promise.all(
+    days.map((day, i) => {
+      const dayNumber = i + firstDocIndex;
+      const dayCol = doc(programRef, "days", dayNumber.toString());
+      return setDoc(dayCol.withConverter(clientProgramDayConverter), day);
+    })
+  );
 }
 
 export async function addPhysioProgramToClient(
@@ -203,4 +230,125 @@ export async function addEuneoProgramToClient(
   updateDoc(clientRef, { currentProgramId: clientProgram.clientProgramId });
 
   return { clientProgram: clientProgram };
+}
+
+// The context mapper should get data from the asyncs storage and set it to the context
+export async function addOutcomeMeasureToClientProgram(
+  clientId: string,
+  clientProgramId: string,
+  oldOutcomeMeasures: TOutcomeMeasureAnswers[],
+  newOutcomeMeasure: TOutcomeMeasureAnswers
+) {
+  try {
+    const programRef = doc(
+      db,
+      "clients",
+      clientId,
+      "programs",
+      clientProgramId
+    ) as DocumentReference<TClientProgramWrite>;
+
+    const newOutcomeMeasuresAnswers = [
+      ...oldOutcomeMeasures,
+      newOutcomeMeasure,
+    ];
+
+    // Update the user's painLevel array in firestore
+    await updateDoc(programRef, {
+      outcomeMeasuresAnswers: newOutcomeMeasuresAnswers,
+    });
+
+    return true;
+  } catch (error) {
+    console.log(error);
+
+    return false;
+  }
+}
+
+export async function addPainLevelToClientProgram(
+  clientId: string,
+  clientProgramId: string,
+  oldPainLevels: TPainLevel[],
+  newPainLevel: TPainLevel
+) {
+  try {
+    const programRef = doc(
+      db,
+      "clients",
+      clientId,
+      "programs",
+      clientProgramId
+    ) as DocumentReference<TClientProgramWrite>;
+
+    const newPainLevels = [...oldPainLevels, newPainLevel];
+
+    // Update the user's painLevel array in firestore
+    await Promise.all([
+      updateDoc(programRef, {
+        painLevels: newPainLevels,
+      }),
+    ]);
+
+    return true;
+  } catch (error) {
+    console.log(error);
+
+    return false;
+  }
+}
+
+export async function addPhaseToClientProgram(
+  clientId: string,
+  clientProgramId: string,
+  newPhase: TClientProgramDay[],
+  programPhases: TPhase[],
+  firstDocIndex: number
+) {
+  await _addDaysToFirestore(clientId, clientProgramId, newPhase, firstDocIndex);
+
+  const programRef = doc(
+    db,
+    "clients",
+    clientId,
+    "programs",
+    clientProgramId
+  ) as DocumentReference<TClientProgramWrite>;
+
+  await updateDoc(programRef, {
+    phases: programPhases,
+  });
+
+  console.log("AddNewPhase func finished!!!");
+}
+
+export async function addContinuousDaysToClientProgram(
+  clientId: string,
+  clientProgramId: string,
+  newDays: TClientProgramDay[],
+  firstDocIndex: number
+) {
+  await _addDaysToFirestore(clientId, clientProgramId, newDays, firstDocIndex);
+}
+
+export async function updateTrainingDays(
+  clientId: string,
+  clientProgramId: string,
+  newDays: TClientProgramDay[],
+  trainingDays: boolean[],
+  firstDocIndex: number
+) {
+  const programRef = doc(
+    db,
+    "clients",
+    clientId,
+    "programs",
+    clientProgramId
+  ) as DocumentReference<TClientProgramWrite>;
+  // Update training days
+  await updateDoc(programRef, {
+    trainingDays: trainingDays,
+  });
+
+  await _addDaysToFirestore(clientId, clientProgramId, newDays, firstDocIndex);
 }
