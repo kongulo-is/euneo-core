@@ -134,7 +134,7 @@ export async function addPhysioProgramToClient(
     clientId
   ) as DocumentReference<TClientWrite>;
 
-  updateDoc(clientRef, { currentProgramId: program.id });
+  updateDoc(clientRef, { currentProgramRef: program });
 
   const clientProgram: TClientPhysioProgram = {
     ...clientPhysioProgram,
@@ -227,7 +227,7 @@ export async function addEuneoProgramToClient(
     clientId
   ) as DocumentReference<TClientWrite>;
 
-  updateDoc(clientRef, { currentProgramId: clientProgram.clientProgramId });
+  updateDoc(clientRef, { currentProgramRef: clientProgramRef });
 
   return { clientProgram: clientProgram };
 }

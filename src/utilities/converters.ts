@@ -30,6 +30,7 @@ import {
   TClientProgramDayWrite,
   TClient,
   TClientProgram,
+  TClientWrite,
 } from "../types/clientTypes";
 import runtimeChecks from "./runtimeChecks";
 import {
@@ -325,14 +326,7 @@ export const clientProgramConverter = {
     console.log("HERE4");
 
     if (programRef?.parent.parent) {
-      clientProgram = {
-        ...rest,
-        outcomeMeasuresAnswers,
-        painLevels: painLevelsClient,
-        euneoProgramId: programRef.id as TEuneoProgramId,
-      };
-      runtimeChecks.assertTClientProgram(clientProgram, true);
-    } else {
+      console.log("PhysioProgram");
       const physioProgramId = programRef?.id;
       const physioId = programRef?.parent.parent!.id;
       clientProgram = {
@@ -341,6 +335,15 @@ export const clientProgramConverter = {
         painLevels: painLevelsClient,
         physioProgramId,
         physioId,
+      };
+      runtimeChecks.assertTClientProgram(clientProgram, true);
+    } else {
+      console.log("EuneoProgram");
+      clientProgram = {
+        ...rest,
+        outcomeMeasuresAnswers,
+        painLevels: painLevelsClient,
+        euneoProgramId: programRef.id as TEuneoProgramId,
       };
       runtimeChecks.assertTClientProgram(clientProgram, true);
     }
@@ -479,6 +482,24 @@ export const prescriptionConverter = {
     }
 
     return prescription;
+  },
+};
+
+export const clientConverter = {
+  // only needs to convert clientProgramRef to id
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<TClientWrite>,
+    options: SnapshotOptions
+  ): TClient {
+    const data = snapshot.data(options);
+    let { currentProgramRef, ...rest } = data;
+
+    let client: TClient = {
+      ...rest,
+      ...(currentProgramRef && { currentProgramId: currentProgramRef.id }),
+    };
+
+    return client;
   },
 };
 
