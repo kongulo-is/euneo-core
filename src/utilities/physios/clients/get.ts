@@ -46,7 +46,7 @@ export async function getPhysioClient(
         clientData.clientId
       ) as DocumentReference<TClientWrite>;
       const clientSnap = await getDoc(clientRef);
-      const currentProgramId = clientSnap.data()!.currentProgramId || "";
+      const currentProgramId = clientSnap.data()!.currentProgramRef?.id || "";
       const clientProgramWithDays = await getClientProgram(
         clientData.clientId,
         currentProgramId
@@ -97,7 +97,8 @@ export async function getPhysioClients(
             clientData.clientId
           ) as DocumentReference<TClientWrite>;
           const clientSnap = await getDoc(clientRef);
-          const currentProgramId = clientSnap.data()!.currentProgramId || "";
+          const currentProgramId =
+            clientSnap.data()!.currentProgramRef?.id || "";
           const clientProgramWithDays = await getClientProgram(
             clientData.clientId,
             currentProgramId
