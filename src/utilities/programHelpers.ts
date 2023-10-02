@@ -18,7 +18,7 @@ import {
   programDayConverter,
   programPhaseConverter,
 } from "./converters";
-import { TClientProgramDay } from "../types/clientTypes";
+import { TClientProgram, TClientProgramDay } from "../types/clientTypes";
 
 export async function _fetchProgramBase(
   programRef: DocumentReference<TProgramWrite>
@@ -139,7 +139,6 @@ export function createContinuousDays(
 
   let d = date ? date : new Date();
 
-  // TODO: Should 14 be dynamic number insted? (no. days that are created each time)
   const iterator = length ? length : 14;
 
   d.setHours(0, 0, 0, 0);

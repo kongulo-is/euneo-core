@@ -148,7 +148,7 @@ export async function addPhysioProgramToClient(
 export async function addEuneoProgramToClient(
   clientId: string,
   clientProgramRead: TClientEuneoProgramRead,
-  program: TEuneoProgram & TPhaseProgram, // TODO: Er þetta ugly hack?
+  program: TEuneoProgram,
   phaseId: `p${number}`
 ): Promise<{ clientProgram: TClientEuneoProgram }> {
   // const { physioId, conditionId, physioProgramId, days } = physioProgram;

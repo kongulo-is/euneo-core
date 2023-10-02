@@ -49,7 +49,7 @@ export type TClientStatus =
 export type TOutcomeMeasureAnswers = {
   date: Date;
   name: TOutcomeMeasureId;
-  type: string | "foot&ankle"; //TODO: what is dis?
+  type: string | "foot&ankle"; //TODO: what is dis? KIDDI
   sections: TOutcomeMeasureAnswerSection[];
 };
 
@@ -74,7 +74,7 @@ export type TOutcomeMeasureAnswerSection = {
  */
 export type TClientProgramDay = {
   dayId: `d${number}`;
-  phaseId?: string;
+  phaseId?: `p${number}`;
   date: Date;
   finished: boolean;
   adherence: number;
@@ -176,7 +176,7 @@ export type TClientProgramWrite = {
   outcomeMeasuresAnswers: TOutcomeMeasureAnswerWrite[];
   painLevels: TPainLevelWrite[];
   conditionAssessmentAnswers?: Array<boolean | string>;
-  trainingDays: boolean[]; //TODO: ? Tékka hvort þetta sé einhverntíman ekki sett í gagnagrunninn.
+  trainingDays: boolean[];
   physicalInformation: TClientPhysicalInformation;
   phases?: TPhase[];
 };

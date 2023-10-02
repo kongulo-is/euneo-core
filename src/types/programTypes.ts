@@ -1,5 +1,9 @@
 import { DocumentReference } from "firebase/firestore";
-import { TConditionId, TEuneoProgramId } from "./baseTypes";
+import {
+  TConditionId,
+  TEuneoProgramId,
+  TOutcomeMeasureWrite,
+} from "./baseTypes";
 import { TOutcomeMeasureId } from "./physioTypes";
 
 /**
@@ -9,7 +13,7 @@ import { TOutcomeMeasureId } from "./physioTypes";
  */
 export type TProgramDayExercise = {
   exerciseId: string;
-  quantity: number; //TODO: Er þetta bara notað fyrir seconds. Heita seconds?
+  quantity: number;
   sets: number;
   reps: number;
 };
@@ -108,7 +112,7 @@ export type TProgram = TEuneoProgram | TPhysioProgram;
 export type TProgramWrite = {
   name: string;
   conditionId: TConditionId | null;
-  outcomeMeasureRefs: DocumentReference[]; // TODO: add the refernece type // Always exists but might be empty
+  outcomeMeasureRefs: DocumentReference<TOutcomeMeasureWrite>[]; // Always exists but might be empty
   conditionAssessment: TConditionAssessmentQuestion[]; // Always exists but might be empty
   mode: TProgramMode;
   version: string;

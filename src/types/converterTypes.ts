@@ -45,7 +45,7 @@ export type ClientProgramWrite = {
   outcomeMeasuresAnswers: OutcomeMeasureAnswerWrite[];
   painLevels: PainLevelWrite[];
   conditionAssessmentAnswers?: Array<boolean | string>;
-  trainingDays: boolean[]; //TODO: ? Tékka hvort þetta sé einhverntíman ekki sett í gagnagrunninn.
+  trainingDays: boolean[];
   physicalInformation: TClientPhysicalInformation;
   phases?: TPhase[];
 };

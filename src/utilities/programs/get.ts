@@ -10,7 +10,11 @@ import {
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
 import { TInvitationWrite } from "../../types/physioTypes";
-import { TPhysioProgram, TEuneoProgram, TProgramWrite } from "../../types/programTypes";
+import {
+  TPhysioProgram,
+  TEuneoProgram,
+  TProgramWrite,
+} from "../../types/programTypes";
 import { _getProgramFromRef } from "../programHelpers";
 import runtimeChecks from "../runtimeChecks";
 import { TEuneoProgramId } from "../../types/baseTypes";
@@ -41,8 +45,6 @@ export async function getProgramFromCode(
 
   const { programRef } = physioClientData.prescription;
 
-  // TODO: delete the invitation from db
-
   console.log("programRef", programRef);
 
   const program = (await _getProgramFromRef(programRef)) as TPhysioProgram;
@@ -56,20 +58,20 @@ export async function getProgramFromCode(
 
 // TODO: Breyta testPrograms í programs þegar við erum búnir að uppfæra db
 export async function getEuneoProgramWithDays(
-    euneoProgramId: TEuneoProgramId
-  ): Promise<TEuneoProgram> {
-    let programRef = doc(
-      db,
-      "testPrograms",
-      euneoProgramId
-    ) as DocumentReference<TProgramWrite>;
-    console.log("hi");
-  
-    const euneoProgram = await _getProgramFromRef(programRef);
-  
-    if (!("euneoProgramId" in euneoProgram)) {
-      throw new Error("Program is not an euneo program");
-    }
-  
-    return euneoProgram;
+  euneoProgramId: TEuneoProgramId
+): Promise<TEuneoProgram> {
+  let programRef = doc(
+    db,
+    "testPrograms",
+    euneoProgramId
+  ) as DocumentReference<TProgramWrite>;
+  console.log("hi");
+
+  const euneoProgram = await _getProgramFromRef(programRef);
+
+  if (!("euneoProgramId" in euneoProgram)) {
+    throw new Error("Program is not an euneo program");
   }
+
+  return euneoProgram;
+}

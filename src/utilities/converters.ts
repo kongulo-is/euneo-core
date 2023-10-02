@@ -1,5 +1,3 @@
-//TODO: Ætti þessi file að heita eitthvað annað? eins og t.d. writeTypes eða firebaseTypes?
-
 import {
   TEuneoProgramId,
   TExercise,
@@ -106,10 +104,15 @@ export const programPhaseConverter = {
 export const programConverter = {
   toFirestore(program: TProgramRead): TProgramWrite {
     // * we only create/edit physio programs
-    let outcomeMeasureRefs: DocumentReference[] = [];
+    let outcomeMeasureRefs: DocumentReference<TOutcomeMeasureWrite>[] = [];
     if (program.outcomeMeasureIds) {
-      outcomeMeasureRefs = program.outcomeMeasureIds.map((id) =>
-        doc(db, "outcomeMeasures", id)
+      outcomeMeasureRefs = program.outcomeMeasureIds.map(
+        (id) =>
+          doc(
+            db,
+            "outcomeMeasures",
+            id
+          ) as DocumentReference<TOutcomeMeasureWrite>
       );
     }
 
@@ -137,7 +140,8 @@ export const programConverter = {
 
     const outcomeMeasureIds =
       outcomeMeasureRefs?.map(
-        (measure: DocumentReference) => measure.id as TOutcomeMeasureId
+        (measure: DocumentReference<TOutcomeMeasureWrite>) =>
+          measure.id as TOutcomeMeasureId
       ) || [];
 
     const datas: TProgramRead = {
@@ -303,10 +307,6 @@ export const clientProgramConverter = {
     console.log("Here1");
     let { programRef, painLevels, ...rest } = data;
 
-    //TODO: remove check... Þetta a að vera painLevels. Bara nota til að ná þessu i gegn með gamla painLevel.
-    // if (!painLevels) painLevels = (data as any).painLevel;
-    // create program id and by.
-
     // convert timestamps to dates in outcomeMeasures and painLevels
     let outcomeMeasuresAnswers: TOutcomeMeasureAnswers[] =
       data.outcomeMeasuresAnswers?.map((measure) => ({
@@ -314,10 +314,6 @@ export const clientProgramConverter = {
         date: measure.date.toDate(),
       }));
     console.log("Here2", painLevels);
-
-    // TODO: Þetta er bara til að ná þessu i gegn með gamla assessments. þarf að eyða þessu!!
-    // if (!outcomeMeasuresAnswers)
-    //   outcomeMeasuresAnswers = (data as any).assessments;
 
     let clientProgram: TClientProgramRead | TClientProgram;
 
@@ -328,13 +324,9 @@ export const clientProgramConverter = {
 
     console.log("HERE4");
 
-    // TODO: Þyrftum sennilega að hafa eh betra tékk hvort þetta sé euneo eða physio program, kannski tékka frekar á reffinum, hvort það sé parent.parent
-
-    if (rest.conditionAssessmentAnswers && rest.phases) {
+    if (programRef?.parent.parent) {
       clientProgram = {
         ...rest,
-        conditionAssessmentAnswers: rest.conditionAssessmentAnswers,
-        phases: rest.phases,
         outcomeMeasuresAnswers,
         painLevels: painLevelsClient,
         euneoProgramId: programRef.id as TEuneoProgramId,
