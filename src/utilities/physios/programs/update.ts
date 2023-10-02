@@ -1,14 +1,13 @@
-import { DocumentReference, doc } from "firebase/firestore";
+import { doc, DocumentReference, updateDoc } from "firebase/firestore";
+import { db } from "../../../firebase/db";
 import {
-  TPhysioProgram,
-  TProgramDayRead,
-  TProgramDayWrite,
   TProgramRead,
+  TProgramDayRead,
+  TPhysioProgram,
   TProgramWrite,
-} from "../types/programTypes";
-import { db } from "../firebase/db";
-import { programConverter, programDayConverter } from "./converters";
-import { updateDoc } from "./updateDoc";
+  TProgramDayWrite,
+} from "../../../types/programTypes";
+import { programConverter, programDayConverter } from "../../converters";
 
 export async function updatePhysioProgram(
   physioProgram: TProgramRead,

@@ -6,10 +6,10 @@ import { Timestamp, DocumentReference, DocumentData } from "firebase/firestore";
 import {
   TConditionId,
   TEuneoReferenceIds,
-  TOutcomeMeasureId,
   TPhysioReferenceIds,
 } from "./baseTypes";
 import { TProgramWrite } from "./programTypes";
+import { TOutcomeMeasureId } from "./physioTypes";
 
 /**
  * @description Client data from client collection
@@ -19,7 +19,7 @@ import { TProgramWrite } from "./programTypes";
  */
 export type TClient = {
   name: string;
-  birthDate: Date;
+  birthDate: string;
   gender: "male" | "female" | "other";
   platform: "ios" | "android";
   currentProgramId?: string;
@@ -49,7 +49,7 @@ export type TClientStatus =
 export type TOutcomeMeasureAnswers = {
   date: Date;
   name: TOutcomeMeasureId;
-  type: string | "foot&ankle"; //TODO: what is dis?
+  type: string | "foot&ankle"; //TODO: what is dis? KIDDI
   sections: TOutcomeMeasureAnswerSection[];
 };
 
@@ -74,7 +74,7 @@ export type TOutcomeMeasureAnswerSection = {
  */
 export type TClientProgramDay = {
   dayId: `d${number}`;
-  phaseId?: string;
+  phaseId?: `p${number}`;
   date: Date;
   finished: boolean;
   adherence: number;
@@ -96,6 +96,7 @@ export type TClientPhysicalInformation = {
   unit: "metric" | "imperial";
   physicalActivity: "None" | "Low" | "Moderate" | "High";
 };
+// Answers are null when initialized
 export type TConditionAssessmentAnswer = boolean | string;
 
 // ------------------------------
@@ -154,9 +155,9 @@ export type TClientWrite = {
   name: string;
   gender: "male" | "female" | "other";
   platform: "android" | "ios";
-  birthDate: Timestamp;
+  birthDate: string;
   email: string;
-  currentProgramId?: string;
+  currentProgramRef?: DocumentReference;
 };
 
 export type TClientProgramDayWrite = {
@@ -175,7 +176,7 @@ export type TClientProgramWrite = {
   outcomeMeasuresAnswers: TOutcomeMeasureAnswerWrite[];
   painLevels: TPainLevelWrite[];
   conditionAssessmentAnswers?: Array<boolean | string>;
-  trainingDays: boolean[]; //TODO: ? Tékka hvort þetta sé einhverntíman ekki sett í gagnagrunninn.
+  trainingDays: boolean[];
   physicalInformation: TClientPhysicalInformation;
   phases?: TPhase[];
 };

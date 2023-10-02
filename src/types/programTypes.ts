@@ -1,5 +1,10 @@
 import { DocumentReference } from "firebase/firestore";
-import { TConditionId, TOutcomeMeasureId } from "./baseTypes";
+import {
+  TConditionId,
+  TEuneoProgramId,
+  TOutcomeMeasureWrite,
+} from "./baseTypes";
+import { TOutcomeMeasureId } from "./physioTypes";
 
 /**
  * @memberof TProgramDay
@@ -8,7 +13,7 @@ import { TConditionId, TOutcomeMeasureId } from "./baseTypes";
  */
 export type TProgramDayExercise = {
   exerciseId: string;
-  quantity: number; //TODO: Er þetta bara notað fyrir seconds. Heita seconds?
+  quantity: number;
   sets: number;
   reps: number;
 };
@@ -69,10 +74,10 @@ export type TConditionAssessmentQuestion = {
 
 export type TProgramBase = {
   name: string;
-  conditionId: TConditionId;
   mode: TProgramMode;
   outcomeMeasureIds?: TOutcomeMeasureId[];
   conditionAssessment?: TConditionAssessmentQuestion[];
+  conditionId: TConditionId | null;
 };
 
 export type TProgramRead = TProgramBase;
@@ -89,7 +94,7 @@ export type TPhaseProgram = TProgramRead & {
 };
 
 export type TEuneoProgram = (TContinuousProgram | TPhaseProgram) & {
-  euneoProgramId: string;
+  euneoProgramId: TEuneoProgramId;
 };
 
 export type TPhysioProgram = TContinuousProgram & {
@@ -107,8 +112,8 @@ export type TProgram = TEuneoProgram | TPhysioProgram;
  */
 export type TProgramWrite = {
   name: string;
-  conditionId: TConditionId;
-  outcomeMeasureRefs: DocumentReference[]; // TODO: add the refernece type // Always exists but might be empty
+  conditionId: TConditionId | null;
+  outcomeMeasureRefs: DocumentReference<TOutcomeMeasureWrite>[]; // Always exists but might be empty
   conditionAssessment: TConditionAssessmentQuestion[]; // Always exists but might be empty
   mode: TProgramMode;
   version: string;

@@ -1,16 +1,20 @@
 import {
-  CollectionReference,
-  DocumentReference,
-  addDoc,
-  collection,
-  deleteDoc,
-  deleteField,
   doc,
+  DocumentReference,
+  collection,
+  CollectionReference,
   getDoc,
+  addDoc,
   updateDoc,
+  deleteField,
+  getDocs,
+  deleteDoc,
 } from "firebase/firestore";
-import { db } from "../firebase/db";
-import { TPhysioClientWrite, TPrescriptionWrite } from "../types/physioTypes";
+import { db } from "../../../firebase/db";
+import {
+  TPhysioClientWrite,
+  TPrescriptionWrite,
+} from "../../../types/physioTypes";
 
 export async function removePhysioClientPrescription(
   physioClientId: string,
@@ -68,6 +72,19 @@ export async function removePhysioClient(
       physioClientId
     ) as DocumentReference<TPhysioClientWrite>;
 
+    // client can have sub collection of past prescriptions, delete the collection first
+    const pastPrescriptionRef = collection(
+      physioClientRef,
+      "pastPrescriptions"
+    ) as CollectionReference<TPrescriptionWrite>;
+
+    const pastPrescriptionsSnapshot = await getDocs(pastPrescriptionRef);
+
+    pastPrescriptionsSnapshot.forEach(async (doc) => {
+      await deleteDoc(doc.ref);
+    });
+
+    // delete client
     await deleteDoc(physioClientRef);
     return true;
   } catch (error) {

@@ -56,7 +56,7 @@ export type TOutcomeMeasureBase = {
 };
 
 export type TOutcomeMeasure = TOutcomeMeasureBase & {
-  id: string;
+  id: TOutcomeMeasureId;
 };
 
 export type TOutcomeMeasureWrite = TOutcomeMeasureBase;
@@ -71,10 +71,10 @@ export type TConditionId =
   | "post-surgery"
   | "ankle-sprain"
   | "knee-replacement"
-  | "achilles-tendonitis"
-  | "no-condition";
+  | "achilles-tendonitis";
+// | "no-condition";
 
-export type TEuneoProgramId = "plantar-heel-pain";
+export type TEuneoProgramId = "plantar-heel-pain" | "plantar-heel-pain-2.0";
 
 // ! Write types
 
@@ -88,4 +88,15 @@ export type TExerciseWrite = {
     assetID: string;
   };
   type: TExerciseType;
+};
+
+export type TGender = "male" | "female" | "other";
+export type TPlatform = "ios" | "android" | "windows" | "macos" | "web";
+export type TMeasurementUnit = "metric" | "imperial";
+export type TPhysicalActivity = "none" | "low" | "moderate" | "high";
+
+export type TReminder = {
+  enabled: boolean;
+  hour?: number;
+  minute?: number;
 };

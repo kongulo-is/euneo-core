@@ -129,11 +129,12 @@ const runtimeChecks = {
       assertTypeString(obj.physioId, "physioId");
     } else if ("programId" in obj) {
       assertTypeString(obj.programId, "programId");
-      assertArray(
-        obj.conditionAssessmentAnswers,
-        assertConditionAssessmentAnswer,
-        "conditionAssessmentAnswers"
-      );
+      obj.conditionAssessmentAnswers &&
+        assertArray(
+          obj.conditionAssessmentAnswers,
+          assertConditionAssessmentAnswer,
+          "conditionAssessmentAnswers"
+        );
     }
 
     assertArray(
@@ -158,7 +159,7 @@ const runtimeChecks = {
     assertTypeString(obj.physioId, "physioId");
     assertTypeString(obj.mode, "mode");
 
-    assertTConditionId(obj.conditionId);
+    obj.conditionId && assertTConditionId(obj.conditionId);
 
     if (obj.outcomeMeasureIds) {
       assertArray<string>(

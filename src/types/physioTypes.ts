@@ -5,7 +5,7 @@ import {
   TPhysioReferenceIds,
 } from "./baseTypes";
 import { TClientProgram, TClientStatus } from "./clientTypes";
-import { TPhysioProgram, TProgram, TProgramWrite } from "./programTypes";
+import { TProgramWrite } from "./programTypes";
 
 /** @memberof TPrescription */
 export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
@@ -38,7 +38,8 @@ export type TPhysio = {
 export type TPhysioClientBase = {
   name: string;
   email: string;
-  conditionId?: TConditionId;
+  date: Date;
+  conditionId: TConditionId | null;
   clientId?: string;
   prescription?: TPrescription;
 };
@@ -84,7 +85,8 @@ export type TPhysioWrite = {
 export type TPhysioClientWrite = {
   name: string;
   email: string;
-  conditionId?: TConditionId;
+  date: Timestamp;
+  conditionId: TConditionId | null;
   clientRef?: DocumentReference;
   prescription?: TPrescriptionWrite;
   // status?: TClientStatus; //* Ekki geymt í firestore
@@ -95,7 +97,7 @@ export type TPhysioClientWrite = {
  * @path /physios/{physioId}/clients/{physioClientId}
  */
 export type TPrescriptionWrite = {
-  programRef: DocumentReference<TProgramWrite>; // TODO: add reference type
+  programRef: DocumentReference<TProgramWrite>;
   prescriptionDate: Timestamp;
   status: TPrescriptionStatus;
 };
