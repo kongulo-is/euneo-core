@@ -2,6 +2,9 @@ import { DocumentReference, doc } from "firebase/firestore";
 import { TClientPreferences, TClientWrite } from "../../types/clientTypes";
 import { db } from "../../firebase/db";
 import { updateDoc } from "../updateDoc";
+import { updateProfile } from "firebase/auth";
+import { auth } from "../../firebase/authApp";
+import { TGender } from "../../types/baseTypes";
 
 export const updateClientPreference = async (
   clientId: string,
@@ -21,4 +24,48 @@ export const updateClientPreference = async (
       [preferenceKey]: preferenceValue,
     },
   });
+};
+
+export async function updateClientSetup(
+  clientId: string,
+  name: string,
+  birthDate: Date,
+  gender: TGender | ""
+): Promise<boolean> {
+  try {
+    const userRef = doc(
+      db,
+      "clients",
+      clientId
+    ) as DocumentReference<TClientWrite>;
+
+    await updateProfile(auth.currentUser!, {
+      displayName: name,
+    });
+
+    const birthDateString = _createDateString(birthDate);
+
+    await updateDoc(userRef, {
+      name,
+      birthDate: birthDateString,
+      gender: gender as TGender,
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error finishing client setup: ", error, {
+      clientId,
+    });
+    return false;
+  }
+}
+
+// function that creates fancy date string from date
+export const _createDateString = (date: Date) => {
+  const month = date.getMonth() + 1;
+  const monthString = month < 10 ? `0${month}` : `${month}`;
+  const day = date.getDate();
+  const dayString = day < 10 ? `0${day}` : day;
+  const year = date.getFullYear();
+  return `${dayString}-${monthString}-${year}`;
 };

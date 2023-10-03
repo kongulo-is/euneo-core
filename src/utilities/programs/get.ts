@@ -7,6 +7,7 @@ import {
   getDoc,
   DocumentReference,
   doc,
+  CollectionReference,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
 import { TInvitationWrite } from "../../types/physioTypes";
@@ -54,6 +55,35 @@ export async function getProgramFromCode(
   console.log("-----------program", program);
 
   return program;
+}
+
+export async function getAllEuneoPrograms(): Promise<TEuneoProgram[]> {
+  const euneoPrograms: TEuneoProgram[] = [];
+
+  const ref = collection(
+    db,
+    "testPrograms"
+  ) as CollectionReference<TProgramWrite>;
+
+  const query = await getDocs(collection(db, "testPrograms"));
+
+  // map and _getProgramFromRef for each program
+  const programs = query.docs.map((doc) => {
+    const ref = doc.ref as DocumentReference<TProgramWrite>;
+    return _getProgramFromRef(ref);
+  });
+
+  const resolvedPrograms = await Promise.all(programs);
+
+  resolvedPrograms.forEach((program) => {
+    if ("euneoProgramId" in program) {
+      euneoPrograms.push(program);
+    }
+  });
+
+  console.log("euneoPrograms", euneoPrograms);
+
+  return euneoPrograms;
 }
 
 // TODO: Breyta testPrograms í programs þegar við erum búnir að uppfæra db

@@ -95,6 +95,7 @@ export type TPhaseProgram = TProgramRead & {
 
 export type TEuneoProgram = (TContinuousProgram | TPhaseProgram) & {
   euneoProgramId: TEuneoProgramId;
+  version?: string;
 };
 
 export type TPhysioProgram = TContinuousProgram & {
