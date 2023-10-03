@@ -30,6 +30,7 @@ import {
   TClientProgramDayWrite,
   TClient,
   TClientProgram,
+  TClientWrite,
 } from "../types/clientTypes";
 import runtimeChecks from "./runtimeChecks";
 import {
@@ -372,6 +373,7 @@ export const clientProgramDayConverter = {
     const data = snapshot.data(options);
     const clientProgramDay: TClientProgramDay = {
       ...data,
+      phaseId: data.phaseId as `p${number}`,
       date: data.date.toDate(),
     };
 
@@ -479,6 +481,24 @@ export const prescriptionConverter = {
     }
 
     return prescription;
+  },
+};
+
+export const clientConverter = {
+  // only needs to convert clientProgramRef to id
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<TClientWrite>,
+    options: SnapshotOptions
+  ): TClient {
+    const data = snapshot.data(options);
+    let { currentProgramRef, ...rest } = data;
+
+    let client: TClient = {
+      ...rest,
+      ...(currentProgramRef && { currentProgramId: currentProgramRef.id }),
+    };
+
+    return client;
   },
 };
 

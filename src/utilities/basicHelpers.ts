@@ -18,6 +18,10 @@ export const daysBetweenDates = (date1: Date, date2: Date): number => {
   return Math.floor((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
 };
 
+// Returns number of days in a month
+export const getNumOfDays = (year: number, month: number) => {
+  return new Date(year, month + 1, 0).getDate();
+};
 export const capitalizeFirstLetter = (str: string) => {
   return str[0].toUpperCase() + str.slice(1);
 };

@@ -23,6 +23,8 @@ export async function getClientProgram(
   clientProgramId: string
 ): Promise<TClientProgram> {
   try {
+    console.log("getClientProgram 1");
+
     const clientProgramRef = (
       doc(
         db,
@@ -33,8 +35,11 @@ export async function getClientProgram(
       ) as DocumentReference<TClientProgramWrite>
     ).withConverter(clientProgramConverter);
 
+    console.log("getClientProgram 2");
+
     const clientProgramSnap = await getDoc(clientProgramRef);
 
+    console.log("getClientProgram 3");
     const clientProgram = clientProgramSnap.data();
 
     if (!clientProgram) {
@@ -55,7 +60,7 @@ export async function getClientProgram(
 
     const clientProgramWithDays: TClientProgram = {
       ...clientProgram,
-      clientProgramId: clientProgramSnap.id,
+      clientProgramId: clientProgramId,
       days,
     };
 

@@ -37,6 +37,7 @@ export type TProgramPhaseBase = {
   length: number;
   nextPhase?: TNextPhase[];
   finalPhase: boolean;
+  description?: string;
 };
 
 export type TProgramPhaseRead = TProgramPhaseBase;

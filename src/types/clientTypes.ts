@@ -157,7 +157,7 @@ export type TClientWrite = {
   platform: "android" | "ios";
   birthDate: string;
   email: string;
-  currentProgramId?: string;
+  currentProgramRef?: DocumentReference;
 };
 
 export type TClientProgramDayWrite = {
