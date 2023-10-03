@@ -22,8 +22,20 @@ export type TClient = {
   birthDate: string;
   gender: "male" | "female" | "other";
   platform: "ios" | "android";
+  preferences: TClientPreferences;
   currentProgramId?: string;
   programs?: { [key: string]: TClientProgram };
+};
+
+export type TClientPreferences = {
+  reminders: {
+    exercise?: {
+      enabled: boolean;
+      hour?: number;
+      minute?: number;
+    };
+  };
+  showCompletedExercises: boolean;
 };
 
 /**
@@ -157,6 +169,7 @@ export type TClientWrite = {
   platform: "android" | "ios";
   birthDate: string;
   email: string;
+  preferences: TClientPreferences;
   currentProgramRef?: DocumentReference;
 };
 
