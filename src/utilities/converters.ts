@@ -324,7 +324,7 @@ export const clientProgramConverter = {
 
     console.log("HERE4");
 
-    if (programRef?.parent.parent) {
+    if (!programRef?.parent.parent) {
       clientProgram = {
         ...rest,
         outcomeMeasuresAnswers,
