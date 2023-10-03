@@ -31,6 +31,7 @@ import {
   TClient,
   TClientProgram,
   TClientWrite,
+  TClientRead,
 } from "../types/clientTypes";
 import runtimeChecks from "./runtimeChecks";
 import {
@@ -489,16 +490,31 @@ export const clientConverter = {
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TClientWrite>,
     options: SnapshotOptions
-  ): TClient {
+  ): TClientRead {
     const data = snapshot.data(options);
     let { currentProgramRef, ...rest } = data;
 
-    let client: TClient = {
+    let client: TClientRead = {
       ...rest,
       ...(currentProgramRef && { currentProgramId: currentProgramRef.id }),
     };
 
     return client;
+  },
+  toFirestore(client: TClient): TClientWrite {
+    const { currentProgramId, ...rest } = client;
+    return {
+      ...rest,
+      ...(currentProgramId && {
+        currentProgramRef: doc(
+          db,
+          "clients",
+          client.clientId,
+          "programs",
+          currentProgramId
+        ) as DocumentReference<TClientProgramWrite>,
+      }),
+    };
   },
 };
 

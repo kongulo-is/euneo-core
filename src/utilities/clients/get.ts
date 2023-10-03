@@ -6,7 +6,8 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
-import { TClient } from "../../types/clientTypes";
+import { TClient, TClientRead } from "../../types/clientTypes";
+import { clientConverter } from "../converters";
 
 export async function checkIfClientExists(clientId: string): Promise<boolean> {
   try {
@@ -22,9 +23,13 @@ export async function checkIfClientExists(clientId: string): Promise<boolean> {
 }
 
 export async function getClient(clientId: string): Promise<TClient> {
-  const clientRef = doc(db, "clients", clientId) as DocumentReference<TClient>;
+  const clientRef = doc(
+    db,
+    "clients",
+    clientId
+  ) as DocumentReference<TClientRead>;
 
-  const clientDoc = await getDoc(clientRef);
+  const clientDoc = await getDoc(clientRef.withConverter(clientConverter));
 
   console.log("userDoc.data()", clientDoc.data());
 

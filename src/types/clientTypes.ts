@@ -17,7 +17,7 @@ import { TOutcomeMeasureId } from "./physioTypes";
  * @param currentProgramId Id of the program the client is currently doing
  * @param programs Array of programs progress data from programs subcollection to client
  */
-export type TClient = {
+export type TClientRead = {
   name: string;
   birthDate: string;
   gender: "male" | "female" | "other";
@@ -26,6 +26,8 @@ export type TClient = {
   currentProgramId?: string;
   programs?: { [key: string]: TClientProgram };
 };
+
+export type TClient = TClientRead & { clientId: string };
 
 export type TClientPreferences = {
   reminders: {
@@ -168,7 +170,7 @@ export type TClientWrite = {
   gender: "male" | "female" | "other";
   platform: "android" | "ios";
   birthDate: string;
-  email: string;
+  email?: string; // TODO: Erum við með ehv email?
   preferences: TClientPreferences;
   currentProgramRef?: DocumentReference;
 };
