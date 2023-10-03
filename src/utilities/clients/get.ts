@@ -42,20 +42,40 @@ export async function getClient(clientId: string): Promise<TClient> {
   return client;
 }
 
-export function clientDocumentListener(
-  clientId: string
-): Promise<{ clientExists: boolean | null; unsubscribe: () => void }> {
-  return new Promise((resolve) => {
-    const clientRef = doc(db, "clients", clientId);
+export async function clientDocumentListener(
+  clientId: string,
+  callback: () => Promise<void>
+): Promise<void> {
+  const clientRef = doc(db, "clients", clientId);
 
-    const unsubscribe = onSnapshot(clientRef, (doc) => {
-      if (doc.exists()) {
-        // Document exists, you can handle the data here
-        resolve({ clientExists: true, unsubscribe });
-      } else {
-        // Document does not exist
-        resolve({ clientExists: false, unsubscribe });
-      }
-    });
+  onSnapshot(clientRef, async (doc) => {
+    if (doc.exists()) {
+      // Document exists, call the callback to handle the data
+      await callback();
+    } else {
+      // Document does not exist
+      // Handle the absence of the document if needed
+      console.log("User does not exist");
+    }
   });
 }
+
+// export function clientDocumentListener(
+//   clientId: string
+//   // callBack: () => void
+// ): Promise<{ clientExists: boolean | null; unsubscribe: () => void }> {
+//   return new Promise((resolve) => {
+//     const clientRef = doc(db, "clients", clientId);
+
+//     const unsubscribe = onSnapshot(clientRef, (doc) => {
+//       if (doc.exists()) {
+//         // callBack();
+//         // Document exists, you can handle the data here
+//         resolve({ clientExists: true, unsubscribe });
+//       } else {
+//         // Document does not exist
+//         resolve({ clientExists: false, unsubscribe });
+//       }
+//     });
+//   });
+// }
