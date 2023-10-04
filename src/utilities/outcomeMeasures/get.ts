@@ -1,0 +1,65 @@
+import {
+  collection,
+  CollectionReference,
+  doc,
+  DocumentReference,
+  getDoc,
+  getDocs,
+} from "firebase/firestore";
+import { db } from "../../firebase/db";
+import { TOutcomeMeasure, TOutcomeMeasureWrite } from "../../types/baseTypes";
+import { outcomeMeasureConverter } from "../converters";
+import { TOutcomeMeasureId } from "../../types/physioTypes";
+
+export async function getAllOutcomeMeasures(): Promise<
+  Record<string, TOutcomeMeasure>
+> {
+  try {
+    const outcomeMeasuresRef = collection(
+      db,
+      "outcomeMeasures"
+    ) as CollectionReference<TOutcomeMeasureWrite>;
+    const outcomeMeasuresSnapshot = await getDocs(
+      outcomeMeasuresRef.withConverter(outcomeMeasureConverter)
+    );
+    const outcomeMeasures = Object.fromEntries(
+      outcomeMeasuresSnapshot.docs.map((doc) => [doc.id, doc.data()])
+    );
+
+    return outcomeMeasures;
+  } catch (error) {
+    console.log("Error getting outcomeMeasures: ", error);
+    throw error;
+  }
+}
+
+export async function getOutcomeMeasure(
+  outcomeMeasureId: TOutcomeMeasureId
+): Promise<TOutcomeMeasure> {
+  try {
+    const outcomeMeasureRef = doc(
+      db,
+      "outcomeMeasures",
+      outcomeMeasureId
+    ) as DocumentReference<TOutcomeMeasureWrite>;
+    const outcomeMeasureSnapshot = await getDoc(
+      outcomeMeasureRef.withConverter(outcomeMeasureConverter)
+    );
+
+    const outcomeMeasureData = outcomeMeasureSnapshot.data();
+
+    if (!outcomeMeasureData) {
+      throw new Error("No outcomeMeasure found");
+    }
+
+    const outcomeMeasure = {
+      ...outcomeMeasureData,
+      id: outcomeMeasureSnapshot.id,
+    } as TOutcomeMeasure;
+
+    return outcomeMeasure;
+  } catch (error) {
+    console.log("Error getting outcomeMeasure: ", error);
+    throw error;
+  }
+}

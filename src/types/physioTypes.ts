@@ -20,7 +20,7 @@ export type TEuneoPrescription = TPrescriptionBase & TEuneoReferenceIds;
 export type TPhysioPrescription = TPrescriptionBase & TPhysioReferenceIds;
 export type TPrescription = TEuneoPrescription | TPhysioPrescription;
 
-export type TOutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis";
+export type TOutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis" | "pgq";
 
 /**
  * @description Physician data type

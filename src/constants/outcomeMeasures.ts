@@ -29,6 +29,11 @@ export const outcomeMeasures: OutcomeMeasures = {
     name: "Patient-Reported Outcomes Measurement Information System",
     acronym: "PROMIS",
   },
+  pgq: {
+    id: "pgq",
+    name: "Patient Global Question",
+    acronym: "PGQ",
+  },
 };
 
 export const outcomeMeasureOptions = Object.entries(outcomeMeasures).map(
