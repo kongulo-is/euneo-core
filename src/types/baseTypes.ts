@@ -50,9 +50,29 @@ export type TExercise = {
 
 export type TExerciseType = "Stretch" | "Strength" | "Release" | "Other";
 
+export type TSectionGroup = {
+  title: string;
+  options: { option: string; value: number | null }[]; // TODO: Skoða týpu
+  questions: string[];
+};
+
+export type TOutcomeMeasureSection = {
+  sectionName: string;
+  results: {
+    title: string;
+    description: string;
+  };
+  athlete: boolean;
+  groups: TSectionGroup[];
+};
+
 export type TOutcomeMeasureBase = {
   name: string;
   acronym: string;
+  instructions: string;
+  expectedTime: string;
+  higherIsBetter: boolean;
+  sections: TOutcomeMeasureSection[];
 };
 
 export type TOutcomeMeasure = TOutcomeMeasureBase & {
