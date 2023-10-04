@@ -28,6 +28,17 @@ export type TPhysioReferenceIds = {
 //   }[];
 // };
 
+export type TExerciseType =
+  | "Stretch"
+  | "Strength"
+  | "Release"
+  | "Balance"
+  | "Planks"
+  | "Mobility"
+  | "Massage"
+  | "Jumps"
+  | "Taping";
+
 /**
  * @description Exercise in exercise collection
  * @param steps Instructions for the exercise
@@ -47,8 +58,6 @@ export type TExercise = {
   };
   type: TExerciseType;
 };
-
-export type TExerciseType = "Stretch" | "Strength" | "Release" | "Other";
 
 export type TOutcomeMeasureBase = {
   name: string;
