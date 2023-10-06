@@ -168,7 +168,7 @@ export type ProgramPhaseWrite = {
  */
 export type ExerciseDayWrite = {
   reference: DocumentReference;
-  quantity: number;
+  time: number;
   sets: number;
   reps: number;
 };

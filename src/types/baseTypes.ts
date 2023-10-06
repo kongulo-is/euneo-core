@@ -37,7 +37,8 @@ export type TExerciseType =
   | "Mobility"
   | "Massage"
   | "Jumps"
-  | "Taping";
+  | "Taping"
+  | "Other"; //TODO: remove other when all exercises have the new types in database
 
 /**
  * @description Exercise in exercise collection

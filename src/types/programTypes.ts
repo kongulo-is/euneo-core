@@ -13,7 +13,7 @@ import { TOutcomeMeasureId } from "./physioTypes";
  */
 export type TProgramDayExercise = {
   exerciseId: string;
-  quantity: number;
+  time: number;
   sets: number;
   reps: number;
 };
@@ -148,7 +148,7 @@ export type TProgramPhaseWrite = {
  */
 export type TExerciseDayWrite = {
   reference: DocumentReference;
-  quantity: number;
+  time: number;
   sets: number;
   reps: number;
 };
