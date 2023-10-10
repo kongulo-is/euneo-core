@@ -84,7 +84,10 @@ export type TConditionId =
   | "achilles-tendonitis";
 // | "no-condition";
 
-export type TEuneoProgramId = "plantar-heel-pain" | "plantar-heel-pain-2.0";
+export type TEuneoProgramId =
+  | "plantar-heel-pain"
+  | "plantar-heel-pain-2.0"
+  | "plantar-heel-pain-3.0";
 
 // ! Write types
 
