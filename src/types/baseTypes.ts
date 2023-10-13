@@ -34,10 +34,12 @@ export type TExerciseType =
   | "Release"
   | "Balance"
   | "Planks"
-  | "Mobility"
+  | "MobilityTime"
+  | "MobilityReps"
   | "Massage"
   | "Jumps"
-  | "Taping";
+  | "Taping"
+  | "Other"; //TODO: remove other when all exercises have the new types in database
 
 /**
  * @description Exercise in exercise collection
@@ -103,7 +105,10 @@ export type TConditionId =
   | "achilles-tendonitis";
 // | "no-condition";
 
-export type TEuneoProgramId = "plantar-heel-pain" | "plantar-heel-pain-2.0";
+export type TEuneoProgramId =
+  | "plantar-heel-pain"
+  | "plantar-heel-pain-2.0"
+  | "plantar-heel-pain-3.0";
 
 // ! Write types
 
