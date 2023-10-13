@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase/firestore";
+
 export const isEmptyObject = (obj: Object) =>
   Object.keys(obj || {}).length === 0;
 
@@ -42,3 +44,14 @@ export function stringToDate(dateStr: string): Date {
   }
   return new Date(year, month - 1, day); // Month is 0-based in JavaScript
 }
+
+export const isTodayOrBefore = (date: Date | Timestamp) => {
+  if (date instanceof Timestamp) {
+    date = date.toDate();
+  }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  date.setHours(0, 0, 0, 0);
+
+  return date <= today;
+};
