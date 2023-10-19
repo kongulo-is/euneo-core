@@ -32,6 +32,7 @@ import {
   TClientProgram,
   TClientWrite,
   TClientRead,
+  TOutcomeMeasureAnswerWrite,
 } from "../types/clientTypes";
 import runtimeChecks from "./runtimeChecks";
 import {
@@ -42,6 +43,7 @@ import {
   TPrescriptionWrite,
 } from "../types/physioTypes";
 import { db } from "../firebase/db";
+import { isEmptyObject } from "./basicHelpers";
 
 // sdkofjdsalkfjsa
 
@@ -248,12 +250,19 @@ export const clientProgramConverter = {
     // Perform runtime checks
     runtimeChecks.assertTClientProgram(program, true); // Assertion done here if needed
 
-    const outcomeMeasuresAnswers = program.outcomeMeasuresAnswers.map(
-      (measure) => ({
-        ...measure,
-        date: Timestamp.fromDate(measure.date),
-      })
-    );
+    const outcomeMeasuresAnswers = {} as Record<
+      TOutcomeMeasureId,
+      TOutcomeMeasureAnswerWrite[]
+    >;
+    Object.keys(program.outcomeMeasuresAnswers).forEach((measureId) => {
+      const measureAnswers =
+        program.outcomeMeasuresAnswers[measureId as TOutcomeMeasureId];
+      outcomeMeasuresAnswers[measureId as TOutcomeMeasureId] =
+        measureAnswers.map((answer) => ({
+          ...answer,
+          date: Timestamp.fromDate(answer.date),
+        }));
+    });
 
     const painLevels = program.painLevels.map((pain) => ({
       ...pain,
@@ -310,11 +319,24 @@ export const clientProgramConverter = {
     let { programRef, painLevels, ...rest } = data;
 
     // convert timestamps to dates in outcomeMeasures and painLevels
-    let outcomeMeasuresAnswers: TOutcomeMeasureAnswers[] =
-      data.outcomeMeasuresAnswers?.map((measure) => ({
-        ...measure,
-        date: measure.date.toDate(),
-      }));
+    const outcomeMeasuresAnswers = {} as Record<
+      TOutcomeMeasureId,
+      TOutcomeMeasureAnswers[]
+    >;
+    if (!isEmptyObject(data.outcomeMeasuresAnswers)) {
+      Object.keys(data.outcomeMeasuresAnswers)?.forEach((measureId) => {
+        console.log("measureId", measureId);
+
+        const measureAnswers =
+          data.outcomeMeasuresAnswers[measureId as TOutcomeMeasureId];
+        outcomeMeasuresAnswers[measureId as TOutcomeMeasureId] =
+          measureAnswers.map((answer) => ({
+            ...answer,
+            date: answer.date.toDate(),
+          }));
+      });
+    }
+
     console.log("Here2", painLevels);
 
     let clientProgram: TClientProgramRead | TClientProgram;
