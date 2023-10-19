@@ -197,7 +197,7 @@ const runtimeChecks = {
         (exercise: TProgramDayExercise) => {
           assertTypeString(exercise.exerciseId, "exerciseId");
           if (
-            typeof exercise.quantity !== "number" ||
+            typeof exercise.time !== "number" ||
             typeof exercise.sets !== "number" ||
             typeof exercise.reps !== "number"
           ) {

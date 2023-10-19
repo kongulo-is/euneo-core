@@ -53,7 +53,7 @@ export const programDayConverter = {
     return {
       exercises: day.exercises.map((e) => ({
         reference: doc(db, "exercises", e.exerciseId),
-        quantity: e.quantity,
+        time: e.time,
         reps: e.reps,
         sets: e.sets,
       })),

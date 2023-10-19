@@ -153,8 +153,18 @@ export async function addEuneoProgramToClient(
   phaseId: `p${number}`
 ): Promise<{ clientProgram: TClientEuneoProgram }> {
   // const { physioId, conditionId, physioProgramId, days } = physioProgram;
-  const currentPhase = program.phases[phaseId];
-  const phaseDays = currentPhase.days;
+
+  const phaseProgram = program.mode === "phase";
+
+  let phaseDays: `d${number}`[] = [];
+  let currentPhaseLength = 0;
+
+  if (phaseProgram) {
+    const currentPhase = program.phases[phaseId];
+    phaseDays = currentPhase.days;
+    currentPhaseLength = currentPhase.length;
+  }
+
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
 
@@ -163,40 +173,45 @@ export async function addEuneoProgramToClient(
     clientProgramRead
   );
 
-  let clientProgramDays: TClientProgramDay[] = [];
+  // let clientProgramDays: TClientProgramDay[] = [];
   let d = new Date();
   d.setHours(0, 0, 0, 0);
-  const iterator = currentPhase.length;
 
   console.log("here3");
 
   const { trainingDays } = clientProgramRead;
 
-  let currentDayIndex = 0; // Initialize to 0
+  // let currentDayIndex = 0; // Initialize to 0
 
-  for (let i = 0; i < iterator; i++) {
-    // Get the current program day based on the currentDayIndex
-    const currentProgramDayKey = phaseDays[currentDayIndex] as `d${number}`;
-    const isRestDay = !trainingDays[d.getDay()];
-    const infoDay = program.days[currentProgramDayKey];
+  const clientProgramDays = _createDays(
+    program.days,
+    trainingDays,
+    currentPhaseLength
+  );
 
-    clientProgramDays.push({
-      dayId: currentProgramDayKey,
-      phaseId: phaseId,
-      date: new Date(d),
-      finished: false,
-      adherence: 0,
-      exercises: infoDay?.exercises.map(() => 0) || [],
-      restDay: isRestDay,
-    });
+  // for (let i = 0; i < iterator; i++) {
+  //   // Get the current program day based on the currentDayIndex
+  //   const currentProgramDayKey = phaseDays[currentDayIndex] as `d${number}`;
+  //   const isRestDay = !trainingDays[d.getDay()];
+  //   const infoDay = program.days[currentProgramDayKey];
 
-    if (!isRestDay) {
-      // Increment currentDayIndex and use modulo to cycle through days
-      currentDayIndex = (currentDayIndex + 1) % phaseDays.length;
-    }
+  //   clientProgramDays.push({
+  //     dayId: currentProgramDayKey,
+  //     phaseId: phaseId,
+  //     date: new Date(d),
+  //     finished: false,
+  //     adherence: 0,
+  //     exercises: infoDay?.exercises.map(() => 0) || [],
+  //     restDay: isRestDay,
+  //   });
 
-    d.setDate(d.getDate() + 1);
-  }
+  //   if (!isRestDay) {
+  //     // Increment currentDayIndex and use modulo to cycle through days
+  //     currentDayIndex = (currentDayIndex + 1) % phaseDays.length;
+  //   }
+
+  //   d.setDate(d.getDate() + 1);
+  // }
   console.log("here4");
 
   const clientProgram: TClientEuneoProgram = {
