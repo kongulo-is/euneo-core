@@ -1,7 +1,5 @@
 import { initializeApp } from "firebase/app";
 
-// import * as Facebook from "expo-facebook";
-
 // Initialize Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyC38ihxpDiZaE-S7BJfzebuPNNdBSsxdi4",
