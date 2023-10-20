@@ -63,7 +63,7 @@ export type TClientStatus =
 export type TOutcomeMeasureAnswers = {
   date: Date;
   outcomeMeasureId: TOutcomeMeasureId;
-  type: string | "foot&ankle"; //TODO: what is dis? KIDDI
+  // type: string | "foot&ankle";
   sections: TOutcomeMeasureAnswerSection[];
 };
 
@@ -202,7 +202,7 @@ export type TClientProgramWrite = {
 export type TOutcomeMeasureAnswerWrite = {
   date: Timestamp;
   outcomeMeasureId: TOutcomeMeasureId;
-  type: string | "foot&ankle";
+  // type: string | "foot&ankle";
   sections: TOutcomeMeasureAnswerSection[];
 };
 
