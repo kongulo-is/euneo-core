@@ -19,11 +19,7 @@ import {
   TPainLevel,
   TPhase,
 } from "../../../types/clientTypes";
-import {
-  TProgramDay,
-  TEuneoProgram,
-  TPhaseProgram,
-} from "../../../types/programTypes";
+import { TProgramDay, TEuneoProgram } from "../../../types/programTypes";
 import {
   clientProgramConverter,
   clientProgramDayConverter,

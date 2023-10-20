@@ -27,7 +27,7 @@ const assertTOutcomeMeasureAnswers = (obj: TOutcomeMeasureAnswers): void => {
   if (
     !obj ||
     !(obj.date instanceof Date) ||
-    typeof obj.name !== "string" ||
+    typeof obj.outcomeMeasureId !== "string" ||
     !Array.isArray(obj.sections)
   ) {
     throw new Error("Invalid TOutcomeMeasureAnswers");
