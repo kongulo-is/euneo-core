@@ -3,6 +3,7 @@ import { TConditionId, TExerciseType } from "./baseTypes";
 import {
   TClientPhysicalInformation,
   TOutcomeMeasureAnswerSection,
+  TOutcomeMeasureAnswerWrite,
   TPhase,
 } from "./clientTypes";
 import {
@@ -42,19 +43,15 @@ export type ClientProgramWrite = {
     DocumentData
   >;
   conditionId: TConditionId;
-  outcomeMeasuresAnswers: OutcomeMeasureAnswerWrite[];
+  outcomeMeasuresAnswers: Record<
+    TOutcomeMeasureId,
+    TOutcomeMeasureAnswerWrite[]
+  >;
   painLevels: PainLevelWrite[];
   conditionAssessmentAnswers?: Array<boolean | string>;
   trainingDays: boolean[];
   physicalInformation: TClientPhysicalInformation;
   phases?: TPhase[];
-};
-
-type OutcomeMeasureAnswerWrite = {
-  date: Timestamp;
-  name: TOutcomeMeasureId;
-  type: string | "foot&ankle";
-  sections: TOutcomeMeasureAnswerSection[];
 };
 
 type PainLevelWrite = {

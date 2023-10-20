@@ -62,8 +62,8 @@ export type TClientStatus =
  */
 export type TOutcomeMeasureAnswers = {
   date: Date;
-  name: TOutcomeMeasureId;
-  type: string | "foot&ankle"; //TODO: what is dis? KIDDI
+  outcomeMeasureId: TOutcomeMeasureId;
+  // type: string | "foot&ankle";
   sections: TOutcomeMeasureAnswerSection[];
 };
 
@@ -120,7 +120,7 @@ export type TConditionAssessmentAnswer = boolean | string;
  */
 export type TClientProgramBase = {
   conditionId: TConditionId;
-  outcomeMeasuresAnswers: TOutcomeMeasureAnswers[];
+  outcomeMeasuresAnswers: Record<TOutcomeMeasureId, TOutcomeMeasureAnswers[]>;
   painLevels: TPainLevel[];
   physicalInformation: TClientPhysicalInformation;
   trainingDays: boolean[];
@@ -188,7 +188,10 @@ export type TClientProgramDayWrite = {
 export type TClientProgramWrite = {
   programRef: DocumentReference<TProgramWrite, DocumentData>;
   conditionId: TConditionId;
-  outcomeMeasuresAnswers: TOutcomeMeasureAnswerWrite[];
+  outcomeMeasuresAnswers: Record<
+    TOutcomeMeasureId,
+    TOutcomeMeasureAnswerWrite[]
+  >;
   painLevels: TPainLevelWrite[];
   conditionAssessmentAnswers?: Array<boolean | string>;
   trainingDays: boolean[];
@@ -196,10 +199,10 @@ export type TClientProgramWrite = {
   phases?: TPhase[];
 };
 
-type TOutcomeMeasureAnswerWrite = {
+export type TOutcomeMeasureAnswerWrite = {
   date: Timestamp;
-  name: TOutcomeMeasureId;
-  type: string | "foot&ankle";
+  outcomeMeasureId: TOutcomeMeasureId;
+  // type: string | "foot&ankle";
   sections: TOutcomeMeasureAnswerSection[];
 };
 

@@ -19,15 +19,12 @@ import {
   TPainLevel,
   TPhase,
 } from "../../../types/clientTypes";
-import {
-  TProgramDay,
-  TEuneoProgram,
-  TPhaseProgram,
-} from "../../../types/programTypes";
+import { TProgramDay, TEuneoProgram } from "../../../types/programTypes";
 import {
   clientProgramConverter,
   clientProgramDayConverter,
 } from "../../converters";
+import { TOutcomeMeasureId } from "../../../types/physioTypes";
 
 function _createDays(
   programDays: Record<`d${number}`, TProgramDay>,
@@ -251,8 +248,8 @@ export async function addEuneoProgramToClient(
 export async function addOutcomeMeasureToClientProgram(
   clientId: string,
   clientProgramId: string,
-  oldOutcomeMeasures: TOutcomeMeasureAnswers[],
-  newOutcomeMeasure: TOutcomeMeasureAnswers
+  outcomeMeasuresAnswers: Record<TOutcomeMeasureId, TOutcomeMeasureAnswers[]>,
+  newData: Record<Partial<TOutcomeMeasureId>, TOutcomeMeasureAnswers>
 ) {
   try {
     const programRef = doc(
@@ -263,10 +260,16 @@ export async function addOutcomeMeasureToClientProgram(
       clientProgramId
     ) as DocumentReference<TClientProgramWrite>;
 
-    const newOutcomeMeasuresAnswers = [
-      ...oldOutcomeMeasures,
-      newOutcomeMeasure,
-    ];
+    const newOutcomeMeasuresAnswers = { ...outcomeMeasuresAnswers };
+    Object.entries(newData).forEach(([key, answers]) => {
+      const measureId = key as TOutcomeMeasureId;
+      const oldMeasureAnswers = outcomeMeasuresAnswers[measureId];
+      if (oldMeasureAnswers) {
+        newOutcomeMeasuresAnswers[measureId] = [...oldMeasureAnswers, answers];
+      } else {
+        newOutcomeMeasuresAnswers[measureId] = [answers];
+      }
+    });
 
     // Update the user's painLevel array in firestore
     await updateDoc(programRef, {

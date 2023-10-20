@@ -15,6 +15,8 @@ import {
   TPhysioProgram,
   TProgramDayExercise,
 } from "../types/programTypes";
+import { TOutcomeMeasureId } from "../types/physioTypes";
+import { isEmptyObject } from "./basicHelpers";
 
 const assertTConditionId = (id: TConditionId): void => {
   const validIds = Object.keys(conditions);
@@ -25,7 +27,7 @@ const assertTOutcomeMeasureAnswers = (obj: TOutcomeMeasureAnswers): void => {
   if (
     !obj ||
     !(obj.date instanceof Date) ||
-    typeof obj.name !== "string" ||
+    typeof obj.outcomeMeasureId !== "string" ||
     !Array.isArray(obj.sections)
   ) {
     throw new Error("Invalid TOutcomeMeasureAnswers");
@@ -137,11 +139,17 @@ const runtimeChecks = {
         );
     }
 
-    assertArray(
-      obj.outcomeMeasuresAnswers,
-      assertTOutcomeMeasureAnswers,
-      "outcomeMeasuresAnswers"
-    );
+    if (!isEmptyObject(obj.outcomeMeasuresAnswers)) {
+      Object.keys(obj.outcomeMeasuresAnswers).forEach((measureId) => {
+        const measureAnswers =
+          obj.outcomeMeasuresAnswers[measureId as TOutcomeMeasureId];
+        assertArray(
+          measureAnswers,
+          assertTOutcomeMeasureAnswers,
+          `outcomeMeasuresAnswers.${measureId}`
+        );
+      });
+    }
     assertArray(obj.painLevels, assertTPainLevel, "painLevels");
     "days" in obj && assertArray(obj.days, assertTClientProgramDay, "days");
 
