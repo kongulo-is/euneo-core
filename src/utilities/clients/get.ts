@@ -53,10 +53,11 @@ export async function clientDocumentListener(
 ): Promise<void> {
   const clientRef = doc(db, "clients", clientId);
 
-  onSnapshot(clientRef, async (doc) => {
+  const unsubscribe = onSnapshot(clientRef, async (doc) => {
     if (doc.exists()) {
       // Document exists, call the callback to handle the data
       await callback();
+      unsubscribe();
     } else {
       // Document does not exist
       // Handle the absence of the document if needed
