@@ -8,6 +8,7 @@ import {
 import { db } from "../../firebase/db";
 import { TClient, TClientRead } from "../../types/clientTypes";
 import { clientConverter } from "../converters";
+import { Unsubscribe } from "firebase/auth";
 
 export async function checkIfClientExists(clientId: string): Promise<boolean> {
   try {
@@ -50,20 +51,21 @@ export async function getClient(clientId: string): Promise<TClient> {
 export async function clientDocumentListener(
   clientId: string,
   callback: () => Promise<void>
-): Promise<void> {
+): Promise<Unsubscribe> {
   const clientRef = doc(db, "clients", clientId);
 
   const unsubscribe = onSnapshot(clientRef, async (doc) => {
     if (doc.exists()) {
       // Document exists, call the callback to handle the data
       await callback();
-      unsubscribe();
     } else {
       // Document does not exist
       // Handle the absence of the document if needed
       console.log("User does not exist");
     }
   });
+
+  return unsubscribe;
 }
 
 // export function clientDocumentListener(
