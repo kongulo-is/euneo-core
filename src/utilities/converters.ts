@@ -196,14 +196,6 @@ export const physioClientConverter = {
       }
     }
 
-    if (client.clientId) {
-      data.clientRef = doc(
-        db,
-        "clients",
-        client.clientId
-      ) as DocumentReference<TClient>;
-    }
-
     return data;
   },
 
@@ -212,11 +204,7 @@ export const physioClientConverter = {
     options: SnapshotOptions
   ): TPhysioClientRead {
     const data = snapshot.data(options);
-    let { clientRef, prescription, ...rest } = data;
-
-    const clientId = clientRef?.id;
-
-    console.log("prescription", prescription);
+    let { prescription, ...rest } = data;
 
     let prescriptionRead: TPrescription | undefined;
     if (prescription) {
@@ -238,7 +226,6 @@ export const physioClientConverter = {
 
     return {
       ...rest,
-      ...(clientId && { clientId }),
       ...(prescriptionRead && { prescription: prescriptionRead }),
       date: rest.date.toDate(),
     };
@@ -454,6 +441,16 @@ export const outcomeMeasureConverter = {
 
 export const prescriptionConverter = {
   toFirestore(prescription: TPrescription): TPrescriptionWrite {
+    let clientProgramRef: DocumentReference<TClientProgramWrite> | undefined;
+
+    if (prescription.clientId && prescription.clientProgramId) {
+      clientProgramRef = doc(
+        db,
+        "clients",
+        prescription.clientId
+      ) as DocumentReference<TClientProgramWrite>;
+    }
+
     if ("euneoProgramId" in prescription) {
       return {
         programRef: doc(
@@ -463,6 +460,7 @@ export const prescriptionConverter = {
         ) as DocumentReference<TProgramWrite>,
         prescriptionDate: Timestamp.fromDate(prescription.prescriptionDate),
         status: prescription.status,
+        ...(clientProgramRef && { clientProgramRef }),
       };
     } else {
       return {
@@ -475,6 +473,7 @@ export const prescriptionConverter = {
         ) as DocumentReference<TProgramWrite>,
         prescriptionDate: Timestamp.fromDate(prescription.prescriptionDate),
         status: prescription.status,
+        ...(clientProgramRef && { clientProgramRef }),
       };
     }
   },
@@ -484,9 +483,23 @@ export const prescriptionConverter = {
     options: SnapshotOptions
   ): TPrescription {
     const data = snapshot.data(options);
-    let { programRef, ...rest } = data;
+    let { programRef, clientProgramRef, ...rest } = data;
 
     let prescription: TPrescription;
+
+    let clientProgramObj:
+      | {
+          clientId: string;
+          clientProgramId: string;
+        }
+      | undefined;
+
+    if (clientProgramRef && clientProgramRef.parent.parent) {
+      clientProgramObj = {
+        clientId: clientProgramRef.parent.parent.id,
+        clientProgramId: clientProgramRef.id,
+      };
+    }
 
     if (programRef.parent.parent) {
       prescription = {
@@ -494,12 +507,14 @@ export const prescriptionConverter = {
         prescriptionDate: rest.prescriptionDate.toDate(),
         physioId: programRef.parent.parent.id,
         physioProgramId: programRef.id,
+        ...(clientProgramObj && { ...clientProgramObj }),
       };
     } else {
       prescription = {
         ...rest,
         prescriptionDate: rest.prescriptionDate.toDate(),
         euneoProgramId: programRef.id as TEuneoProgramId,
+        ...(clientProgramObj && { ...clientProgramObj }),
       };
     }
 

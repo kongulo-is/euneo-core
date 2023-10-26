@@ -15,6 +15,29 @@ import {
 import { physioClientConverter } from "../../converters";
 import { getClientProgram } from "../../clients/programs/get";
 
+async function _clientProgram({
+  clientData,
+}: {
+  clientData: TPhysioClientBase;
+}) {
+  // get clients program data.
+  let clientProgram: TClientProgram | undefined;
+
+  // Get client program data if client has accepted a prescription
+  if (
+    clientData.prescription?.clientId &&
+    clientData.prescription?.clientProgramId
+  ) {
+    const clientProgramWithDays = await getClientProgram(
+      clientData.prescription.clientId,
+      clientData.prescription.clientProgramId
+    );
+    clientProgram = clientProgramWithDays;
+  }
+
+  return clientProgram;
+}
+
 // get single physio client
 export async function getPhysioClient(
   physioId: string,
@@ -36,23 +59,7 @@ export async function getPhysioClient(
     const clientData = clientSnap.data();
     if (!clientData) throw new Error("Client not found");
 
-    // get clients program data.
-    let clientProgram: TClientProgram | undefined;
-    // Get client program data if client has accepted a prescription
-    if (clientData.clientId && clientData.prescription?.status === "Accepted") {
-      const clientRef = doc(
-        db,
-        "clients",
-        clientData.clientId
-      ) as DocumentReference<TClientWrite>;
-      const clientSnap = await getDoc(clientRef);
-      const currentProgramId = clientSnap.data()!.currentProgramRef?.id || "";
-      const clientProgramWithDays = await getClientProgram(
-        clientData.clientId,
-        currentProgramId
-      );
-      clientProgram = clientProgramWithDays;
-    }
+    const clientProgram = await _clientProgram({ clientData });
 
     return {
       ...clientData,
@@ -85,26 +92,8 @@ export async function getPhysioClients(
     const clientsData: TPhysioClient[] = await Promise.all(
       snapshot.docs.map(async (c) => {
         const clientData: TPhysioClientBase = c.data();
-        let clientProgram: TClientProgram | undefined;
-        // Get client program data if client has accepted a prescription
-        if (
-          clientData.clientId &&
-          clientData.prescription?.status === "Accepted"
-        ) {
-          const clientRef = doc(
-            db,
-            "clients",
-            clientData.clientId
-          ) as DocumentReference<TClientWrite>;
-          const clientSnap = await getDoc(clientRef);
-          const currentProgramId =
-            clientSnap.data()!.currentProgramRef?.id || "";
-          const clientProgramWithDays = await getClientProgram(
-            clientData.clientId,
-            currentProgramId
-          );
-          clientProgram = clientProgramWithDays;
-        }
+        const clientProgram = await _clientProgram({ clientData });
+
         return {
           ...clientData,
           physioClientId: c.id,

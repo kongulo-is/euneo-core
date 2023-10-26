@@ -19,6 +19,7 @@ import {
 import { _getProgramFromRef } from "../programHelpers";
 import runtimeChecks from "../runtimeChecks";
 import { TEuneoProgramId } from "../../types/baseTypes";
+import { updateDoc } from "../updateDoc";
 
 export async function getProgramFromCode(
   code: string
@@ -46,13 +47,18 @@ export async function getProgramFromCode(
 
   const { programRef } = physioClientData.prescription;
 
-  console.log("programRef", programRef);
-
   const program = (await _getProgramFromRef(programRef)) as TPhysioProgram;
 
   runtimeChecks.assertTPhysioProgram(program);
 
-  console.log("-----------program", program);
+  // update physio clientProgramRef
+  await updateDoc(physioClientRef, {
+    prescription: {
+      ...physioClientData.prescription,
+      clientProgramRef: programRef,
+      status: "Accepted",
+    },
+  });
 
   return program;
 }
