@@ -167,33 +167,9 @@ export const physioClientConverter = {
     };
 
     if (client.prescription) {
-      if ("euneoProgramId" in client.prescription) {
-        data.prescription = {
-          ...client.prescription,
-          programRef: doc(
-            db,
-            "programs",
-            client.prescription.euneoProgramId
-          ) as DocumentReference<TProgramWrite>,
-          prescriptionDate: Timestamp.fromDate(
-            client.prescription.prescriptionDate
-          ),
-        };
-      } else {
-        data.prescription = {
-          ...client.prescription,
-          programRef: doc(
-            db,
-            "physios",
-            client.prescription.physioId,
-            "programs",
-            client.prescription.physioProgramId
-          ) as DocumentReference<TProgramWrite>,
-          prescriptionDate: Timestamp.fromDate(
-            client.prescription.prescriptionDate
-          ),
-        };
-      }
+      data.prescription = prescriptionConverter.toFirestore(
+        client.prescription
+      );
     }
 
     return data;
@@ -208,20 +184,7 @@ export const physioClientConverter = {
 
     let prescriptionRead: TPrescription | undefined;
     if (prescription) {
-      if (prescription?.programRef.parent.parent) {
-        prescriptionRead = {
-          status: prescription.status,
-          prescriptionDate: prescription.prescriptionDate.toDate(),
-          physioId: prescription.programRef.parent.parent.id,
-          physioProgramId: prescription.programRef.id,
-        };
-      } else {
-        prescriptionRead = {
-          status: prescription.status,
-          prescriptionDate: prescription.prescriptionDate.toDate(),
-          euneoProgramId: prescription.programRef.id as TEuneoProgramId,
-        };
-      }
+      prescriptionRead = prescriptionConverter.fromFirestore(prescription);
     }
 
     return {
@@ -478,12 +441,8 @@ export const prescriptionConverter = {
     }
   },
 
-  fromFirestore(
-    snapshot: QueryDocumentSnapshot<TPrescriptionWrite>,
-    options: SnapshotOptions
-  ): TPrescription {
-    const data = snapshot.data(options);
-    let { programRef, clientProgramRef, ...rest } = data;
+  fromFirestore(prescriptionWrite: TPrescriptionWrite): TPrescription {
+    let { programRef, clientProgramRef, ...rest } = prescriptionWrite;
 
     let prescription: TPrescription;
 

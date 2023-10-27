@@ -72,6 +72,7 @@ export type TPhysioClient = TPhysioClientBase & {
 export type TInvitationWrite = {
   code: string;
   physioClientRef: DocumentReference<TPhysioClientWrite>;
+  date: Timestamp;
 };
 
 /**

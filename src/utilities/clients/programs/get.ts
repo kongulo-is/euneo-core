@@ -23,8 +23,6 @@ export async function getClientProgram(
   clientProgramId: string
 ): Promise<TClientProgram> {
   try {
-    console.log("getClientProgram 1");
-
     const clientProgramRef = (
       doc(
         db,
@@ -35,18 +33,14 @@ export async function getClientProgram(
       ) as DocumentReference<TClientProgramWrite>
     ).withConverter(clientProgramConverter);
 
-    console.log("getClientProgram 2");
-
     const clientProgramSnap = await getDoc(clientProgramRef);
 
-    console.log("getClientProgram 3");
     const clientProgram = clientProgramSnap.data();
 
     if (!clientProgram) {
       throw new Error("Client program not found");
     }
 
-    console.log("clientProgram", clientProgram);
     // add days to clientProgram
     const daysSnap = await getDocs(
       query(
@@ -54,7 +48,6 @@ export async function getClientProgram(
         orderBy("date")
       ).withConverter(clientProgramDayConverter)
     );
-    console.log("daySnap", daysSnap);
 
     const days = daysSnap.docs.map((doc) => doc.data());
 

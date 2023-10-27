@@ -16,6 +16,7 @@ import {
   TPrescriptionWrite,
 } from "../../../types/physioTypes";
 import { physioClientConverter, prescriptionConverter } from "../../converters";
+import { createInvitation } from "../../invitations/add";
 
 export async function addPrescriptionToPhysioClient(
   physioId: string,
@@ -51,13 +52,7 @@ export async function addPrescriptionToPhysioClient(
       prescription: prescriptionConverted,
     });
 
-    // Create invitation for client
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const invitationRef = collection(db, "invitations");
-    await addDoc(invitationRef, {
-      physioClientRef,
-      code,
-    });
+    await createInvitation(physioId, physioClientId);
 
     return true;
   } catch (error) {
@@ -69,7 +64,7 @@ export async function addPrescriptionToPhysioClient(
       physioClientId
     );
 
-    throw error;
+    return false;
   }
 }
 
