@@ -5,6 +5,7 @@ import {
   setDoc,
   DocumentReference,
   updateDoc,
+  getDoc,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import {
@@ -28,8 +29,12 @@ import {
   clientProgramConverter,
   clientProgramDayConverter,
 } from "../../converters";
-import { TOutcomeMeasureId } from "../../../types/physioTypes";
+import {
+  TOutcomeMeasureId,
+  TPhysioClientWrite,
+} from "../../../types/physioTypes";
 import { createContinuousDays, createPhase } from "../../programHelpers";
+import { getPhysioClient } from "../../physios/clients/get";
 
 function _createDays(
   programDays: Record<`d${number}`, TProgramDay>,
@@ -103,7 +108,8 @@ async function _addDaysToFirestore(
 export async function addPhysioProgramToClient(
   clientId: string,
   clientPhysioProgram: TClientPhysioProgramRead,
-  program: TPhysioProgram
+  program: TPhysioProgram,
+  physioClientRef: DocumentReference<TPhysioClientWrite>
 ): Promise<TClientPhysioProgram> {
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
@@ -140,7 +146,19 @@ export async function addPhysioProgramToClient(
     clientId
   ) as DocumentReference<TClientWrite>;
 
-  updateDoc(clientRef, { currentProgramRef: program });
+  updateDoc(clientRef, {
+    currentProgramRef: doc(db, "clients", clientId, "programs", newProgram.id),
+  });
+
+  const physioClient = await getDoc(physioClientRef);
+
+  updateDoc(physioClientRef, {
+    prescription: {
+      ...physioClient.data()?.prescription,
+      clientProgramRef: doc(db, "clients", clientId, "programs", newProgram.id),
+      status: "Started",
+    },
+  });
 
   const clientProgram: TClientPhysioProgram = {
     ...clientPhysioProgram,
