@@ -23,6 +23,8 @@ async function _clientProgram({
   // get clients program data.
   let clientProgram: TClientProgram | undefined;
 
+  console.log("clientData.prescription", clientData);
+
   // Get client program data if client has accepted a prescription
   if (
     clientData.prescription?.clientId &&
@@ -34,6 +36,8 @@ async function _clientProgram({
     );
     clientProgram = clientProgramWithDays;
   }
+
+  console.log("clientProgram", clientProgram);
 
   return clientProgram;
 }
@@ -88,11 +92,16 @@ export async function getPhysioClients(
       clientsRef.withConverter(physioClientConverter)
     );
 
+    console.log("snapshot.docs", snapshot.docs);
+
     // get clients program data from programs subcollection to client.
     const clientsData: TPhysioClient[] = await Promise.all(
       snapshot.docs.map(async (c) => {
         const clientData: TPhysioClientBase = c.data();
+        console.log("clientData", clientData);
+
         const clientProgram = await _clientProgram({ clientData });
+        console.log("clientProgram", clientProgram);
 
         return {
           ...clientData,
