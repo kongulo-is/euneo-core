@@ -17,11 +17,14 @@ import {
 } from "../../../types/physioTypes";
 import { physioClientConverter, prescriptionConverter } from "../../converters";
 import { createInvitation } from "../../invitations/add";
+import { mixpanelTrack } from "../../../mixpanel/init";
+import { TConditionId } from "../../../types/baseTypes";
 
 export async function addPrescriptionToPhysioClient(
   physioId: string,
   physioClientId: string,
-  prescription: TPrescription
+  prescription: TPrescription,
+  conditionId: TConditionId | null
 ) {
   try {
     const physioClientRef = doc(
@@ -53,6 +56,17 @@ export async function addPrescriptionToPhysioClient(
     });
 
     await createInvitation(physioId, physioClientId);
+
+    mixpanelTrack({
+      event: "Prescription sent",
+      data: {
+        distinct_id:
+          physioClientId + "-" + prescriptionConverted.prescriptionDate,
+        condition_id: conditionId,
+        physio_id: physioId,
+        program_id: prescriptionConverted.programRef.id,
+      },
+    });
 
     return true;
   } catch (error) {
