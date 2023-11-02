@@ -134,3 +134,9 @@ export type TReminder = {
   hour?: number;
   minute?: number;
 };
+
+export type TFeedbackAnswer = {
+  question: string;
+  description: string;
+  answer: string | number;
+};

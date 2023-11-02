@@ -9,7 +9,7 @@ import {
   TPhysioReferenceIds,
 } from "./baseTypes";
 import { TProgramWrite } from "./programTypes";
-import { TOutcomeMeasureId } from "./physioTypes";
+import { TOutcomeMeasureId, TPhysioClientWrite } from "./physioTypes";
 
 /**
  * @description Client data from client collection
