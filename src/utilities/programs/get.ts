@@ -8,9 +8,10 @@ import {
   DocumentReference,
   doc,
   CollectionReference,
+  DocumentData,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
-import { TInvitationWrite } from "../../types/physioTypes";
+import { TInvitationWrite, TPhysioClientWrite } from "../../types/physioTypes";
 import {
   TPhysioProgram,
   TEuneoProgram,
@@ -21,9 +22,10 @@ import runtimeChecks from "../runtimeChecks";
 import { TEuneoProgramId } from "../../types/baseTypes";
 import { updateDoc } from "../updateDoc";
 
-export async function getProgramFromCode(
-  code: string
-): Promise<TPhysioProgram | TEuneoProgram> {
+export async function getProgramFromCode(code: string): Promise<{
+  program: TPhysioProgram | TEuneoProgram;
+  physioClientRef: DocumentReference<TPhysioClientWrite, DocumentData>;
+}> {
   // We dont need a converter here because it would not convert anything
   const q = query(collection(db, "invitations"), where("code", "==", code));
 
@@ -46,7 +48,6 @@ export async function getProgramFromCode(
   }
 
   const { programRef } = physioClientData.prescription;
-
   const program = (await _getProgramFromRef(programRef)) as TPhysioProgram;
 
   runtimeChecks.assertTPhysioProgram(program);
@@ -55,12 +56,11 @@ export async function getProgramFromCode(
   await updateDoc(physioClientRef, {
     prescription: {
       ...physioClientData.prescription,
-      clientProgramRef: programRef,
       status: "Accepted",
     },
   });
 
-  return program;
+  return { program, physioClientRef };
 }
 
 export async function getAllEuneoPrograms(): Promise<TEuneoProgram[]> {
