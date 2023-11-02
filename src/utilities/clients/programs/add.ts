@@ -19,63 +19,13 @@ import {
   TPainLevel,
   TPhase,
 } from "../../../types/clientTypes";
-import {
-  TProgramDay,
-  TEuneoProgram,
-  TPhysioProgram,
-} from "../../../types/programTypes";
+import { TEuneoProgram, TPhysioProgram } from "../../../types/programTypes";
 import {
   clientProgramConverter,
   clientProgramDayConverter,
 } from "../../converters";
 import { TOutcomeMeasureId } from "../../../types/physioTypes";
 import { createContinuousDays, createPhase } from "../../programHelpers";
-
-function _createDays(
-  programDays: Record<`d${number}`, TProgramDay>,
-  trainingDays: boolean[],
-  amountOfDays: number
-) {
-  let clientProgramDays: TClientProgramDay[] = [];
-  let d = new Date();
-  d.setHours(0, 0, 0, 0);
-
-  // Get an array of day keys from programDays
-  const dayKeys = Object.keys(programDays);
-  console.log("Keys: " + dayKeys);
-
-  if (dayKeys.length === 0) {
-    // Handle the case where programDays is empty
-    return clientProgramDays;
-  }
-
-  let currentDayIndex = 0; // Initialize to 0
-
-  for (let i = 0; i < amountOfDays; i++) {
-    // Get the current program day based on the currentDayIndex
-    const currentProgramDayKey = dayKeys[currentDayIndex] as `d${number}`;
-    const isRestDay = !trainingDays[d.getDay()];
-    const infoDay = programDays[currentProgramDayKey];
-
-    clientProgramDays.push({
-      dayId: currentProgramDayKey,
-      date: new Date(d),
-      finished: false,
-      adherence: 0,
-      exercises: infoDay?.exercises.map(() => 0) || [],
-      restDay: isRestDay,
-    });
-
-    if (!isRestDay) {
-      // Increment currentDayIndex and use modulo to cycle through days
-      currentDayIndex = (currentDayIndex + 1) % dayKeys.length;
-    }
-
-    d.setDate(d.getDate() + 1);
-  }
-
-  return clientProgramDays;
-}
 
 async function _addDaysToFirestore(
   clientId: string,
@@ -108,7 +58,7 @@ export async function addPhysioProgramToClient(
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
 
-  const newProgram = await addDoc(
+  const clientProgramRef = await addDoc(
     userProgramDoc.withConverter(clientProgramConverter),
     clientPhysioProgram
   );
@@ -126,7 +76,7 @@ export async function addPhysioProgramToClient(
         "clients",
         clientId,
         "programs",
-        newProgram.id,
+        clientProgramRef.id,
         "days",
         i.toString()
       );
@@ -140,12 +90,12 @@ export async function addPhysioProgramToClient(
     clientId
   ) as DocumentReference<TClientWrite>;
 
-  updateDoc(clientRef, { currentProgramRef: program });
+  updateDoc(clientRef, { currentProgramRef: clientProgramRef });
 
   const clientProgram: TClientPhysioProgram = {
     ...clientPhysioProgram,
     days: clientProgramDays,
-    clientProgramId: newProgram.id,
+    clientProgramId: clientProgramRef.id,
   };
 
   return clientProgram;
@@ -197,31 +147,6 @@ export async function addEuneoProgramToClient(
 
   console.log("here3");
 
-  // let currentDayIndex = 0; // Initialize to 0
-
-  // for (let i = 0; i < iterator; i++) {
-  //   // Get the current program day based on the currentDayIndex
-  //   const currentProgramDayKey = phaseDays[currentDayIndex] as `d${number}`;
-  //   const isRestDay = !trainingDays[d.getDay()];
-  //   const infoDay = program.days[currentProgramDayKey];
-
-  //   clientProgramDays.push({
-  //     dayId: currentProgramDayKey,
-  //     phaseId: phaseId,
-  //     date: new Date(d),
-  //     finished: false,
-  //     adherence: 0,
-  //     exercises: infoDay?.exercises.map(() => 0) || [],
-  //     restDay: isRestDay,
-  //   });
-
-  //   if (!isRestDay) {
-  //     // Increment currentDayIndex and use modulo to cycle through days
-  //     currentDayIndex = (currentDayIndex + 1) % phaseDays.length;
-  //   }
-
-  //   d.setDate(d.getDate() + 1);
-  // }
   console.log("here4");
 
   const clientProgram: TClientEuneoProgram = {

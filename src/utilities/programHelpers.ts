@@ -106,7 +106,7 @@ export function createPhase(
     const dayId = phase.days[restIndex % phase.days.length];
     const infoDay = program.days[dayId];
 
-    const isRestDay = !trainingDays[d.getDay()];
+    const isRestDay = !trainingDays[(d.getDay() + 6) % 7];
 
     dayList.push({
       dayId: dayId,
@@ -148,7 +148,7 @@ export function createContinuousDays(
     const dayId = dayIdList[dayIndex % dayIdList.length];
     const infoDay = program.days[dayId];
 
-    const isRestDay = !trainingDays[d.getDay()];
+    const isRestDay = !trainingDays[(d.getDay() + 6) % 7];
 
     dayList.push({
       dayId: dayId,
