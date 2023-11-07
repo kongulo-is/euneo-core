@@ -418,7 +418,7 @@ export const prescriptionConverter = {
       return {
         programRef: doc(
           db,
-          "programs",
+          "testPrograms",
           prescription.euneoProgramId
         ) as DocumentReference<TProgramWrite>,
         prescriptionDate: Timestamp.fromDate(prescription.prescriptionDate),
