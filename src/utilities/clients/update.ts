@@ -1,4 +1,4 @@
-import { DocumentReference, doc } from "firebase/firestore";
+import { DocumentReference, deleteField, doc } from "firebase/firestore";
 import { TClientPreferences, TClientWrite } from "../../types/clientTypes";
 import { db } from "../../firebase/db";
 import { updateDoc } from "../updateDoc";
@@ -59,6 +59,25 @@ export async function updateClientSetup(
     return false;
   }
 }
+
+export const completeCurrentProgram = async (clientId: string) => {
+  try {
+    const clientRef = doc(
+      db,
+      "clients",
+      clientId
+    ) as DocumentReference<TClientWrite>;
+
+    await updateDoc(clientRef, {
+      currentProgramRef: deleteField(),
+    });
+  } catch (error) {
+    console.error("Error completing current program: ", error, {
+      clientId,
+    });
+    throw error;
+  }
+};
 
 // function that creates fancy date string from date
 export const _createDateString = (date: Date) => {

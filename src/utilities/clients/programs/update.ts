@@ -36,3 +36,35 @@ export async function updateProgramDay(
     throw error;
   }
 }
+
+export async function updateProgramDayDate(
+  clientId: string,
+  clientProgramId: string,
+  dayId: string,
+  //TODO: fix type..
+  newDate: Date
+) {
+  try {
+    const day = doc(
+      db,
+      "clients",
+      clientId,
+      "programs",
+      clientProgramId,
+      "days",
+      dayId
+    );
+
+    updateDoc(day, {
+      date: newDate,
+    });
+  } catch (error) {
+    console.error("Error updating program day: ", error, {
+      clientId,
+      clientProgramId,
+      dayId,
+      newDate,
+    });
+    throw error;
+  }
+}

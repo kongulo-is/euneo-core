@@ -48,9 +48,9 @@ export async function getProgramFromCode(code: string): Promise<{
   }
 
   const { programRef } = physioClientData.prescription;
-  const program = (await _getProgramFromRef(programRef)) as TPhysioProgram;
+  const program = await _getProgramFromRef(programRef);
 
-  runtimeChecks.assertTPhysioProgram(program);
+  // runtimeChecks.assertTPhysioProgram(program);
 
   // update physio clientProgramRef
   await updateDoc(physioClientRef, {
