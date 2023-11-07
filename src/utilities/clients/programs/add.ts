@@ -6,6 +6,7 @@ import {
   DocumentReference,
   updateDoc,
   getDoc,
+  DocumentData,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import {
@@ -28,9 +29,11 @@ import {
 import {
   TOutcomeMeasureId,
   TPhysioClientWrite,
+  TPrescriptionWrite,
 } from "../../../types/physioTypes";
 import { createContinuousDays, createPhase } from "../../programHelpers";
 import { getPhysioClient } from "../../physios/clients/get";
+import { updatePhysioClientPrescriptionStatus } from "../../physios/clients/update";
 
 async function _addDaysToFirestore(
   clientId: string,
@@ -58,8 +61,7 @@ async function _addDaysToFirestore(
 export async function addPhysioProgramToClient(
   clientId: string,
   clientPhysioProgram: TClientPhysioProgramRead,
-  program: TPhysioProgram,
-  physioClientRef: DocumentReference<TPhysioClientWrite>
+  program: TPhysioProgram
 ): Promise<TClientPhysioProgram> {
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
@@ -104,22 +106,6 @@ export async function addPhysioProgramToClient(
       "programs",
       clientProgramRef.id
     ),
-  });
-
-  const physioClient = await getDoc(physioClientRef);
-
-  updateDoc(physioClientRef, {
-    prescription: {
-      ...physioClient.data()?.prescription,
-      clientProgramRef: doc(
-        db,
-        "clients",
-        clientId,
-        "programs",
-        clientProgramRef.id
-      ),
-      status: "Started",
-    },
   });
 
   const clientProgram: TClientPhysioProgram = {
@@ -175,10 +161,6 @@ export async function addEuneoProgramToClient(
   let d = new Date();
   d.setHours(0, 0, 0, 0);
 
-  console.log("here3");
-
-  console.log("here4");
-
   const clientProgram: TClientEuneoProgram = {
     ...clientProgramRead,
     days: clientProgramDays,
@@ -199,8 +181,6 @@ export async function addEuneoProgramToClient(
       return setDoc(dayCol.withConverter(clientProgramDayConverter), day);
     })
   );
-
-  console.log("here5");
 
   const clientRef = doc(
     db,
