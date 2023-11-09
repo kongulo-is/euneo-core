@@ -1,22 +1,29 @@
 import {
+  addDoc,
+  collection,
   doc,
   DocumentReference,
-  DocumentSnapshot,
   getDoc,
   onSnapshot,
+  runTransaction,
+  setDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
 import { TClient, TClientRead } from "../../types/clientTypes";
 import { clientConverter } from "../converters";
 import { Unsubscribe } from "firebase/auth";
+import { createClientDocument } from "./add";
 
 export async function checkIfClientExists(clientId: string): Promise<boolean> {
   try {
     const clientRef = doc(db, "clients", clientId);
+    const userRef = doc(db, "users", clientId);
 
     const clientDoc = await getDoc(clientRef);
+    const userDoc = await getDoc(userRef);
 
-    return clientDoc.exists();
+    return clientDoc.exists() || userDoc.exists();
   } catch (error) {
     console.error("Error checking if client exists: ", error, { clientId });
     throw error;
@@ -24,6 +31,8 @@ export async function checkIfClientExists(clientId: string): Promise<boolean> {
 }
 
 export async function getClient(clientId: string): Promise<TClient> {
+  console.log("GETTING");
+
   const clientRef = doc(
     db,
     "clients",
@@ -37,7 +46,10 @@ export async function getClient(clientId: string): Promise<TClient> {
   const clientData = clientDoc.data();
 
   if (!clientData) {
-    throw new Error("No client found");
+    // throw new Error("No client found");
+    // signOut(auth);
+    await convertUser(clientId);
+    return getClient(clientId);
   }
 
   const client = {
@@ -48,20 +60,177 @@ export async function getClient(clientId: string): Promise<TClient> {
   return client;
 }
 
+export async function convertUser(userId: string): Promise<boolean> {
+  return await runTransaction(db, async (transaction) => {
+    const userRef = doc(db, "users", userId);
+
+    const userDoc = await transaction.get(userRef);
+
+    if (!userDoc.exists()) {
+      console.log("User does not exist!");
+      // signOut(auth);
+      createClientDocument(userId, "", "unknown");
+      return false;
+    }
+
+    console.log("Document data:", userDoc.data());
+
+    // create the client
+    const clientRef = doc(db, "clients", userId);
+
+    const clientData = {
+      birthDate: userDoc.data()?.general.birthDate,
+      name: userDoc.data()?.name,
+      platform: userDoc.data()?.platform,
+      gender: userDoc.data()?.general.gender,
+      preferences: {
+        reminders: {
+          exercise: {
+            enabled: true,
+            hour: 18,
+            minutes: 0,
+          },
+        },
+        showCompletedExerrcises: false,
+      },
+    };
+    transaction.set(clientRef, clientData);
+
+    // Convert the program if user has program
+    const program = userDoc.data()?.programs?.["plantar-heel-pain"];
+    if (program) {
+      const { days } = program;
+      const programData = {
+        conditionAssessmentAnswers: program.general,
+        conditionId: "plantar-heel-pain",
+        outcomeMeasuresAnswers: {
+          faam: program.assessments.map((assessment: any) => {
+            return {
+              date: assessment.date,
+              outcomeMeasureId: "faam",
+              sections: assessment.sections,
+            };
+          }),
+        },
+        painLevels: program.painLevel,
+        phases: program.phases.map((phase: any) => {
+          const phaseId = Object.keys(phase)[0];
+          const length = phase[phaseId];
+          return { key: phaseId, value: length };
+        }),
+        physicalInformation: program.userInfo,
+        programRef: doc(db, "testPrograms", "plantar-heel-pain"),
+        trainingDays: program.trainingDays,
+      };
+      const programRef = doc(collection(clientRef, "programs"));
+      transaction.set(programRef, programData);
+
+      // Update the client with the current program reference
+      transaction.update(clientRef, { currentProgramRef: programRef });
+
+      // Create days subcollection
+      days.forEach((day: any, i: number) => {
+        const dayRef = doc(programRef, "days", i.toString());
+        const dayData = {
+          adherence: day.adherence,
+          date: day.date,
+          exercises: day.exercises,
+          finished: day.finished,
+          phaseId: day.phaseId,
+          dayId: day.id,
+          restDay: day.restDay,
+        };
+        transaction.set(dayRef, dayData);
+      });
+    }
+
+    // If you reach this point without errors, the transaction will commit automatically
+    return true;
+
+    // convert the program if user has program
+    // const program = userDoc.data()?.programs?.["plantar-heel-pain"];
+
+    const { days } = program;
+
+    // create program
+    const programRef = collection(clientRef, "programs");
+    const newProgram = await addDoc(programRef, {
+      conditionAssessmentAnswers: program.general,
+      conditionId: "plantar-heel-pain",
+      outcomeMeasuresAnswers: {
+        faam: program.assessments.map((assessment: any) => {
+          return {
+            date: assessment.date,
+            outcomeMeasureId: "faam",
+            sections: assessment.sections,
+          };
+        }),
+      },
+      painLevels: program.painLevel,
+      phases: program.phases.map((phase: any) => {
+        const phaseId = Object.keys(phase)[0];
+        const length = phase[phaseId];
+        return { key: phaseId, value: length };
+      }),
+      physicalInformation: program.userInfo,
+      programRef: doc(db, "testPrograms", "plantar-heel-pain"),
+      trainingDays: program.trainingDays,
+    });
+
+    await updateDoc(clientRef, {
+      currentProgramRef: doc(programRef, newProgram.id),
+    });
+
+    console.log("newProgram", newProgram);
+
+    // create days subcollection
+    // map through days and create each day
+    await Promise.all(
+      days.map((day: any, i: number) => {
+        const dayCol = doc(
+          clientRef,
+          "programs",
+          newProgram.id,
+          "days",
+          i.toString()
+        );
+        return setDoc(dayCol, {
+          adherence: day.adherence,
+          date: day.date,
+          exercises: day.exercises,
+          finished: day.finished,
+          phaseId: day.phaseId,
+          dayId: day.id,
+          restDay: day.restDay,
+        });
+      })
+    );
+
+    return true;
+  });
+}
+// ! Deprecated
 export async function clientDocumentListener(
   clientId: string,
   callback: () => Promise<void>
 ): Promise<Unsubscribe> {
   const clientRef = doc(db, "clients", clientId);
 
+  console.log("CLIENTID", clientId);
+
   const unsubscribe = onSnapshot(clientRef, async (doc) => {
     if (doc.exists()) {
       // Document exists, call the callback to handle the data
+      console.log("Client exists, calling callback ...");
       await callback();
     } else {
       // Document does not exist
-      // Handle the absence of the document if needed
-      console.log("User does not exist");
+
+      console.log(
+        "Client does not exist, checking if user exists and converting if so ..."
+      );
+      const did = await convertUser(clientId);
+      did && (await callback());
     }
   });
 
