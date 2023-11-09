@@ -6,6 +6,7 @@ import { Timestamp, DocumentReference, DocumentData } from "firebase/firestore";
 import {
   TConditionId,
   TEuneoReferenceIds,
+  TPhysicalActivity,
   TPhysioReferenceIds,
 } from "./baseTypes";
 import { TProgramWrite } from "./programTypes";
@@ -108,7 +109,7 @@ export type TClientPhysicalInformation = {
   height: number;
   weight: number;
   unit: "metric" | "imperial";
-  physicalActivity: "None" | "Low" | "Moderate" | "High";
+  physicalActivity: TPhysicalActivity;
 };
 // Answers are null when initialized
 export type TConditionAssessmentAnswer = boolean | string;
@@ -119,7 +120,7 @@ export type TConditionAssessmentAnswer = boolean | string;
  * @description This is the base for the client program
  */
 export type TClientProgramBase = {
-  conditionId: TConditionId;
+  conditionId: TConditionId | null;
   outcomeMeasuresAnswers: Record<TOutcomeMeasureId, TOutcomeMeasureAnswers[]>;
   painLevels: TPainLevel[];
   physicalInformation: TClientPhysicalInformation;
