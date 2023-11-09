@@ -87,8 +87,6 @@ export async function getAllEuneoPrograms(): Promise<TEuneoProgram[]> {
     }
   });
 
-  console.log("euneoPrograms", euneoPrograms);
-
   return euneoPrograms;
 }
 
@@ -101,7 +99,6 @@ export async function getEuneoProgramWithDays(
     "testPrograms",
     euneoProgramId
   ) as DocumentReference<TProgramWrite>;
-  console.log("hi");
 
   const euneoProgram = await _getProgramFromRef(programRef);
 
