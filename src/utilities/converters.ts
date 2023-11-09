@@ -265,7 +265,6 @@ export const clientProgramConverter = {
   ): TClientProgramRead {
     // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
     const data = snapshot.data(options);
-    console.log("Here1");
     let { programRef, painLevels, ...rest } = data;
 
     // convert timestamps to dates in outcomeMeasures and painLevels
@@ -287,16 +286,12 @@ export const clientProgramConverter = {
       });
     }
 
-    console.log("Here2", painLevels);
-
     let clientProgram: TClientProgramRead | TClientProgram;
 
     const painLevelsClient = painLevels.map((pain) => ({
       ...pain,
       date: pain.date.toDate(),
     }));
-
-    console.log("HERE4");
 
     if (!programRef?.parent.parent) {
       clientProgram = {
