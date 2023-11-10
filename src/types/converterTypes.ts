@@ -65,7 +65,7 @@ type PainLevelWrite = {
  */
 export type InvitationWrite = {
   code: string;
-  physioClientRef: DocumentReference<PhysioClientWrite>;
+  clinicianClientRef: DocumentReference<PhysioClientWrite>;
 };
 
 /**

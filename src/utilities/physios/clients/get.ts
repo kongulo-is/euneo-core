@@ -48,7 +48,7 @@ export async function getPhysioClient(
   physioClientId: string
 ): Promise<TPhysioClient> {
   try {
-    const physioClientRef = doc(
+    const clinicianClientRef = doc(
       db,
       "clinicians",
       physioId,
@@ -57,7 +57,7 @@ export async function getPhysioClient(
     ) as DocumentReference<TPhysioClientWrite>;
 
     const clientSnap = await getDoc(
-      physioClientRef.withConverter(physioClientConverter)
+      clinicianClientRef.withConverter(physioClientConverter)
     );
 
     const clientData = clientSnap.data();

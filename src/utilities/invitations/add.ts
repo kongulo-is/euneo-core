@@ -5,7 +5,7 @@ export async function createInvitation(
   physioId: string,
   physioClientId: string
 ) {
-  const physioClientRef = doc(
+  const clinicianClientRef = doc(
     db,
     "clinicians",
     physioId,
@@ -18,7 +18,7 @@ export async function createInvitation(
   console.log("CODE", code);
 
   await addDoc(invitationRef, {
-    physioClientRef,
+    clinicianClientRef,
     code,
     date: new Date(),
   });

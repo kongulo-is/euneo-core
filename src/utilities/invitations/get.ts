@@ -16,7 +16,7 @@ export function getProgramCode(physioId: string, physioClientId: string) {
     invitationRef,
     orderBy("date", "desc"), // assumes the field is named 'date' and we're sorting in descending order
     where(
-      "physioClientRef",
+      "clinicianClientRef",
       "==",
       doc(db, "clinicians", physioId, "clients", physioClientId)
     )

@@ -24,7 +24,7 @@ import { updateDoc } from "../updateDoc";
 
 export async function getProgramFromCode(code: string): Promise<{
   program: TPhysioProgram | TEuneoProgram;
-  physioClientRef: DocumentReference<TPhysioClientWrite, DocumentData>;
+  clinicianClientRef: DocumentReference<TPhysioClientWrite, DocumentData>;
 }> {
   // We dont need a converter here because it would not convert anything
   const q = query(collection(db, "invitations"), where("code", "==", code));
@@ -37,9 +37,9 @@ export async function getProgramFromCode(code: string): Promise<{
   }
 
   const firstDoc = querySnapshot.docs[0];
-  const { physioClientRef } = firstDoc.data();
+  const { clinicianClientRef } = firstDoc.data();
 
-  const physioClientDoc = await getDoc(physioClientRef);
+  const physioClientDoc = await getDoc(clinicianClientRef);
   const physioClientData = physioClientDoc.data();
 
   if (!physioClientData || !physioClientData.prescription) {
@@ -53,14 +53,14 @@ export async function getProgramFromCode(code: string): Promise<{
   // runtimeChecks.assertTPhysioProgram(program);
 
   // update physio clientProgramRef
-  await updateDoc(physioClientRef, {
+  await updateDoc(clinicianClientRef, {
     prescription: {
       ...physioClientData.prescription,
       status: "Accepted",
     },
   });
 
-  return { program, physioClientRef };
+  return { program, clinicianClientRef };
 }
 
 export async function getAllEuneoPrograms(): Promise<TEuneoProgram[]> {

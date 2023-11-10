@@ -21,7 +21,7 @@ export async function removePhysioClientPrescription(
   physioId: string
 ): Promise<boolean> {
   try {
-    const physioClientRef = doc(
+    const clinicianClientRef = doc(
       db,
       "clinicians",
       physioId,
@@ -31,12 +31,12 @@ export async function removePhysioClientPrescription(
 
     // past prescription sub collection
     const pastPrescriptionRef = collection(
-      physioClientRef,
+      clinicianClientRef,
       "pastPrescriptions"
     ) as CollectionReference<TPrescriptionWrite>;
 
     // get current prescription
-    const physioClientSnapshot = await getDoc(physioClientRef);
+    const physioClientSnapshot = await getDoc(clinicianClientRef);
     const currentPrescription: TPrescriptionWrite | undefined =
       physioClientSnapshot.data()?.prescription;
 
@@ -44,7 +44,7 @@ export async function removePhysioClientPrescription(
       // store current prescription in past prescription sub collection
       await addDoc(pastPrescriptionRef, currentPrescription);
       // delete current prescription
-      await updateDoc(physioClientRef, {
+      await updateDoc(clinicianClientRef, {
         prescription: deleteField(),
       });
     }
@@ -64,7 +64,7 @@ export async function removePhysioClient(
   physioClientId: string
 ): Promise<boolean> {
   try {
-    const physioClientRef = doc(
+    const clinicianClientRef = doc(
       db,
       "clinicians",
       physioId,
@@ -74,7 +74,7 @@ export async function removePhysioClient(
 
     // client can have sub collection of past prescriptions, delete the collection first
     const pastPrescriptionRef = collection(
-      physioClientRef,
+      clinicianClientRef,
       "pastPrescriptions"
     ) as CollectionReference<TPrescriptionWrite>;
 
@@ -85,7 +85,7 @@ export async function removePhysioClient(
     });
 
     // delete client
-    await deleteDoc(physioClientRef);
+    await deleteDoc(clinicianClientRef);
     return true;
   } catch (error) {
     console.error("Error removing client from physio", error, {

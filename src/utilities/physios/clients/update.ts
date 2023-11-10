@@ -21,7 +21,7 @@ export async function updatePhysioClient(
   physioClient: TPhysioClientRead
 ): Promise<boolean> {
   try {
-    const physioClientRef = doc(
+    const clinicianClientRef = doc(
       db,
       "clinicians",
       physioId,
@@ -32,7 +32,7 @@ export async function updatePhysioClient(
     const physioClientConverted =
       physioClientConverter.toFirestore(physioClient);
 
-    await updateDoc(physioClientRef, physioClientConverted);
+    await updateDoc(clinicianClientRef, physioClientConverted);
 
     return true;
   } catch (error) {
@@ -53,7 +53,7 @@ export async function updatePhysioClientPrescriptionStatus(
   status: TPrescription["status"]
 ): Promise<void> {
   try {
-    const physioClientRef = doc(
+    const clinicianClientRef = doc(
       db,
       "clinicians",
       physioId,
@@ -61,7 +61,7 @@ export async function updatePhysioClientPrescriptionStatus(
       physioClientId
     ) as DocumentReference<TPhysioClientWrite>;
 
-    const physioClient = await getDoc(physioClientRef);
+    const physioClient = await getDoc(clinicianClientRef);
     const prescription = {
       ...physioClient.data()?.prescription,
       clientProgramRef: doc(
@@ -74,7 +74,7 @@ export async function updatePhysioClientPrescriptionStatus(
       status: status,
     };
 
-    updateDoc(physioClientRef, {
+    updateDoc(clinicianClientRef, {
       prescription: prescription,
     });
   } catch (error) {

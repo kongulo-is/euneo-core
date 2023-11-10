@@ -24,7 +24,7 @@ export async function addPrescriptionToPhysioClient(
   prescription: TPrescription
 ) {
   try {
-    const physioClientRef = doc(
+    const clinicianClientRef = doc(
       db,
       "clinicians",
       physioId,
@@ -33,12 +33,12 @@ export async function addPrescriptionToPhysioClient(
     ) as DocumentReference<TPhysioClientWrite>;
 
     // check if user has a current prescription
-    const physioClientSnapshot = await getDoc(physioClientRef);
+    const physioClientSnapshot = await getDoc(clinicianClientRef);
     const currentPrescription = physioClientSnapshot.data()?.prescription;
     if (currentPrescription) {
       // store current prescription in past prescription sub collection
       const pastPrescriptionRef = collection(
-        physioClientRef,
+        clinicianClientRef,
         "pastPrescriptions"
       ) as CollectionReference<TPrescriptionWrite>;
       await addDoc(pastPrescriptionRef, currentPrescription);
@@ -48,7 +48,7 @@ export async function addPrescriptionToPhysioClient(
     const prescriptionConverted =
       prescriptionConverter.toFirestore(prescription);
 
-    await updateDoc(physioClientRef, {
+    await updateDoc(clinicianClientRef, {
       prescription: prescriptionConverted,
     });
 

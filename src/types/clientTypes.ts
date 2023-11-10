@@ -188,7 +188,7 @@ export type TClientProgramDayWrite = {
 
 export type TClientProgramWrite = {
   programRef: DocumentReference<TProgramWrite, DocumentData>;
-  conditionId: TConditionId;
+  conditionId: TConditionId | null;
   outcomeMeasuresAnswers: Record<
     TOutcomeMeasureId,
     TOutcomeMeasureAnswerWrite[]
