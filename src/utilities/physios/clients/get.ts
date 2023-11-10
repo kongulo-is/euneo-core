@@ -50,7 +50,7 @@ export async function getPhysioClient(
   try {
     const physioClientRef = doc(
       db,
-      "physios",
+      "clinicians",
       physioId,
       "clients",
       physioClientId
@@ -86,7 +86,7 @@ export async function getPhysioClients(
 ): Promise<TPhysioClient[]> {
   try {
     // Get clients data form physio collection
-    const physioRef = doc(db, "physios", physioId);
+    const physioRef = doc(db, "clinicians", physioId);
     const clientsRef = collection(physioRef, "clients");
     const snapshot = await getDocs(
       clientsRef.withConverter(physioClientConverter)

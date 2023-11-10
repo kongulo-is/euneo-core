@@ -7,7 +7,7 @@ export async function createPhysio(
   name: string
 ): Promise<boolean> {
   try {
-    const physioRef = doc(db, "physios", physioId);
+    const physioRef = doc(db, "clinicians", physioId);
     await setDoc(physioRef, { email, name });
     return true;
   } catch (error) {

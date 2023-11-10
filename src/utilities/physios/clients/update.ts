@@ -23,7 +23,7 @@ export async function updatePhysioClient(
   try {
     const physioClientRef = doc(
       db,
-      "physios",
+      "clinicians",
       physioId,
       "clients",
       physioClientId
@@ -55,7 +55,7 @@ export async function updatePhysioClientPrescriptionStatus(
   try {
     const physioClientRef = doc(
       db,
-      "physios",
+      "clinicians",
       physioId,
       "clients",
       physioClientId

@@ -18,7 +18,7 @@ export function getProgramCode(physioId: string, physioClientId: string) {
     where(
       "physioClientRef",
       "==",
-      doc(db, "physios", physioId, "clients", physioClientId)
+      doc(db, "clinicians", physioId, "clients", physioClientId)
     )
   );
 

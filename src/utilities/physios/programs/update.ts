@@ -18,7 +18,7 @@ export async function updatePhysioProgram(
   try {
     const programRef = doc(
       db,
-      "physios",
+      "clinicians",
       physioId,
       "programs",
       physioProgramId
@@ -32,7 +32,7 @@ export async function updatePhysioProgram(
     const day = programDayConverter.toFirestore(days["d1"]);
     const dayRef = doc(
       db,
-      "physios",
+      "clinicians",
       physioId,
       "programs",
       physioProgramId,

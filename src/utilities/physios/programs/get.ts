@@ -15,7 +15,7 @@ export async function getPhysioProgramWithDays(
 ): Promise<TPhysioProgram> {
   let programRef = doc(
     db,
-    "physios",
+    "clinicians",
     physioId,
     "programs",
     physioProgramId
@@ -34,7 +34,7 @@ export async function getPhysioProgramsWithDays(
   physioId: string
 ): Promise<TPhysioProgram[]> {
   try {
-    const physioRef = doc(db, "physios", physioId);
+    const physioRef = doc(db, "clinicians", physioId);
     const programsRef = collection(physioRef, "programs");
     const programsSnap = await getDocs(
       programsRef.withConverter(programConverter)

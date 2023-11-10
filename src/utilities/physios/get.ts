@@ -6,7 +6,7 @@ export async function getPhysio(physioId: string): Promise<TPhysio> {
   try {
     const physioRef = doc(
       db,
-      "physios",
+      "clinicians",
       physioId
     ) as DocumentReference<TPhysio>;
 
@@ -25,7 +25,7 @@ export async function getPhysio(physioId: string): Promise<TPhysio> {
 
 export async function checkIfPhysioExists(physioId: string): Promise<boolean> {
   try {
-    const physioRef = doc(db, "physios", physioId);
+    const physioRef = doc(db, "clinicians", physioId);
 
     const physioDoc = await getDoc(physioRef);
 

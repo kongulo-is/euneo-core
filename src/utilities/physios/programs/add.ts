@@ -13,7 +13,7 @@ export async function createPhysioProgram(
   physioId: string
 ): Promise<TPhysioProgram> {
   try {
-    const physioRef = doc(db, "physios", physioId);
+    const physioRef = doc(db, "clinicians", physioId);
     const programsRef = collection(physioRef, "programs");
     const programRef = await addDoc(
       programsRef.withConverter(programConverter),

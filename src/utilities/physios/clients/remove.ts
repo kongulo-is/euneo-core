@@ -23,7 +23,7 @@ export async function removePhysioClientPrescription(
   try {
     const physioClientRef = doc(
       db,
-      "physios",
+      "clinicians",
       physioId,
       "clients",
       physioClientId
@@ -66,7 +66,7 @@ export async function removePhysioClient(
   try {
     const physioClientRef = doc(
       db,
-      "physios",
+      "clinicians",
       physioId,
       "clients",
       physioClientId

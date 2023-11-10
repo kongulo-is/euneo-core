@@ -7,7 +7,7 @@ export async function createInvitation(
 ) {
   const physioClientRef = doc(
     db,
-    "physios",
+    "clinicians",
     physioId,
     "clients",
     physioClientId

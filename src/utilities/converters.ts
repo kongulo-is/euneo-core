@@ -231,7 +231,7 @@ export const clientProgramConverter = {
     } else if ("physioId" in program) {
       programRef = doc(
         db,
-        "physios",
+        "clinicians",
         program.physioId,
         "programs",
         program.physioProgramId
@@ -424,7 +424,7 @@ export const prescriptionConverter = {
       return {
         programRef: doc(
           db,
-          "physios",
+          "clinicians",
           prescription.physioId,
           "programs",
           prescription.physioProgramId

@@ -26,7 +26,7 @@ export async function addPrescriptionToPhysioClient(
   try {
     const physioClientRef = doc(
       db,
-      "physios",
+      "clinicians",
       physioId,
       "clients",
       physioClientId
@@ -84,7 +84,7 @@ export async function createPhysioClient(
   physioId: string
 ): Promise<TPhysioClient> {
   try {
-    const physioRef = doc(db, "physios", physioId);
+    const physioRef = doc(db, "clinicians", physioId);
     const clientsRef = collection(physioRef, "clients");
     const clientRef = await addDoc(
       clientsRef.withConverter(physioClientConverter),
