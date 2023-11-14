@@ -1,12 +1,12 @@
-import { TOutcomeMeasureId } from "./physioTypes";
+import { TOutcomeMeasureId } from "./clinicianTypes";
 
 export type TEuneoReferenceIds = {
   euneoProgramId: TEuneoProgramId;
 };
 
-export type TPhysioReferenceIds = {
-  physioProgramId: string;
-  physioId: string;
+export type TClinicianReferenceIds = {
+  clinicianProgramId: string;
+  clinicianId: string;
 };
 
 // Component types

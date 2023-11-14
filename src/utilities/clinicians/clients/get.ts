@@ -8,17 +8,17 @@ import {
 import { db } from "../../../firebase/db";
 import { TClientProgram, TClientWrite } from "../../../types/clientTypes";
 import {
-  TPhysioClient,
-  TPhysioClientBase,
-  TPhysioClientWrite,
-} from "../../../types/physioTypes";
-import { physioClientConverter } from "../../converters";
+  TClinicianClient,
+  TClinicianClientBase,
+  TClinicianClientWrite,
+} from "../../../types/clinicianTypes";
+import { clinicianClientConverter } from "../../converters";
 import { getClientProgram } from "../../clients/programs/get";
 
 async function _clientProgram({
   clientData,
 }: {
-  clientData: TPhysioClientBase;
+  clientData: TClinicianClientBase;
 }) {
   // get clients program data.
   let clientProgram: TClientProgram | undefined;
@@ -42,22 +42,22 @@ async function _clientProgram({
   return clientProgram;
 }
 
-// get single physio client
-export async function getPhysioClient(
-  physioId: string,
-  physioClientId: string
-): Promise<TPhysioClient> {
+// get single clinician client
+export async function geTClinicianClient(
+  cliniciansId: string,
+  clinicianClientId: string
+): Promise<TClinicianClient> {
   try {
     const clinicianClientRef = doc(
       db,
       "clinicians",
-      physioId,
+      cliniciansId,
       "clients",
-      physioClientId
-    ) as DocumentReference<TPhysioClientWrite>;
+      clinicianClientId
+    ) as DocumentReference<TClinicianClientWrite>;
 
     const clientSnap = await getDoc(
-      clinicianClientRef.withConverter(physioClientConverter)
+      clinicianClientRef.withConverter(clinicianClientConverter)
     );
 
     const clientData = clientSnap.data();
@@ -67,37 +67,37 @@ export async function getPhysioClient(
 
     return {
       ...clientData,
-      physioClientId: clientSnap.id,
+      clinicianClientId: clientSnap.id,
       ...(clientProgram && { clientProgram }),
     };
   } catch (error) {
     console.error("Error fetching client:", error, {
-      physioId,
-      physioClientId,
+      cliniciansId,
+      clinicianClientId,
     });
   }
 
-  return {} as TPhysioClient;
+  return {} as TClinicianClient;
 }
 
-// Get all physio clients
-export async function getPhysioClients(
-  physioId: string
-): Promise<TPhysioClient[]> {
+// Get all clinician clients
+export async function geTClinicianClients(
+  cliniciansId: string
+): Promise<TClinicianClient[]> {
   try {
-    // Get clients data form physio collection
-    const physioRef = doc(db, "clinicians", physioId);
-    const clientsRef = collection(physioRef, "clients");
+    // Get clients data form clinician collection
+    const clinicianRef = doc(db, "clinicians", cliniciansId);
+    const clientsRef = collection(clinicianRef, "clients");
     const snapshot = await getDocs(
-      clientsRef.withConverter(physioClientConverter)
+      clientsRef.withConverter(clinicianClientConverter)
     );
 
     console.log("snapshot.docs", snapshot.docs);
 
     // get clients program data from programs subcollection to client.
-    const clientsData: TPhysioClient[] = await Promise.all(
+    const clientsData: TClinicianClient[] = await Promise.all(
       snapshot.docs.map(async (c) => {
-        const clientData: TPhysioClientBase = c.data();
+        const clientData: TClinicianClientBase = c.data();
         console.log("clientData", clientData);
 
         const clientProgram = await _clientProgram({ clientData });
@@ -105,7 +105,7 @@ export async function getPhysioClients(
 
         return {
           ...clientData,
-          physioClientId: c.id,
+          clinicianClientId: c.id,
           ...(clientProgram && { clientProgram }),
         };
       })
@@ -117,7 +117,7 @@ export async function getPhysioClients(
     return clientsData;
   } catch (error) {
     console.error("Error fetching clients:", error, {
-      physioId,
+      cliniciansId,
     });
     return [];
   }

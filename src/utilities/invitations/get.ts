@@ -9,7 +9,10 @@ import {
 import { db } from "../../firebase/db";
 import { get } from "http";
 
-export function getProgramCode(physioId: string, physioClientId: string) {
+export function getProgramCode(
+  cliniciansId: string,
+  clinicianClientId: string
+) {
   // query the database for the invitation code
   const invitationRef = collection(db, "invitations");
   const q = query(
@@ -18,7 +21,7 @@ export function getProgramCode(physioId: string, physioClientId: string) {
     where(
       "clinicianClientRef",
       "==",
-      doc(db, "clinicians", physioId, "clients", physioClientId)
+      doc(db, "clinicians", cliniciansId, "clients", clinicianClientId)
     )
   );
 

@@ -1,4 +1,4 @@
-import { TOutcomeMeasureId } from "../types/physioTypes";
+import { TOutcomeMeasureId } from "../types/clinicianTypes";
 
 export type TOutcomeMeasure = {
   id: TOutcomeMeasureId;

@@ -11,9 +11,12 @@ import {
   DocumentData,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
-import { TInvitationWrite, TPhysioClientWrite } from "../../types/physioTypes";
 import {
-  TPhysioProgram,
+  TInvitationWrite,
+  TClinicianClientWrite,
+} from "../../types/clinicianTypes";
+import {
+  TClinicianProgram,
   TEuneoProgram,
   TProgramWrite,
 } from "../../types/programTypes";
@@ -23,8 +26,8 @@ import { TEuneoProgramId } from "../../types/baseTypes";
 import { updateDoc } from "../updateDoc";
 
 export async function getProgramFromCode(code: string): Promise<{
-  program: TPhysioProgram | TEuneoProgram;
-  clinicianClientRef: DocumentReference<TPhysioClientWrite, DocumentData>;
+  program: TClinicianProgram | TEuneoProgram;
+  clinicianClientRef: DocumentReference<TClinicianClientWrite, DocumentData>;
 }> {
   // We dont need a converter here because it would not convert anything
   const q = query(collection(db, "invitations"), where("code", "==", code));
@@ -39,23 +42,23 @@ export async function getProgramFromCode(code: string): Promise<{
   const firstDoc = querySnapshot.docs[0];
   const { clinicianClientRef } = firstDoc.data();
 
-  const physioClientDoc = await getDoc(clinicianClientRef);
-  const physioClientData = physioClientDoc.data();
+  const clinicianClientDoc = await getDoc(clinicianClientRef);
+  const clinicianClientData = clinicianClientDoc.data();
 
-  if (!physioClientData || !physioClientData.prescription) {
+  if (!clinicianClientData || !clinicianClientData.prescription) {
     // TDOD: handle error client side
-    throw new Error("Prescription not found for the given PhysioClient");
+    throw new Error("Prescription not found for the given ClinicianClient");
   }
 
-  const { programRef } = physioClientData.prescription;
+  const { programRef } = clinicianClientData.prescription;
   const program = await _getProgramFromRef(programRef);
 
-  // runtimeChecks.assertTPhysioProgram(program);
+  // runtimeChecks.assertTClinicianProgram(program);
 
-  // update physio clientProgramRef
+  // update clinician clientProgramRef
   await updateDoc(clinicianClientRef, {
     prescription: {
-      ...physioClientData.prescription,
+      ...clinicianClientData.prescription,
       status: "Accepted",
     },
   });

@@ -5,37 +5,37 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
-import { TPhysioProgram, TProgramWrite } from "../../../types/programTypes";
+import { TClinicianProgram, TProgramWrite } from "../../../types/programTypes";
 import { programConverter, programDayConverter } from "../../converters";
 import { _getProgramFromRef } from "../../programHelpers";
 
-export async function getPhysioProgramWithDays(
-  physioId: string,
-  physioProgramId: string
-): Promise<TPhysioProgram> {
+export async function geTClinicianProgramWithDays(
+  cliniciansId: string,
+  clinicianProgramId: string
+): Promise<TClinicianProgram> {
   let programRef = doc(
     db,
     "clinicians",
-    physioId,
+    cliniciansId,
     "programs",
-    physioProgramId
+    clinicianProgramId
   ) as DocumentReference<TProgramWrite>;
 
-  const physioProgram = await _getProgramFromRef(programRef);
+  const clinicianProgram = await _getProgramFromRef(programRef);
 
-  if (!("physioId" in physioProgram)) {
-    throw new Error("Program is not a physio program");
+  if (!("cliniciansId" in clinicianProgram)) {
+    throw new Error("Program is not a clinician program");
   }
 
-  return physioProgram;
+  return clinicianProgram;
 }
 
-export async function getPhysioProgramsWithDays(
-  physioId: string
-): Promise<TPhysioProgram[]> {
+export async function geTClinicianProgramsWithDays(
+  cliniciansId: string
+): Promise<TClinicianProgram[]> {
   try {
-    const physioRef = doc(db, "clinicians", physioId);
-    const programsRef = collection(physioRef, "programs");
+    const clinicianRef = doc(db, "clinicians", cliniciansId);
+    const programsRef = collection(clinicianRef, "programs");
     const programsSnap = await getDocs(
       programsRef.withConverter(programConverter)
     );
@@ -47,22 +47,22 @@ export async function getPhysioProgramsWithDays(
       )
     );
     // map the days to the programs
-    const programs: TPhysioProgram[] = programsSnap.docs.map((doc, i) => {
+    const programs: TClinicianProgram[] = programsSnap.docs.map((doc, i) => {
       const days = Object.fromEntries(
         daysSnap[i].docs.map((doc) => [doc.id, doc.data()])
       );
       return {
         ...doc.data(),
         days,
-        physioProgramId: doc.id,
-        physioId,
+        clinicianProgramId: doc.id,
+        cliniciansId,
         mode: "continuous",
       };
     });
 
     return programs;
   } catch (error) {
-    console.error("Error fetching physio programs:", error);
+    console.error("Error fetching clinician programs:", error);
     throw error;
   }
 }

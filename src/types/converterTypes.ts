@@ -12,7 +12,7 @@ import {
   TProgramMode,
 } from "./programTypes";
 import { DocumentData } from "firebase/firestore";
-import { TOutcomeMeasureId, TPrescriptionStatus } from "./physioTypes";
+import { TOutcomeMeasureId, TPrescriptionStatus } from "./clinicianTypes";
 
 /**
  * @description client data as it is stored in the database in client collection
@@ -60,28 +60,28 @@ type PainLevelWrite = {
 };
 
 /**
- * @description physio invite to client.
+ * @description clinician invite to client.
  * @path /invitations/{invitationId}
  */
 export type InvitationWrite = {
   code: string;
-  clinicianClientRef: DocumentReference<PhysioClientWrite>;
+  clinicianClientRef: DocumentReference<ClinicianClientWrite>;
 };
 
 /**
- * @description physio data as it is stored in the database in physio collection
- * @path /physios/{physioId}
+ * @description clinician data as it is stored in the database in clinician collection
+ * @path /clinicians/{cliniciansId}
  */
-export type PhysioWrite = {
+export type ClinicianWrite = {
   email: string;
   name: string;
 };
 
 /**
- * @description physio client data as it is stored in client subcollection in physio collection
- * @path /physios/{physioId}/clients/{physioClientId}
+ * @description clinician client data as it is stored in client subcollection in clinician collection
+ * @path /clinicians/{cliniciansId}/clients/{clinicianClientId}
  */
-export type PhysioClientWrite = {
+export type ClinicianClientWrite = {
   name: string;
   email: string;
   conditionId: TConditionId | null;
@@ -91,8 +91,8 @@ export type PhysioClientWrite = {
 };
 
 /**
- * @description prescription data as it is stored in client subcollection in physio collection
- * @path /physios/{physioId}/clients/{physioClientId}
+ * @description prescription data as it is stored in client subcollection in clinician collection
+ * @path /clinicians/{cliniciansId}/clients/{clinicianClientId}
  */
 export type PrescriptionWrite = {
   programRef: DocumentReference;
@@ -101,8 +101,8 @@ export type PrescriptionWrite = {
 };
 
 /**
- * @description custom program data as it is stored in the database in program subcollection in physio collection
- * @path /physios/{physioId}/programs/{programId}
+ * @description custom program data as it is stored in the database in program subcollection in clinician collection
+ * @path /clinicians/{cliniciansId}/programs/{programId}
  */
 export type ProgramWrite = {
   name: string;
@@ -114,8 +114,8 @@ export type ProgramWrite = {
 };
 
 /**
- * @description custom program data as it is stored in the database in program subcollection in physio collection
- * @path /physios/{physioId}/programs/{programId}
+ * @description custom program data as it is stored in the database in program subcollection in clinician collection
+ * @path /clinicians/{cliniciansId}/programs/{programId}
  */
 export type PhaseProgramWrite = {
   name: string;
@@ -127,8 +127,8 @@ export type PhaseProgramWrite = {
 };
 
 /**
- * @description custom program data as it is stored in the database in program subcollection in physio collection
- * @path /physios/{physioId}/programs/{programId}
+ * @description custom program data as it is stored in the database in program subcollection in clinician collection
+ * @path /clinicians/{cliniciansId}/programs/{programId}
  */
 export type ContinuousProgramWrite = {
   name: string;
@@ -138,8 +138,8 @@ export type ContinuousProgramWrite = {
 };
 
 /**
- * @description custom day in subcollection days in program subcollection in physio or programs collection
- * @path /physios/{physioId}/programs/{programId}/days/{dayId}
+ * @description custom day in subcollection days in program subcollection in clinician or programs collection
+ * @path /clinicians/{cliniciansId}/programs/{programId}/days/{dayId}
  * @path /programs/{programId}/days/{dayId}
  */
 export type ProgramDayWrite = {
@@ -147,8 +147,8 @@ export type ProgramDayWrite = {
 };
 
 /**
- * @description custom day in subcollection days in program subcollection in physio or programs collection
- * @path /physios/{physioId}/programs/{programId}/days/{dayId}
+ * @description custom day in subcollection days in program subcollection in clinician or programs collection
+ * @path /clinicians/{cliniciansId}/programs/{programId}/days/{dayId}
  * @path /programs/{programId}/days/{dayId}
  */
 export type ProgramPhaseWrite = {
@@ -159,8 +159,8 @@ export type ProgramPhaseWrite = {
 };
 
 /**
- * @description exercise in custom day in subcollection days in program subcollection in physio collection
- * @path /physios/{physioId}/programs/{programId}/days/{dayId}/exercises/{exerciseId}
+ * @description exercise in custom day in subcollection days in program subcollection in clinician collection
+ * @path /clinicians/{cliniciansId}/programs/{programId}/days/{dayId}/exercises/{exerciseId}
  * @path /programs/{programId}/days/{dayId}/exercises/{exerciseId}
  */
 export type ExerciseDayWrite = {

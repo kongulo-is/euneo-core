@@ -4,7 +4,7 @@ import {
   TEuneoProgramId,
   TOutcomeMeasureWrite,
 } from "./baseTypes";
-import { TOutcomeMeasureId } from "./physioTypes";
+import { TOutcomeMeasureId } from "./clinicianTypes";
 
 /**
  * @memberof TProgramDay
@@ -98,18 +98,18 @@ export type TEuneoProgram = (TContinuousProgram | TPhaseProgram) & {
   version?: string;
 };
 
-export type TPhysioProgram = TContinuousProgram & {
-  physioProgramId: string;
-  physioId: string;
+export type TClinicianProgram = TContinuousProgram & {
+  clinicianProgramId: string;
+  clinicianId: string;
 };
 
-export type TProgram = TEuneoProgram | TPhysioProgram;
+export type TProgram = TEuneoProgram | TClinicianProgram;
 
 //  ! Write types
 
 /**
- * @description custom program data as it is stored in the database in program subcollection in physio collection
- * @path /physios/{physioId}/programs/{programId}
+ * @description custom program data as it is stored in the database in program subcollection in clinician collection
+ * @path /clinicians/{clinicianId}/programs/{programId}
  */
 export type TProgramWrite = {
   name: string;
@@ -121,8 +121,8 @@ export type TProgramWrite = {
 };
 
 /**
- * @description custom day in subcollection days in program subcollection in physio or programs collection
- * @path /physios/{physioId}/programs/{programId}/days/{dayId}
+ * @description custom day in subcollection days in program subcollection in clinician or programs collection
+ * @path /clinicians/{clinicianId}/programs/{programId}/days/{dayId}
  * @path /programs/{programId}/days/{dayId}
  */
 export type TProgramDayWrite = {
@@ -130,8 +130,8 @@ export type TProgramDayWrite = {
 };
 
 /**
- * @description custom day in subcollection days in program subcollection in physio or programs collection
- * @path /physios/{physioId}/programs/{programId}/days/{dayId}
+ * @description custom day in subcollection days in program subcollection in clinician or programs collection
+ * @path /clinicians/{clinicianId}/programs/{programId}/days/{dayId}
  * @path /programs/{programId}/days/{dayId}
  */
 export type TProgramPhaseWrite = {
@@ -142,8 +142,8 @@ export type TProgramPhaseWrite = {
 };
 
 /**
- * @description exercise in custom day in subcollection days in program subcollection in physio collection
- * @path /physios/{physioId}/programs/{programId}/days/{dayId}/exercises/{exerciseId}
+ * @description exercise in custom day in subcollection days in program subcollection in clinician collection
+ * @path /clinicians/{clinicianId}/programs/{programId}/days/{dayId}/exercises/{exerciseId}
  * @path /programs/{programId}/days/{dayId}/exercises/{exerciseId}
  */
 export type TExerciseDayWrite = {

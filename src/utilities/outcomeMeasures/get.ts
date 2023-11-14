@@ -9,7 +9,7 @@ import {
 import { db } from "../../firebase/db";
 import { TOutcomeMeasure, TOutcomeMeasureWrite } from "../../types/baseTypes";
 import { outcomeMeasureConverter } from "../converters";
-import { TOutcomeMeasureId } from "../../types/physioTypes";
+import { TOutcomeMeasureId } from "../../types/clinicianTypes";
 
 export async function getAllOutcomeMeasures(): Promise<
   Record<string, TOutcomeMeasure>

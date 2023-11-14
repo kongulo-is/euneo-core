@@ -14,7 +14,7 @@
 //       data: {
 //         distinct_id: string;
 //         condition_id: TConditionId | null;
-//         physio_id: string;
+//         clinician_id: string;
 //         program_id: string;
 //       };
 //     }
@@ -23,7 +23,7 @@
 //       data: {
 //         distinct_id: string;
 //         condition_id: TConditionId | null;
-//         physio_id: string;
+//         clinician_id: string;
 //         program_id: string;
 //         client_id: string;
 //       };

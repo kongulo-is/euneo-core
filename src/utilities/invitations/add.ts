@@ -2,15 +2,15 @@ import { addDoc, collection, doc } from "firebase/firestore";
 import { db } from "../../firebase/db";
 
 export async function createInvitation(
-  physioId: string,
-  physioClientId: string
+  cliniciansId: string,
+  clinicianClientId: string
 ) {
   const clinicianClientRef = doc(
     db,
     "clinicians",
-    physioId,
+    cliniciansId,
     "clients",
-    physioClientId
+    clinicianClientId
   );
   // Create invitation for client
   const code = Math.floor(100000 + Math.random() * 900000).toString();

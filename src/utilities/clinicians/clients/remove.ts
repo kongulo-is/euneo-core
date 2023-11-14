@@ -12,22 +12,22 @@ import {
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import {
-  TPhysioClientWrite,
+  TClinicianClientWrite,
   TPrescriptionWrite,
-} from "../../../types/physioTypes";
+} from "../../../types/clinicianTypes";
 
-export async function removePhysioClientPrescription(
-  physioClientId: string,
-  physioId: string
+export async function removeClinicianClientPrescription(
+  clinicianClientId: string,
+  cliniciansId: string
 ): Promise<boolean> {
   try {
     const clinicianClientRef = doc(
       db,
       "clinicians",
-      physioId,
+      cliniciansId,
       "clients",
-      physioClientId
-    ) as DocumentReference<TPhysioClientWrite>;
+      clinicianClientId
+    ) as DocumentReference<TClinicianClientWrite>;
 
     // past prescription sub collection
     const pastPrescriptionRef = collection(
@@ -36,9 +36,9 @@ export async function removePhysioClientPrescription(
     ) as CollectionReference<TPrescriptionWrite>;
 
     // get current prescription
-    const physioClientSnapshot = await getDoc(clinicianClientRef);
+    const clinicianClientSnapshot = await getDoc(clinicianClientRef);
     const currentPrescription: TPrescriptionWrite | undefined =
-      physioClientSnapshot.data()?.prescription;
+      clinicianClientSnapshot.data()?.prescription;
 
     if (currentPrescription) {
       // store current prescription in past prescription sub collection
@@ -51,26 +51,26 @@ export async function removePhysioClientPrescription(
 
     return true;
   } catch (error) {
-    console.error("Error removing prescription from physio client", error, {
-      physioClientId,
-      physioId,
+    console.error("Error removing prescription from clinician client", error, {
+      clinicianClientId,
+      cliniciansId,
     });
     return false;
   }
 }
 
-export async function removePhysioClient(
-  physioId: string,
-  physioClientId: string
+export async function removeClinicianClient(
+  cliniciansId: string,
+  clinicianClientId: string
 ): Promise<boolean> {
   try {
     const clinicianClientRef = doc(
       db,
       "clinicians",
-      physioId,
+      cliniciansId,
       "clients",
-      physioClientId
-    ) as DocumentReference<TPhysioClientWrite>;
+      clinicianClientId
+    ) as DocumentReference<TClinicianClientWrite>;
 
     // client can have sub collection of past prescriptions, delete the collection first
     const pastPrescriptionRef = collection(
@@ -88,9 +88,9 @@ export async function removePhysioClient(
     await deleteDoc(clinicianClientRef);
     return true;
   } catch (error) {
-    console.error("Error removing client from physio", error, {
-      physioId,
-      physioClientId,
+    console.error("Error removing client from clinician", error, {
+      cliniciansId,
+      clinicianClientId,
     });
     return false;
   }

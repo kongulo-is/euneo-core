@@ -12,10 +12,10 @@ import {
 import { conditions } from "../constants/conditions";
 import {
   TConditionAssessmentQuestion,
-  TPhysioProgram,
+  TClinicianProgram,
   TProgramDayExercise,
 } from "../types/programTypes";
-import { TOutcomeMeasureId } from "../types/physioTypes";
+import { TOutcomeMeasureId } from "../types/clinicianTypes";
 import { isEmptyObject } from "./basicHelpers";
 
 const assertTConditionId = (id: TConditionId): void => {
@@ -126,9 +126,9 @@ const runtimeChecks = {
     assertTConditionId(obj.conditionId as TConditionId);
 
     // Handle the union type
-    if ("physioProgramId" in obj) {
-      assertTypeString(obj.physioProgramId, "physioProgramId");
-      assertTypeString(obj.physioId, "physioId");
+    if ("clinicianProgramId" in obj) {
+      assertTypeString(obj.clinicianProgramId, "clinicianProgramId");
+      assertTypeString(obj.cliniciansId, "cliniciansId");
     } else if ("programId" in obj) {
       assertTypeString(obj.programId, "programId");
       obj.conditionAssessmentAnswers &&
@@ -161,10 +161,10 @@ const runtimeChecks = {
       assertTClientPhysicalInformation(obj.physicalInformation);
     }
   },
-  assertTPhysioProgram(obj: TPhysioProgram): void {
+  assertTClinicianProgram(obj: TClinicianProgram): void {
     assertTypeString(obj.name, "name");
-    assertTypeString(obj.physioProgramId, "physioProgramId");
-    assertTypeString(obj.physioId, "physioId");
+    assertTypeString(obj.clinicianProgramId, "clinicianProgramId");
+    assertTypeString(obj.cliniciansId, "cliniciansId");
     assertTypeString(obj.mode, "mode");
 
     obj.conditionId && assertTConditionId(obj.conditionId);

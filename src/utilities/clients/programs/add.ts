@@ -10,8 +10,8 @@ import {
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import {
-  TClientPhysioProgramRead,
-  TClientPhysioProgram,
+  TClienTClinicianProgramRead,
+  TClienTClinicianProgram,
   TClientWrite,
   TClientEuneoProgramRead,
   TClientEuneoProgram,
@@ -21,19 +21,19 @@ import {
   TPainLevel,
   TPhase,
 } from "../../../types/clientTypes";
-import { TEuneoProgram, TPhysioProgram } from "../../../types/programTypes";
+import { TEuneoProgram, TClinicianProgram } from "../../../types/programTypes";
 import {
   clientProgramConverter,
   clientProgramDayConverter,
 } from "../../converters";
 import {
   TOutcomeMeasureId,
-  TPhysioClientWrite,
+  TClinicianClientWrite,
   TPrescriptionWrite,
-} from "../../../types/physioTypes";
+} from "../../../types/clinicianTypes";
 import { createContinuousDays, createPhase } from "../../programHelpers";
-import { getPhysioClient } from "../../physios/clients/get";
-import { updatePhysioClientPrescriptionStatus } from "../../physios/clients/update";
+import { geTClinicianClient } from "../../clinicians/clients/get";
+import { updateClinicianClientPrescriptionStatus } from "../../clinicians/clients/update";
 
 async function _addDaysToFirestore(
   clientId: string,
@@ -58,19 +58,19 @@ async function _addDaysToFirestore(
   );
 }
 
-export async function addPhysioProgramToClient(
+export async function addClinicianProgramToClient(
   clientId: string,
-  clientPhysioProgram: TClientPhysioProgramRead,
-  program: TPhysioProgram
-): Promise<TClientPhysioProgram> {
+  clienTClinicianProgram: TClienTClinicianProgramRead,
+  program: TClinicianProgram
+): Promise<TClienTClinicianProgram> {
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
 
   const clientProgramRef = await addDoc(
     userProgramDoc.withConverter(clientProgramConverter),
-    clientPhysioProgram
+    clienTClinicianProgram
   );
-  const { trainingDays } = clientPhysioProgram;
+  const { trainingDays } = clienTClinicianProgram;
   const clientProgramDays = createContinuousDays(
     trainingDays,
     program,
@@ -108,8 +108,8 @@ export async function addPhysioProgramToClient(
     ),
   });
 
-  const clientProgram: TClientPhysioProgram = {
-    ...clientPhysioProgram,
+  const clientProgram: TClienTClinicianProgram = {
+    ...clienTClinicianProgram,
     days: clientProgramDays,
     clientProgramId: clientProgramRef.id,
   };
@@ -123,7 +123,7 @@ export async function addEuneoProgramToClient(
   program: TEuneoProgram,
   phaseId: `p${number}`
 ): Promise<{ clientProgram: TClientEuneoProgram }> {
-  // const { physioId, conditionId, physioProgramId, days } = physioProgram;
+  // const { cliniciansId, conditionId, clinicianProgramId, days } = clinicianProgram;
 
   const phaseProgram = program.mode === "phase";
 
