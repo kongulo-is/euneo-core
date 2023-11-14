@@ -2,12 +2,12 @@ import { doc, DocumentReference, getDoc } from "firebase/firestore";
 import { db } from "../../firebase/db";
 import { TClinician } from "../../types/clinicianTypes";
 
-export async function geTClinician(cliniciansId: string): Promise<TClinician> {
+export async function getClinician(clinicianId: string): Promise<TClinician> {
   try {
     const clinicianRef = doc(
       db,
       "clinicians",
-      cliniciansId
+      clinicianId
     ) as DocumentReference<TClinician>;
 
     const clinicianDoc = await getDoc(clinicianRef);
@@ -18,22 +18,22 @@ export async function geTClinician(cliniciansId: string): Promise<TClinician> {
 
     return clinician;
   } catch (error) {
-    console.error("Error fetching clinician", error, { cliniciansId });
+    console.error("Error fetching clinician", error, { clinicianId });
     throw error;
   }
 }
 
 export async function checkIfClinicianExists(
-  cliniciansId: string
+  clinicianId: string
 ): Promise<boolean> {
   try {
-    const clinicianRef = doc(db, "clinicians", cliniciansId);
+    const clinicianRef = doc(db, "clinicians", clinicianId);
 
     const clinicianDoc = await getDoc(clinicianRef);
 
     return clinicianDoc.exists();
   } catch (error) {
-    console.error("Error fetching clinician", error, { cliniciansId });
+    console.error("Error fetching clinician", error, { clinicianId });
     throw error;
   }
 }

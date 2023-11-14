@@ -135,12 +135,12 @@ export type TClientProgramBase = {
 export type TClientEuneoProgramRead = TClientProgramBase & TEuneoReferenceIds;
 
 // Specific properties for each case
-export type TClienTClinicianProgramRead = TClientProgramBase &
+export type TClientClinicianProgramRead = TClientProgramBase &
   TClinicianReferenceIds;
 
 export type TClientProgramRead =
   | TClientEuneoProgramRead
-  | TClienTClinicianProgramRead;
+  | TClientClinicianProgramRead;
 
 // * Here are types after converter
 
@@ -149,7 +149,7 @@ type TClientProgramId = {
   days: TClientProgramDay[];
 };
 
-export type TClienTClinicianProgram = TClienTClinicianProgramRead &
+export type TClientClinicianProgram = TClientClinicianProgramRead &
   TClientProgramId;
 
 export type TClientEuneoProgram = TClientEuneoProgramRead & TClientProgramId;
@@ -160,7 +160,7 @@ export type TClientEuneoProgram = TClientEuneoProgramRead & TClientProgramId;
  * and the subcollection data
  * /clients/{clientId}/programs/{programId}/days/{dayId}
  */
-export type TClientProgram = TClienTClinicianProgram | TClientEuneoProgram;
+export type TClientProgram = TClientClinicianProgram | TClientEuneoProgram;
 
 // ! Write types
 

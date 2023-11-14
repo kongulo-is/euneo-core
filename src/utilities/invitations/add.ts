@@ -2,13 +2,13 @@ import { addDoc, collection, doc } from "firebase/firestore";
 import { db } from "../../firebase/db";
 
 export async function createInvitation(
-  cliniciansId: string,
+  clinicianId: string,
   clinicianClientId: string
 ) {
   const clinicianClientRef = doc(
     db,
     "clinicians",
-    cliniciansId,
+    clinicianId,
     "clients",
     clinicianClientId
   );

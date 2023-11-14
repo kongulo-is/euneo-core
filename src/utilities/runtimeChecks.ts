@@ -128,7 +128,7 @@ const runtimeChecks = {
     // Handle the union type
     if ("clinicianProgramId" in obj) {
       assertTypeString(obj.clinicianProgramId, "clinicianProgramId");
-      assertTypeString(obj.cliniciansId, "cliniciansId");
+      assertTypeString(obj.clinicianId, "clinicianId");
     } else if ("programId" in obj) {
       assertTypeString(obj.programId, "programId");
       obj.conditionAssessmentAnswers &&
@@ -164,7 +164,7 @@ const runtimeChecks = {
   assertTClinicianProgram(obj: TClinicianProgram): void {
     assertTypeString(obj.name, "name");
     assertTypeString(obj.clinicianProgramId, "clinicianProgramId");
-    assertTypeString(obj.cliniciansId, "cliniciansId");
+    assertTypeString(obj.clinicianId, "clinicianId");
     assertTypeString(obj.mode, "mode");
 
     obj.conditionId && assertTConditionId(obj.conditionId);

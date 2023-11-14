@@ -16,7 +16,7 @@ import { clinicianClientConverter } from "../../converters";
 import { TClientProgramWrite } from "../../../types/clientTypes";
 
 export async function updateClinicianClient(
-  cliniciansId: string,
+  clinicianId: string,
   clinicianClientId: string,
   clinicianClient: TClinicianClientRead
 ): Promise<boolean> {
@@ -24,7 +24,7 @@ export async function updateClinicianClient(
     const clinicianClientRef = doc(
       db,
       "clinicians",
-      cliniciansId,
+      clinicianId,
       "clients",
       clinicianClientId
     ) as DocumentReference<TClinicianClientWrite>;
@@ -38,7 +38,7 @@ export async function updateClinicianClient(
   } catch (error) {
     console.error("Error updating clinician client: ", error, {
       clinicianClientId,
-      cliniciansId,
+      clinicianId,
       clinicianClient,
     });
     throw error;
@@ -46,7 +46,7 @@ export async function updateClinicianClient(
 }
 
 export async function updateClinicianClientPrescriptionStatus(
-  cliniciansId: string,
+  clinicianId: string,
   clinicianClientId: string,
   clientId: string,
   clientProgramId: string,
@@ -56,7 +56,7 @@ export async function updateClinicianClientPrescriptionStatus(
     const clinicianClientRef = doc(
       db,
       "clinicians",
-      cliniciansId,
+      clinicianId,
       "clients",
       clinicianClientId
     ) as DocumentReference<TClinicianClientWrite>;
@@ -80,7 +80,7 @@ export async function updateClinicianClientPrescriptionStatus(
   } catch (error) {
     console.error("Error updating clinician client prescription: ", error, {
       clinicianClientId,
-      cliniciansId,
+      clinicianId,
       clientId,
       clientProgramId,
     });

@@ -70,7 +70,7 @@ export type InvitationWrite = {
 
 /**
  * @description clinician data as it is stored in the database in clinician collection
- * @path /clinicians/{cliniciansId}
+ * @path /clinicians/{clinicianId}
  */
 export type ClinicianWrite = {
   email: string;
@@ -79,7 +79,7 @@ export type ClinicianWrite = {
 
 /**
  * @description clinician client data as it is stored in client subcollection in clinician collection
- * @path /clinicians/{cliniciansId}/clients/{clinicianClientId}
+ * @path /clinicians/{clinicianId}/clients/{clinicianClientId}
  */
 export type ClinicianClientWrite = {
   name: string;
@@ -92,7 +92,7 @@ export type ClinicianClientWrite = {
 
 /**
  * @description prescription data as it is stored in client subcollection in clinician collection
- * @path /clinicians/{cliniciansId}/clients/{clinicianClientId}
+ * @path /clinicians/{clinicianId}/clients/{clinicianClientId}
  */
 export type PrescriptionWrite = {
   programRef: DocumentReference;
@@ -102,7 +102,7 @@ export type PrescriptionWrite = {
 
 /**
  * @description custom program data as it is stored in the database in program subcollection in clinician collection
- * @path /clinicians/{cliniciansId}/programs/{programId}
+ * @path /clinicians/{clinicianId}/programs/{programId}
  */
 export type ProgramWrite = {
   name: string;
@@ -115,7 +115,7 @@ export type ProgramWrite = {
 
 /**
  * @description custom program data as it is stored in the database in program subcollection in clinician collection
- * @path /clinicians/{cliniciansId}/programs/{programId}
+ * @path /clinicians/{clinicianId}/programs/{programId}
  */
 export type PhaseProgramWrite = {
   name: string;
@@ -128,7 +128,7 @@ export type PhaseProgramWrite = {
 
 /**
  * @description custom program data as it is stored in the database in program subcollection in clinician collection
- * @path /clinicians/{cliniciansId}/programs/{programId}
+ * @path /clinicians/{clinicianId}/programs/{programId}
  */
 export type ContinuousProgramWrite = {
   name: string;
@@ -139,7 +139,7 @@ export type ContinuousProgramWrite = {
 
 /**
  * @description custom day in subcollection days in program subcollection in clinician or programs collection
- * @path /clinicians/{cliniciansId}/programs/{programId}/days/{dayId}
+ * @path /clinicians/{clinicianId}/programs/{programId}/days/{dayId}
  * @path /programs/{programId}/days/{dayId}
  */
 export type ProgramDayWrite = {
@@ -148,7 +148,7 @@ export type ProgramDayWrite = {
 
 /**
  * @description custom day in subcollection days in program subcollection in clinician or programs collection
- * @path /clinicians/{cliniciansId}/programs/{programId}/days/{dayId}
+ * @path /clinicians/{clinicianId}/programs/{programId}/days/{dayId}
  * @path /programs/{programId}/days/{dayId}
  */
 export type ProgramPhaseWrite = {
@@ -160,7 +160,7 @@ export type ProgramPhaseWrite = {
 
 /**
  * @description exercise in custom day in subcollection days in program subcollection in clinician collection
- * @path /clinicians/{cliniciansId}/programs/{programId}/days/{dayId}/exercises/{exerciseId}
+ * @path /clinicians/{clinicianId}/programs/{programId}/days/{dayId}/exercises/{exerciseId}
  * @path /programs/{programId}/days/{dayId}/exercises/{exerciseId}
  */
 export type ExerciseDayWrite = {

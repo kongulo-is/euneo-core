@@ -9,32 +9,32 @@ import { TClinicianProgram, TProgramWrite } from "../../../types/programTypes";
 import { programConverter, programDayConverter } from "../../converters";
 import { _getProgramFromRef } from "../../programHelpers";
 
-export async function geTClinicianProgramWithDays(
-  cliniciansId: string,
+export async function getClinicianProgramWithDays(
+  clinicianId: string,
   clinicianProgramId: string
 ): Promise<TClinicianProgram> {
   let programRef = doc(
     db,
     "clinicians",
-    cliniciansId,
+    clinicianId,
     "programs",
     clinicianProgramId
   ) as DocumentReference<TProgramWrite>;
 
   const clinicianProgram = await _getProgramFromRef(programRef);
 
-  if (!("cliniciansId" in clinicianProgram)) {
+  if (!("clinicianId" in clinicianProgram)) {
     throw new Error("Program is not a clinician program");
   }
 
   return clinicianProgram;
 }
 
-export async function geTClinicianProgramsWithDays(
-  cliniciansId: string
+export async function getClinicianProgramsWithDays(
+  clinicianId: string
 ): Promise<TClinicianProgram[]> {
   try {
-    const clinicianRef = doc(db, "clinicians", cliniciansId);
+    const clinicianRef = doc(db, "clinicians", clinicianId);
     const programsRef = collection(clinicianRef, "programs");
     const programsSnap = await getDocs(
       programsRef.withConverter(programConverter)
@@ -55,7 +55,7 @@ export async function geTClinicianProgramsWithDays(
         ...doc.data(),
         days,
         clinicianProgramId: doc.id,
-        cliniciansId,
+        clinicianId,
         mode: "continuous",
       };
     });

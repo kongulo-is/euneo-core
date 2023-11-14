@@ -10,8 +10,8 @@ import {
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import {
-  TClienTClinicianProgramRead,
-  TClienTClinicianProgram,
+  TClientClinicianProgramRead,
+  TClientClinicianProgram,
   TClientWrite,
   TClientEuneoProgramRead,
   TClientEuneoProgram,
@@ -32,7 +32,7 @@ import {
   TPrescriptionWrite,
 } from "../../../types/clinicianTypes";
 import { createContinuousDays, createPhase } from "../../programHelpers";
-import { geTClinicianClient } from "../../clinicians/clients/get";
+import { getClinicianClient } from "../../clinicians/clients/get";
 import { updateClinicianClientPrescriptionStatus } from "../../clinicians/clients/update";
 
 async function _addDaysToFirestore(
@@ -60,17 +60,17 @@ async function _addDaysToFirestore(
 
 export async function addClinicianProgramToClient(
   clientId: string,
-  clienTClinicianProgram: TClienTClinicianProgramRead,
+  clientClinicianProgram: TClientClinicianProgramRead,
   program: TClinicianProgram
-): Promise<TClienTClinicianProgram> {
+): Promise<TClientClinicianProgram> {
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
 
   const clientProgramRef = await addDoc(
     userProgramDoc.withConverter(clientProgramConverter),
-    clienTClinicianProgram
+    clientClinicianProgram
   );
-  const { trainingDays } = clienTClinicianProgram;
+  const { trainingDays } = clientClinicianProgram;
   const clientProgramDays = createContinuousDays(
     trainingDays,
     program,
@@ -108,8 +108,8 @@ export async function addClinicianProgramToClient(
     ),
   });
 
-  const clientProgram: TClienTClinicianProgram = {
-    ...clienTClinicianProgram,
+  const clientProgram: TClientClinicianProgram = {
+    ...clientClinicianProgram,
     days: clientProgramDays,
     clientProgramId: clientProgramRef.id,
   };
@@ -123,7 +123,7 @@ export async function addEuneoProgramToClient(
   program: TEuneoProgram,
   phaseId: `p${number}`
 ): Promise<{ clientProgram: TClientEuneoProgram }> {
-  // const { cliniciansId, conditionId, clinicianProgramId, days } = clinicianProgram;
+  // const { clinicianId, conditionId, clinicianProgramId, days } = clinicianProgram;
 
   const phaseProgram = program.mode === "phase";
 

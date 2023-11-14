@@ -75,7 +75,7 @@ export async function _getProgramFromRef(
     program = {
       ...programMode,
       mode: "continuous",
-      cliniciansId: programRef.parent.parent.id,
+      clinicianId: programRef.parent.parent.id,
       clinicianProgramId: programId,
     };
     return program;

@@ -228,18 +228,16 @@ export const clientProgramConverter = {
         "programs",
         program.euneoProgramId
       ) as DocumentReference<TProgramWrite>;
-    } else if ("cliniciansId" in program) {
+    } else if ("clinicianId" in program) {
       programRef = doc(
         db,
         "clinicians",
-        program.cliniciansId,
+        program.clinicianId,
         "programs",
         program.clinicianProgramId
       ) as DocumentReference<TProgramWrite>;
     } else {
-      throw new Error(
-        "Program must have either euneoProgramId or cliniciansId"
-      );
+      throw new Error("Program must have either euneoProgramId or clinicianId");
     }
 
     const data: TClientProgramWrite = {
@@ -305,13 +303,13 @@ export const clientProgramConverter = {
       runtimeChecks.assertTClientProgram(clientProgram, true);
     } else {
       const clinicianProgramId = programRef?.id;
-      const cliniciansId = programRef?.parent.parent!.id;
+      const clinicianId = programRef?.parent.parent!.id;
       clientProgram = {
         ...rest,
         outcomeMeasuresAnswers,
         painLevels: painLevelsClient,
         clinicianProgramId,
-        cliniciansId,
+        clinicianId,
       };
       runtimeChecks.assertTClientProgram(clientProgram, true);
     }
@@ -427,7 +425,7 @@ export const prescriptionConverter = {
         programRef: doc(
           db,
           "clinicians",
-          prescription.cliniciansId,
+          prescription.clinicianId,
           "programs",
           prescription.clinicianProgramId
         ) as DocumentReference<TProgramWrite>,
@@ -461,7 +459,7 @@ export const prescriptionConverter = {
       prescription = {
         ...rest,
         prescriptionDate: rest.prescriptionDate.toDate(),
-        cliniciansId: programRef.parent.parent.id,
+        clinicianId: programRef.parent.parent.id,
         clinicianProgramId: programRef.id,
         ...(clientProgramObj && { ...clientProgramObj }),
       };

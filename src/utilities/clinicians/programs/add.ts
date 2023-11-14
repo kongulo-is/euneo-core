@@ -10,10 +10,10 @@ import { programConverter, programDayConverter } from "../../converters";
 export async function createClinicianProgram(
   continuousProgram: TProgramRead,
   days: Record<`d${number}`, TProgramDayRead>,
-  cliniciansId: string
+  clinicianId: string
 ): Promise<TClinicianProgram> {
   try {
-    const clinicianRef = doc(db, "clinicians", cliniciansId);
+    const clinicianRef = doc(db, "clinicians", clinicianId);
     const programsRef = collection(clinicianRef, "programs");
     const programRef = await addDoc(
       programsRef.withConverter(programConverter),
@@ -33,7 +33,7 @@ export async function createClinicianProgram(
       days,
       mode: "continuous",
       clinicianProgramId: programRef.id,
-      cliniciansId,
+      clinicianId,
     };
 
     return clinicianProgram;
@@ -41,7 +41,7 @@ export async function createClinicianProgram(
     console.error("Error creating clinician program:", error, {
       continuousProgram,
       days,
-      cliniciansId,
+      clinicianId,
     });
   }
   throw new Error("Error creating clinician program");

@@ -18,13 +18,13 @@ import {
 
 export async function removeClinicianClientPrescription(
   clinicianClientId: string,
-  cliniciansId: string
+  clinicianId: string
 ): Promise<boolean> {
   try {
     const clinicianClientRef = doc(
       db,
       "clinicians",
-      cliniciansId,
+      clinicianId,
       "clients",
       clinicianClientId
     ) as DocumentReference<TClinicianClientWrite>;
@@ -53,21 +53,21 @@ export async function removeClinicianClientPrescription(
   } catch (error) {
     console.error("Error removing prescription from clinician client", error, {
       clinicianClientId,
-      cliniciansId,
+      clinicianId,
     });
     return false;
   }
 }
 
 export async function removeClinicianClient(
-  cliniciansId: string,
+  clinicianId: string,
   clinicianClientId: string
 ): Promise<boolean> {
   try {
     const clinicianClientRef = doc(
       db,
       "clinicians",
-      cliniciansId,
+      clinicianId,
       "clients",
       clinicianClientId
     ) as DocumentReference<TClinicianClientWrite>;
@@ -89,7 +89,7 @@ export async function removeClinicianClient(
     return true;
   } catch (error) {
     console.error("Error removing client from clinician", error, {
-      cliniciansId,
+      clinicianId,
       clinicianClientId,
     });
     return false;

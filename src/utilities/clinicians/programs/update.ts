@@ -13,13 +13,13 @@ export async function updateClinicianProgram(
   clinicianProgram: TProgramRead,
   days: Record<`d${number}`, TProgramDayRead>,
   clinicianProgramId: string,
-  cliniciansId: string
+  clinicianId: string
 ): Promise<TClinicianProgram> {
   try {
     const programRef = doc(
       db,
       "clinicians",
-      cliniciansId,
+      clinicianId,
       "programs",
       clinicianProgramId
     ) as DocumentReference<TProgramWrite>;
@@ -33,7 +33,7 @@ export async function updateClinicianProgram(
     const dayRef = doc(
       db,
       "clinicians",
-      cliniciansId,
+      clinicianId,
       "programs",
       clinicianProgramId,
       "days",
@@ -46,7 +46,7 @@ export async function updateClinicianProgram(
       mode: "continuous",
       days,
       clinicianProgramId,
-      cliniciansId,
+      clinicianId,
     };
   } catch (error) {
     console.error(
@@ -55,7 +55,7 @@ export async function updateClinicianProgram(
       clinicianProgram,
       days,
       clinicianProgramId,
-      cliniciansId
+      clinicianId
     );
   }
   throw new Error("Error updating clinician program");

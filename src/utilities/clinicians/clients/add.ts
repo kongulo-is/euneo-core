@@ -108,19 +108,19 @@ export async function createClinicianClient(
 
 //TODO: TEMOPORARY FUNCTION
 export async function moveClinicianClientsToNewClinician(
-  cliniciansId: string
+  clinicianId: string
 ): Promise<void> {
   try {
-    // 1. get all clients from phsyios/cliniciansId/clients
-    const clinicianRef = doc(db, "clinicians", cliniciansId);
-    const clientsRef = collection(clinicianRef, "clients");
+    // 1. get all clients from phsyios/clinicianId/clients
+    const physioRef = doc(db, "clinicians", clinicianId);
+    const clientsRef = collection(physioRef, "clients");
     const clientsSnapshot = await getDocs(
       clientsRef.withConverter(clinicianClientConverter)
     );
     const clients = clientsSnapshot.docs.map((client) => client.data());
     console.log("clients", clients);
-    // 2. add all clients to clinicians/cliniciansId/clients
-    const clinicianRef = doc(db, "clinicians", cliniciansId);
+    // 2. add all clients to clinicians/clinicianId/clients
+    const clinicianRef = doc(db, "clinicians", clinicianId);
     const clinicianClientsRef = collection(clinicianRef, "clients");
     clients.forEach(async (client) => {
       delete client.prescription;
@@ -131,7 +131,7 @@ export async function moveClinicianClientsToNewClinician(
     });
   } catch (error) {
     console.error("Error moving clinician clients to new clinician:", error, {
-      cliniciansId,
+      clinicianId,
     });
     throw error;
   }

@@ -43,15 +43,15 @@ async function _clientProgram({
 }
 
 // get single clinician client
-export async function geTClinicianClient(
-  cliniciansId: string,
+export async function getClinicianClient(
+  clinicianId: string,
   clinicianClientId: string
 ): Promise<TClinicianClient> {
   try {
     const clinicianClientRef = doc(
       db,
       "clinicians",
-      cliniciansId,
+      clinicianId,
       "clients",
       clinicianClientId
     ) as DocumentReference<TClinicianClientWrite>;
@@ -72,7 +72,7 @@ export async function geTClinicianClient(
     };
   } catch (error) {
     console.error("Error fetching client:", error, {
-      cliniciansId,
+      clinicianId,
       clinicianClientId,
     });
   }
@@ -81,12 +81,12 @@ export async function geTClinicianClient(
 }
 
 // Get all clinician clients
-export async function geTClinicianClients(
-  cliniciansId: string
+export async function getClinicianClients(
+  clinicianId: string
 ): Promise<TClinicianClient[]> {
   try {
     // Get clients data form clinician collection
-    const clinicianRef = doc(db, "clinicians", cliniciansId);
+    const clinicianRef = doc(db, "clinicians", clinicianId);
     const clientsRef = collection(clinicianRef, "clients");
     const snapshot = await getDocs(
       clientsRef.withConverter(clinicianClientConverter)
@@ -117,7 +117,7 @@ export async function geTClinicianClients(
     return clientsData;
   } catch (error) {
     console.error("Error fetching clients:", error, {
-      cliniciansId,
+      clinicianId,
     });
     return [];
   }
