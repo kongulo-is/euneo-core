@@ -70,6 +70,7 @@ export async function addPhysioProgramToClient(
     userProgramDoc.withConverter(clientProgramConverter),
     clientPhysioProgram
   );
+
   const { trainingDays } = clientPhysioProgram;
   const clientProgramDays = createContinuousDays(
     trainingDays,

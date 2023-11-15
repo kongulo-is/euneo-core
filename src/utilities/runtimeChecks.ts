@@ -18,8 +18,9 @@ import {
 import { TOutcomeMeasureId } from "../types/physioTypes";
 import { isEmptyObject } from "./basicHelpers";
 
-const assertTConditionId = (id: TConditionId): void => {
+const assertTConditionId = (id: TConditionId | null): void => {
   const validIds = Object.keys(conditions);
+  if (id === null) return;
   if (!validIds.includes(id)) throw new Error(`Invalid TConditionId: ${id}`);
 };
 
