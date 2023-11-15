@@ -140,10 +140,13 @@ const runtimeChecks = {
         );
     }
 
-    if (!isEmptyObject(obj.outcomeMeasuresAnswers)) {
+    if (
+      obj.outcomeMeasuresAnswers &&
+      !isEmptyObject(obj.outcomeMeasuresAnswers)
+    ) {
       Object.keys(obj.outcomeMeasuresAnswers).forEach((measureId) => {
         const measureAnswers =
-          obj.outcomeMeasuresAnswers[measureId as TOutcomeMeasureId];
+          obj.outcomeMeasuresAnswers![measureId as TOutcomeMeasureId];
         assertArray(
           measureAnswers,
           assertTOutcomeMeasureAnswers,

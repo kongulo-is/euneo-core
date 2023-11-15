@@ -121,7 +121,10 @@ export type TConditionAssessmentAnswer = boolean | string;
  */
 export type TClientProgramBase = {
   conditionId: TConditionId | null;
-  outcomeMeasuresAnswers: Record<TOutcomeMeasureId, TOutcomeMeasureAnswers[]>;
+  outcomeMeasuresAnswers: Record<
+    TOutcomeMeasureId,
+    TOutcomeMeasureAnswers[]
+  > | null;
   painLevels: TPainLevel[];
   physicalInformation: TClientPhysicalInformation;
   trainingDays: boolean[];
@@ -194,7 +197,7 @@ export type TClientProgramWrite = {
   outcomeMeasuresAnswers: Record<
     TOutcomeMeasureId,
     TOutcomeMeasureAnswerWrite[]
-  >;
+  > | null;
   painLevels: TPainLevelWrite[];
   conditionAssessmentAnswers?: Array<boolean | string>;
   trainingDays: boolean[];

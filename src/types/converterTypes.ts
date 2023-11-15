@@ -46,7 +46,7 @@ export type ClientProgramWrite = {
   outcomeMeasuresAnswers: Record<
     TOutcomeMeasureId,
     TOutcomeMeasureAnswerWrite[]
-  >;
+  > | null;
   painLevels: PainLevelWrite[];
   conditionAssessmentAnswers?: Array<boolean | string>;
   trainingDays: boolean[];

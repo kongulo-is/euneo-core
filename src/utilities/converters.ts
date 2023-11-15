@@ -203,16 +203,19 @@ export const clientProgramConverter = {
     const outcomeMeasuresAnswers = {} as Record<
       TOutcomeMeasureId,
       TOutcomeMeasureAnswerWrite[]
-    >;
-    Object.keys(program.outcomeMeasuresAnswers).forEach((measureId) => {
-      const measureAnswers =
-        program.outcomeMeasuresAnswers[measureId as TOutcomeMeasureId];
-      outcomeMeasuresAnswers[measureId as TOutcomeMeasureId] =
-        measureAnswers.map((answer) => ({
-          ...answer,
-          date: Timestamp.fromDate(answer.date),
-        }));
-    });
+    > | null;
+
+    if (program.outcomeMeasuresAnswers) {
+      Object.keys(program.outcomeMeasuresAnswers).forEach((measureId) => {
+        const measureAnswers =
+          program.outcomeMeasuresAnswers![measureId as TOutcomeMeasureId];
+        outcomeMeasuresAnswers![measureId as TOutcomeMeasureId] =
+          measureAnswers.map((answer) => ({
+            ...answer,
+            date: Timestamp.fromDate(answer.date),
+          }));
+      });
+    }
 
     const painLevels = program.painLevels.map((pain) => ({
       ...pain,
@@ -271,14 +274,17 @@ export const clientProgramConverter = {
     const outcomeMeasuresAnswers = {} as Record<
       TOutcomeMeasureId,
       TOutcomeMeasureAnswers[]
-    >;
-    if (!isEmptyObject(data.outcomeMeasuresAnswers)) {
+    > | null;
+    if (
+      data.outcomeMeasuresAnswers &&
+      !isEmptyObject(data.outcomeMeasuresAnswers)
+    ) {
       Object.keys(data.outcomeMeasuresAnswers)?.forEach((measureId) => {
         console.log("measureId", measureId);
 
         const measureAnswers =
-          data.outcomeMeasuresAnswers[measureId as TOutcomeMeasureId];
-        outcomeMeasuresAnswers[measureId as TOutcomeMeasureId] =
+          data.outcomeMeasuresAnswers![measureId as TOutcomeMeasureId];
+        outcomeMeasuresAnswers![measureId as TOutcomeMeasureId] =
           measureAnswers.map((answer) => ({
             ...answer,
             date: answer.date.toDate(),
