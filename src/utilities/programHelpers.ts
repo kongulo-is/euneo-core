@@ -11,7 +11,7 @@ import {
   TPhaseProgram,
   TContinuousProgram,
   TEuneoProgram,
-  TPhysioProgram,
+  TClinicianProgram,
 } from "../types/programTypes";
 import {
   programConverter,
@@ -75,8 +75,8 @@ export async function _getProgramFromRef(
     program = {
       ...programMode,
       mode: "continuous",
-      physioId: programRef.parent.parent.id,
-      physioProgramId: programId,
+      clinicianId: programRef.parent.parent.id,
+      clinicianProgramId: programId,
     };
     return program;
   } else {
@@ -127,7 +127,7 @@ export function createPhase(
 
 export function createContinuousDays(
   trainingDays: Array<boolean>,
-  program: TEuneoProgram | TPhysioProgram,
+  program: TEuneoProgram | TClinicianProgram,
   date: Date,
   length?: number,
   startDayIndex?: number

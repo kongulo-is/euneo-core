@@ -12,10 +12,10 @@ import {
   TClientWrite,
 } from "../types/clientTypes";
 import {
-  TPhysioWrite,
-  TPhysioClientWrite,
-  TPhysioClientRead,
-} from "../types/physioTypes";
+  TClinicianWrite,
+  TClinicianClientWrite,
+  TClinicianClientRead,
+} from "../types/clinicianTypes";
 import {
   TProgramWrite,
   TProgramDayWrite,
@@ -29,8 +29,8 @@ type AllWrites =
   | TClientProgramWrite
   | TClientWrite
   | TClientProgramDayWrite
-  | TPhysioWrite
-  | TPhysioClientWrite
+  | TClinicianWrite
+  | TClinicianClientWrite
   | TProgramWrite
   | TProgramDayWrite
   | TExerciseDayWrite;
@@ -39,7 +39,7 @@ type AllReads =
   | TClientProgramRead
   | TClient
   | TClientProgramDay
-  | TPhysioClientRead
+  | TClinicianClientRead
   | TProgramRead
   | TProgramDayRead
   | TExercise;

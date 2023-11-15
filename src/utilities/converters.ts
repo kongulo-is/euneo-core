@@ -37,11 +37,11 @@ import {
 import runtimeChecks from "./runtimeChecks";
 import {
   TOutcomeMeasureId,
-  TPhysioClientRead,
-  TPhysioClientWrite,
+  TClinicianClientRead,
+  TClinicianClientWrite,
   TPrescription,
   TPrescriptionWrite,
-} from "../types/physioTypes";
+} from "../types/clinicianTypes";
 import { db } from "../firebase/db";
 import { isEmptyObject } from "./basicHelpers";
 
@@ -107,7 +107,7 @@ export const programPhaseConverter = {
 
 export const programConverter = {
   toFirestore(program: TProgramRead): TProgramWrite {
-    // * we only create/edit physio programs
+    // * we only create/edit clinician programs
     let outcomeMeasureRefs: DocumentReference<TOutcomeMeasureWrite>[] = [];
     if (program.outcomeMeasureIds) {
       outcomeMeasureRefs = program.outcomeMeasureIds.map(
@@ -156,9 +156,9 @@ export const programConverter = {
   },
 };
 
-export const physioClientConverter = {
-  toFirestore(client: TPhysioClientRead): TPhysioClientWrite {
-    const data: TPhysioClientWrite = {
+export const clinicianClientConverter = {
+  toFirestore(client: TClinicianClientRead): TClinicianClientWrite {
+    const data: TClinicianClientWrite = {
       name: client.name,
       email: client.email,
       conditionId: client.conditionId,
@@ -176,9 +176,9 @@ export const physioClientConverter = {
   },
 
   fromFirestore(
-    snapshot: QueryDocumentSnapshot<TPhysioClientWrite>,
+    snapshot: QueryDocumentSnapshot<TClinicianClientWrite>,
     options: SnapshotOptions
-  ): TPhysioClientRead {
+  ): TClinicianClientRead {
     const data = snapshot.data(options);
     let { prescription, ...rest } = data;
 
@@ -228,16 +228,16 @@ export const clientProgramConverter = {
         "programs",
         program.euneoProgramId
       ) as DocumentReference<TProgramWrite>;
-    } else if ("physioId" in program) {
+    } else if ("clinicianId" in program) {
       programRef = doc(
         db,
-        "physios",
-        program.physioId,
+        "clinicians",
+        program.clinicianId,
         "programs",
-        program.physioProgramId
+        program.clinicianProgramId
       ) as DocumentReference<TProgramWrite>;
     } else {
-      throw new Error("Program must have either euneoProgramId or physioId");
+      throw new Error("Program must have either euneoProgramId or clinicianId");
     }
 
     const data: TClientProgramWrite = {
@@ -302,14 +302,14 @@ export const clientProgramConverter = {
       };
       runtimeChecks.assertTClientProgram(clientProgram, true);
     } else {
-      const physioProgramId = programRef?.id;
-      const physioId = programRef?.parent.parent!.id;
+      const clinicianProgramId = programRef?.id;
+      const clinicianId = programRef?.parent.parent!.id;
       clientProgram = {
         ...rest,
         outcomeMeasuresAnswers,
         painLevels: painLevelsClient,
-        physioProgramId,
-        physioId,
+        clinicianProgramId,
+        clinicianId,
       };
       runtimeChecks.assertTClientProgram(clientProgram, true);
     }
@@ -424,10 +424,10 @@ export const prescriptionConverter = {
       return {
         programRef: doc(
           db,
-          "physios",
-          prescription.physioId,
+          "clinicians",
+          prescription.clinicianId,
           "programs",
-          prescription.physioProgramId
+          prescription.clinicianProgramId
         ) as DocumentReference<TProgramWrite>,
         prescriptionDate: Timestamp.fromDate(prescription.prescriptionDate),
         status: prescription.status,
@@ -459,8 +459,8 @@ export const prescriptionConverter = {
       prescription = {
         ...rest,
         prescriptionDate: rest.prescriptionDate.toDate(),
-        physioId: programRef.parent.parent.id,
-        physioProgramId: programRef.id,
+        clinicianId: programRef.parent.parent.id,
+        clinicianProgramId: programRef.id,
         ...(clientProgramObj && { ...clientProgramObj }),
       };
     } else {

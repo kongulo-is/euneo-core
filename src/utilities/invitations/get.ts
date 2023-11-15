@@ -9,16 +9,16 @@ import {
 import { db } from "../../firebase/db";
 import { get } from "http";
 
-export function getProgramCode(physioId: string, physioClientId: string) {
+export function getProgramCode(clinicianId: string, clinicianClientId: string) {
   // query the database for the invitation code
   const invitationRef = collection(db, "invitations");
   const q = query(
     invitationRef,
     orderBy("date", "desc"), // assumes the field is named 'date' and we're sorting in descending order
     where(
-      "physioClientRef",
+      "clinicianClientRef",
       "==",
-      doc(db, "physios", physioId, "clients", physioClientId)
+      doc(db, "clinicians", clinicianId, "clients", clinicianClientId)
     )
   );
 

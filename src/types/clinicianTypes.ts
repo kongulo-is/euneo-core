@@ -2,7 +2,7 @@ import { DocumentReference, Timestamp } from "firebase/firestore";
 import {
   TConditionId,
   TEuneoReferenceIds,
-  TPhysioReferenceIds,
+  TClinicianReferenceIds,
 } from "./baseTypes";
 import {
   TClientProgram,
@@ -23,25 +23,25 @@ export type TPrescriptionBase = {
 
 export type TEuneoPrescription = TPrescriptionBase & TEuneoReferenceIds;
 
-export type TPhysioPrescription = TPrescriptionBase & TPhysioReferenceIds;
-export type TPrescription = TEuneoPrescription | TPhysioPrescription;
+export type TClinicianPrescription = TPrescriptionBase & TClinicianReferenceIds;
+export type TPrescription = TEuneoPrescription | TClinicianPrescription;
 
 export type TOutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis" | "pgq";
 
 /**
  * @description Physician data type
  */
-export type TPhysio = {
+export type TClinician = {
   email: string;
   name: string;
 };
 
 /**
- * @description Client info for the physio. Base: stored in firebase.
+ * @description Client info for the clinician. Base: stored in firebase.
  * @param prescription Prescription given to the client
  * @param clientId Id of the client in client collection after client has accepted the prescription.
  */
-export type TPhysioClientBase = {
+export type TClinicianClientBase = {
   name: string;
   email: string;
   date: Date;
@@ -49,16 +49,16 @@ export type TPhysioClientBase = {
   prescription?: TPrescription;
 };
 
-export type TPhysioClientRead = TPhysioClientBase;
+export type TClinicianClientRead = TClinicianClientBase;
 
 /**
- * @description Client info for the physio.
- * @param physioClientId Id of the client in physio collection.
+ * @description Client info for the clinician.
+ * @param clinicianClientId Id of the client in clinician collection.
  * @param status Status of the client (Active, Not Started, Inactive, No Prescription) (not stored in firebase).
  * @param clientProgram clients program data/progress form client collection. (progress, days, pain levels, etc.)
  */
-export type TPhysioClient = TPhysioClientBase & {
-  physioClientId: string;
+export type TClinicianClient = TClinicianClientBase & {
+  clinicianClientId: string;
   status?: TClientStatus;
   clientProgram?: TClientProgram;
 };
@@ -66,29 +66,29 @@ export type TPhysioClient = TPhysioClientBase & {
 // ! Write types
 
 /**
- * @description physio invite to client.
+ * @description clinician invite to client.
  * @path /invitations/{invitationId}
  */
 export type TInvitationWrite = {
   code: string;
-  physioClientRef: DocumentReference<TPhysioClientWrite>;
+  clinicianClientRef: DocumentReference<TClinicianClientWrite>;
   date: Timestamp;
 };
 
 /**
- * @description physio data as it is stored in the database in physio collection
- * @path /physios/{physioId}
+ * @description clinician data as it is stored in the database in clinician collection
+ * @path /clinicians/{clinicianId}
  */
-export type TPhysioWrite = {
+export type TClinicianWrite = {
   email: string;
   name: string;
 };
 
 /**
- * @description physio client data as it is stored in client subcollection in physio collection
- * @path /physios/{physioId}/clients/{physioClientId}
+ * @description clinician client data as it is stored in client subcollection in clinician collection
+ * @path /clinicians/{clinicianId}/clients/{clinicianClientId}
  */
-export type TPhysioClientWrite = {
+export type TClinicianClientWrite = {
   name: string;
   email: string;
   date: Timestamp;
@@ -97,8 +97,8 @@ export type TPhysioClientWrite = {
 };
 
 /**
- * @description prescription data as it is stored in client subcollection in physio collection
- * @path /physios/{physioId}/clients/{physioClientId}
+ * @description prescription data as it is stored in client subcollection in clinician collection
+ * @path /clinicians/{clinicianId}/clients/{clinicianClientId}
  */
 export type TPrescriptionWrite = {
   clientProgramRef?: DocumentReference<TClientProgramWrite>;

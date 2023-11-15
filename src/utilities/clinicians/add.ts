@@ -1,18 +1,18 @@
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../../firebase/db";
 
-export async function createPhysio(
-  physioId: string,
+export async function createClinician(
+  clinicianId: string,
   email: string,
   name: string
 ): Promise<boolean> {
   try {
-    const physioRef = doc(db, "physios", physioId);
-    await setDoc(physioRef, { email, name });
+    const clinicianRef = doc(db, "clinicians", clinicianId);
+    await setDoc(clinicianRef, { email, name });
     return true;
   } catch (error) {
-    console.error("Error creating physio:", error, {
-      physioId,
+    console.error("Error creating clinician:", error, {
+      clinicianId,
       email,
       name,
     });

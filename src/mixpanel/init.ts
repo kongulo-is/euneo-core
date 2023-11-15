@@ -8,7 +8,7 @@ type EuneoMixpanelData = {
   data: {
     distinct_id: string;
     condition_id: TConditionId | null;
-    physio_id: string;
+    clinician_id: string;
     program_id: string;
   };
 };

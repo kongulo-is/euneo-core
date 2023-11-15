@@ -1,5 +1,5 @@
 /**
- * ! Þetta er ekki physioClient heldur client
+ * ! Þetta er ekki clinicianClient heldur client
  */
 
 import { Timestamp, DocumentReference, DocumentData } from "firebase/firestore";
@@ -7,10 +7,10 @@ import {
   TConditionId,
   TEuneoReferenceIds,
   TPhysicalActivity,
-  TPhysioReferenceIds,
+  TClinicianReferenceIds,
 } from "./baseTypes";
 import { TProgramWrite } from "./programTypes";
-import { TOutcomeMeasureId, TPhysioClientWrite } from "./physioTypes";
+import { TOutcomeMeasureId, TClinicianClientWrite } from "./clinicianTypes";
 
 /**
  * @description Client data from client collection
@@ -135,11 +135,12 @@ export type TClientProgramBase = {
 export type TClientEuneoProgramRead = TClientProgramBase & TEuneoReferenceIds;
 
 // Specific properties for each case
-export type TClientPhysioProgramRead = TClientProgramBase & TPhysioReferenceIds;
+export type TClientClinicianProgramRead = TClientProgramBase &
+  TClinicianReferenceIds;
 
 export type TClientProgramRead =
   | TClientEuneoProgramRead
-  | TClientPhysioProgramRead;
+  | TClientClinicianProgramRead;
 
 // * Here are types after converter
 
@@ -148,7 +149,8 @@ type TClientProgramId = {
   days: TClientProgramDay[];
 };
 
-export type TClientPhysioProgram = TClientPhysioProgramRead & TClientProgramId;
+export type TClientClinicianProgram = TClientClinicianProgramRead &
+  TClientProgramId;
 
 export type TClientEuneoProgram = TClientEuneoProgramRead & TClientProgramId;
 
@@ -158,7 +160,7 @@ export type TClientEuneoProgram = TClientEuneoProgramRead & TClientProgramId;
  * and the subcollection data
  * /clients/{clientId}/programs/{programId}/days/{dayId}
  */
-export type TClientProgram = TClientPhysioProgram | TClientEuneoProgram;
+export type TClientProgram = TClientClinicianProgram | TClientEuneoProgram;
 
 // ! Write types
 

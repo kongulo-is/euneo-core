@@ -3,18 +3,18 @@ import { db } from "../../../firebase/db";
 import {
   TProgramRead,
   TProgramDayRead,
-  TPhysioProgram,
+  TClinicianProgram,
 } from "../../../types/programTypes";
 import { programConverter, programDayConverter } from "../../converters";
 
-export async function createPhysioProgram(
+export async function createClinicianProgram(
   continuousProgram: TProgramRead,
   days: Record<`d${number}`, TProgramDayRead>,
-  physioId: string
-): Promise<TPhysioProgram> {
+  clinicianId: string
+): Promise<TClinicianProgram> {
   try {
-    const physioRef = doc(db, "physios", physioId);
-    const programsRef = collection(physioRef, "programs");
+    const clinicianRef = doc(db, "clinicians", clinicianId);
+    const programsRef = collection(clinicianRef, "programs");
     const programRef = await addDoc(
       programsRef.withConverter(programConverter),
       continuousProgram // * There is no error because
@@ -28,21 +28,21 @@ export async function createPhysioProgram(
       { merge: true }
     );
 
-    const physioProgram: TPhysioProgram = {
+    const clinicianProgram: TClinicianProgram = {
       ...continuousProgram,
       days,
       mode: "continuous",
-      physioProgramId: programRef.id,
-      physioId,
+      clinicianProgramId: programRef.id,
+      clinicianId,
     };
 
-    return physioProgram;
+    return clinicianProgram;
   } catch (error) {
-    console.error("Error creating physio program:", error, {
+    console.error("Error creating clinician program:", error, {
       continuousProgram,
       days,
-      physioId,
+      clinicianId,
     });
   }
-  throw new Error("Error creating physio program");
+  throw new Error("Error creating clinician program");
 }

@@ -3,60 +3,60 @@ import { db } from "../../../firebase/db";
 import {
   TProgramRead,
   TProgramDayRead,
-  TPhysioProgram,
+  TClinicianProgram,
   TProgramWrite,
   TProgramDayWrite,
 } from "../../../types/programTypes";
 import { programConverter, programDayConverter } from "../../converters";
 
-export async function updatePhysioProgram(
-  physioProgram: TProgramRead,
+export async function updateClinicianProgram(
+  clinicianProgram: TProgramRead,
   days: Record<`d${number}`, TProgramDayRead>,
-  physioProgramId: string,
-  physioId: string
-): Promise<TPhysioProgram> {
+  clinicianProgramId: string,
+  clinicianId: string
+): Promise<TClinicianProgram> {
   try {
     const programRef = doc(
       db,
-      "physios",
-      physioId,
+      "clinicians",
+      clinicianId,
       "programs",
-      physioProgramId
+      clinicianProgramId
     ) as DocumentReference<TProgramWrite>;
 
     // convert and update program.
-    const programConverted = programConverter.toFirestore(physioProgram);
+    const programConverted = programConverter.toFirestore(clinicianProgram);
     await updateDoc(programRef, programConverted);
 
     // convert and update program days.
     const day = programDayConverter.toFirestore(days["d1"]);
     const dayRef = doc(
       db,
-      "physios",
-      physioId,
+      "clinicians",
+      clinicianId,
       "programs",
-      physioProgramId,
+      clinicianProgramId,
       "days",
       "d1"
     ) as DocumentReference<TProgramDayWrite>;
     await updateDoc(dayRef, day);
 
     return {
-      ...physioProgram,
+      ...clinicianProgram,
       mode: "continuous",
       days,
-      physioProgramId,
-      physioId,
+      clinicianProgramId,
+      clinicianId,
     };
   } catch (error) {
     console.error(
-      "Error updating physio program: ",
+      "Error updating clinician program: ",
       error,
-      physioProgram,
+      clinicianProgram,
       days,
-      physioProgramId,
-      physioId
+      clinicianProgramId,
+      clinicianId
     );
   }
-  throw new Error("Error updating physio program");
+  throw new Error("Error updating clinician program");
 }
