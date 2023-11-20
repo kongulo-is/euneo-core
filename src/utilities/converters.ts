@@ -274,8 +274,6 @@ export const clientProgramConverter = {
     >;
     if (!isEmptyObject(data.outcomeMeasuresAnswers)) {
       Object.keys(data.outcomeMeasuresAnswers)?.forEach((measureId) => {
-        console.log("measureId", measureId);
-
         const measureAnswers =
           data.outcomeMeasuresAnswers[measureId as TOutcomeMeasureId];
         outcomeMeasuresAnswers[measureId as TOutcomeMeasureId] =

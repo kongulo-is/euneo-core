@@ -24,10 +24,8 @@ export function getProgramCode(clinicianId: string, clinicianClientId: string) {
 
   return getDocs(q).then((querySnapshot) => {
     const [newestDoc] = querySnapshot.docs; // destructuring to get the first doc
-    console.log("QUERY, ", querySnapshot);
 
     if (newestDoc) {
-      console.log(newestDoc.id, " => ", newestDoc.data());
       const code = newestDoc.data().code;
       return code; // Assumes code is a string. Format it here if necessary.
     }

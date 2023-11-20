@@ -285,8 +285,6 @@ export async function addPhaseToClientProgram(
   await updateDoc(programRef, {
     phases: programPhases,
   });
-
-  console.log("AddNewPhase func finished!!!");
 }
 
 export async function addContinuousDaysToClientProgram(

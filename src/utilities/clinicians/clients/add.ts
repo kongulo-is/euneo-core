@@ -118,7 +118,6 @@ export async function moveClinicianClientsToNewClinician(
       clientsRef.withConverter(clinicianClientConverter)
     );
     const clients = clientsSnapshot.docs.map((client) => client.data());
-    console.log("clients", clients);
     // 2. add all clients to clinicians/clinicianId/clients
     const clinicianRef = doc(db, "clinicians", clinicianId);
     const clinicianClientsRef = collection(clinicianRef, "clients");
