@@ -91,7 +91,7 @@ export async function convertUser(userId: string): Promise<boolean> {
             minutes: 0,
           },
         },
-        showCompletedExerrcises: false,
+        showCompletedExercises: false,
       },
     };
     transaction.set(clientRef, clientData);
@@ -108,7 +108,14 @@ export async function convertUser(userId: string): Promise<boolean> {
             return {
               date: assessment.date,
               outcomeMeasureId: "faam",
-              sections: assessment.sections,
+              sections: assessment.sections.map(
+                (section: any, index: number) => {
+                  return {
+                    ...section,
+                    sectionName: index === 0 ? "Activites" : "Sports",
+                  };
+                }
+              ),
             };
           }),
         },
