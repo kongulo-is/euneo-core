@@ -31,8 +31,6 @@ export async function checkIfClientExists(clientId: string): Promise<boolean> {
 }
 
 export async function getClient(clientId: string): Promise<TClient> {
-  console.log("GETTING");
-
   const clientRef = doc(
     db,
     "clients",
@@ -40,8 +38,6 @@ export async function getClient(clientId: string): Promise<TClient> {
   ) as DocumentReference<TClientRead>;
 
   const clientDoc = await getDoc(clientRef.withConverter(clientConverter));
-
-  console.log("userDoc.data()", clientDoc.data());
 
   const clientData = clientDoc.data();
 
@@ -67,13 +63,10 @@ export async function convertUser(userId: string): Promise<boolean> {
     const userDoc = await transaction.get(userRef);
 
     if (!userDoc.exists()) {
-      console.log("User does not exist!");
       // signOut(auth);
       createClientDocument(userId, "", "unknown");
       return false;
     }
-
-    console.log("Document data:", userDoc.data());
 
     // create the client
     const clientRef = doc(db, "clients", userId);
@@ -188,8 +181,6 @@ export async function convertUser(userId: string): Promise<boolean> {
       currentProgramRef: doc(programRef, newProgram.id),
     });
 
-    console.log("newProgram", newProgram);
-
     // create days subcollection
     // map through days and create each day
     await Promise.all(
@@ -223,19 +214,12 @@ export async function clientDocumentListener(
 ): Promise<Unsubscribe> {
   const clientRef = doc(db, "clients", clientId);
 
-  console.log("CLIENTID", clientId);
-
   const unsubscribe = onSnapshot(clientRef, async (doc) => {
     if (doc.exists()) {
       // Document exists, call the callback to handle the data
-      console.log("Client exists, calling callback ...");
       await callback();
     } else {
       // Document does not exist
-
-      console.log(
-        "Client does not exist, checking if user exists and converting if so ..."
-      );
       const did = await convertUser(clientId);
       did && (await callback());
     }

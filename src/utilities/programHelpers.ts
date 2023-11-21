@@ -143,8 +143,6 @@ export function createContinuousDays(
 
   d.setHours(0, 0, 0, 0);
   for (let i = 0; i < iterator; i++) {
-    console.log(`Date ${i + 1}: `, d.toDateString());
-
     const dayId = dayIdList[dayIndex % dayIdList.length];
     const infoDay = program.days[dayId];
 
