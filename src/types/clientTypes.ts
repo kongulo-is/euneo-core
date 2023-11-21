@@ -75,6 +75,7 @@ export type TOutcomeMeasureAnswers = {
  * @param answers array of answeres to questions (0-4)
  */
 export type TOutcomeMeasureAnswerSection = {
+  sectionName: string;
   score: number;
   answers: (number | null)[];
 };
