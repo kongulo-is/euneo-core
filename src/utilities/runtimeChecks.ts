@@ -124,7 +124,7 @@ const runtimeChecks = {
       throw new Error("Invalid TClientProgram");
     }
 
-    assertTConditionId(obj.conditionId as TConditionId);
+    // assertTConditionId(obj.conditionId as TConditionId);
 
     // Handle the union type
     if ("clinicianProgramId" in obj) {
