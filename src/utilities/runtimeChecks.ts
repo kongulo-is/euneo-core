@@ -20,8 +20,8 @@ import { isEmptyObject } from "./basicHelpers";
 
 const assertTConditionId = (id: TConditionId | null): void => {
   const validIds = Object.keys(conditions);
-  if (id === null) return;
-  if (!validIds.includes(id)) throw new Error(`Invalid TConditionId: ${id}`);
+  if (id !== null && !validIds.includes(id))
+    throw new Error(`Invalid TConditionId: ${id}`);
 };
 
 const assertTOutcomeMeasureAnswers = (obj: TOutcomeMeasureAnswers): void => {
