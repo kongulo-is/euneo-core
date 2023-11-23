@@ -28,8 +28,11 @@ export type TClinicianReferenceIds = {
 //   }[];
 // };
 
+// TODO: go over this type together
 export type TExerciseType =
   | "Stretch"
+  | "StretchTime"
+  | "StrengthReps"
   | "Strength"
   | "Release"
   | "Balance"
@@ -39,7 +42,14 @@ export type TExerciseType =
   | "Massage"
   | "Jumps"
   | "Taping"
-  | "Other"; //TODO: remove other when all exercises have the new types in database
+  | "Other" //TODO: remove other when all exercises have the new types in database
+  | "ReleaseReps"
+  | "BalanceTime"
+  | "PlanksTime"
+  | "MobilityTime"
+  | "MobilityReps"
+  | "MassageSets"
+  | "JumpsReps";
 
 /**
  * @description Exercise in exercise collection
@@ -51,6 +61,8 @@ export type TExerciseType =
 export type TExercise = {
   id: string;
   description: string;
+  startPreview: number;
+  thumbnailTimestamp: number;
   name: string;
   steps: string[];
   tips: string[];
@@ -114,6 +126,8 @@ export type TEuneoProgramId =
 
 export type TExerciseWrite = {
   description: string;
+  startPreview: number;
+  thumbnailTimestamp: number;
   name: string;
   steps: string[];
   tips: string[];
