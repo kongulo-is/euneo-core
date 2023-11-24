@@ -28,28 +28,17 @@ export type TClinicianReferenceIds = {
 //   }[];
 // };
 
-// TODO: go over this type together
+export type TExerciseField = "Sets" | "Reps" | "Time";
+
 export type TExerciseType =
-  | "Stretch"
-  | "StretchTime"
-  | "StrengthReps"
   | "Strength"
+  | "Planks"
+  | "Mobility"
+  | "Stretch"
   | "Release"
   | "Balance"
-  | "Planks"
-  | "MobilityTime"
-  | "MobilityReps"
-  | "Massage"
   | "Jumps"
-  | "Taping"
-  | "Other" //TODO: remove other when all exercises have the new types in database
-  | "ReleaseReps"
-  | "BalanceTime"
-  | "PlanksTime"
-  | "MobilityTime"
-  | "MobilityReps"
-  | "MassageSets"
-  | "JumpsReps";
+  | "Taping";
 
 /**
  * @description Exercise in exercise collection
@@ -71,6 +60,7 @@ export type TExercise = {
     assetID: string;
   };
   type: TExerciseType;
+  editableFields: TExerciseField[];
 };
 
 export type TSectionGroup = {
