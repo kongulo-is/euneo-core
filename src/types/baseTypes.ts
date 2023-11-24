@@ -49,7 +49,7 @@ export type TExerciseType =
  */
 export type TExercise = {
   id: string;
-  description: string;
+  variation: string;
   startPreview: number;
   thumbnailTimestamp: number;
   name: string;
@@ -59,9 +59,9 @@ export type TExercise = {
     displayID: string;
     assetID: string;
   };
-  sets: number | null;
-  reps: number | null;
-  time: number | null;
+  defaultSets: number | null;
+  defaultReps: number | null;
+  defaultTime: number | null;
   type: TExerciseType;
   editableFields: TExerciseField[];
 };
