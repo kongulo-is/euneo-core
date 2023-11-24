@@ -59,6 +59,9 @@ export type TExercise = {
     displayID: string;
     assetID: string;
   };
+  sets: number | null;
+  reps: number | null;
+  time: number | null;
   type: TExerciseType;
   editableFields: TExerciseField[];
 };
