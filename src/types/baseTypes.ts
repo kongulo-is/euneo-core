@@ -119,7 +119,7 @@ export type TEuneoProgramId =
 // ! Write types
 
 export type TExerciseWrite = {
-  description: string;
+  variation: string;
   startPreview: number;
   thumbnailTimestamp: number;
   name: string;
@@ -129,7 +129,11 @@ export type TExerciseWrite = {
     displayID: string;
     assetID: string;
   };
+  defaultSets: number | null;
+  defaultReps: number | null;
+  defaultTime: number | null;
   type: TExerciseType;
+  editableFields: TExerciseField[];
 };
 
 export type TGender = "male" | "female" | "other";
