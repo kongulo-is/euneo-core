@@ -120,6 +120,7 @@ export type TEuneoProgramId =
 // ! Write types
 
 export type TExerciseWrite = {
+  // TODO: þarf að vera á meðan gamla programmið er inni
   description: string;
   variation: string;
   startPreview: number;
