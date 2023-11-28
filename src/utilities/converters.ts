@@ -88,7 +88,7 @@ export const programPhaseConverter = {
       ...phase,
       days: phase.days.map((day) =>
         // @ts-ignore // TODO: Skoða þetta (vantar programId til að geta skrifað í db en það er ekki í phase)
-        doc(db, "testPrograms", programId, "days", day)
+        doc(db, "programs", programId, "days", day)
       ),
     };
   },
@@ -417,7 +417,7 @@ export const prescriptionConverter = {
       return {
         programRef: doc(
           db,
-          "testPrograms",
+          "programs",
           prescription.euneoProgramId
         ) as DocumentReference<TProgramWrite>,
         prescriptionDate: Timestamp.fromDate(prescription.prescriptionDate),

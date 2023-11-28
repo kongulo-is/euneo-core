@@ -69,12 +69,9 @@ export async function getProgramFromCode(code: string): Promise<{
 export async function getAllEuneoPrograms(): Promise<TEuneoProgram[]> {
   const euneoPrograms: TEuneoProgram[] = [];
 
-  const ref = collection(
-    db,
-    "testPrograms"
-  ) as CollectionReference<TProgramWrite>;
+  const ref = collection(db, "programs") as CollectionReference<TProgramWrite>;
 
-  const query = await getDocs(collection(db, "testPrograms"));
+  const query = await getDocs(collection(db, "programs"));
 
   // map and _getProgramFromRef for each program
   const programs = query.docs.map((doc) => {
@@ -93,13 +90,13 @@ export async function getAllEuneoPrograms(): Promise<TEuneoProgram[]> {
   return euneoPrograms;
 }
 
-// TODO: Breyta testPrograms í programs þegar við erum búnir að uppfæra db
+// TODO: Breyta programs í programs þegar við erum búnir að uppfæra db
 export async function getEuneoProgramWithDays(
   euneoProgramId: TEuneoProgramId
 ): Promise<TEuneoProgram> {
   let programRef = doc(
     db,
-    "testPrograms",
+    "programs",
     euneoProgramId
   ) as DocumentReference<TProgramWrite>;
 
