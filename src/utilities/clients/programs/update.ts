@@ -1,5 +1,6 @@
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../../firebase/db";
+import { TClientProgramWrite } from "../../../types/clientTypes";
 
 export async function updateProgramDay(
   clientId: string,
@@ -55,9 +56,11 @@ export async function updateProgramDayDate(
       dayId
     );
 
-    updateDoc(day, {
+    return await updateDoc(day, {
       date: newDate,
-    });
+    })
+      .then(() => true)
+      .catch(() => false);
   } catch (error) {
     console.error("Error updating program day: ", error, {
       clientId,
@@ -67,4 +70,24 @@ export async function updateProgramDayDate(
     });
     throw error;
   }
+}
+
+export async function updateProgramFields(
+  clientId: string,
+  clientProgramId: string,
+  fields: Partial<TClientProgramWrite>
+) {
+  const clientProgramRef = doc(
+    db,
+    "clients",
+    clientId,
+    "programs",
+    clientProgramId
+  );
+
+  return await updateDoc(clientProgramRef, {
+    ...fields,
+  })
+    .then(() => true)
+    .catch(() => false);
 }
