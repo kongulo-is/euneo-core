@@ -51,12 +51,14 @@ import { isEmptyObject } from "./basicHelpers";
 export const programDayConverter = {
   toFirestore(day: TProgramDayRead): TProgramDayWrite {
     return {
-      exercises: day.exercises.map((e) => ({
-        reference: doc(db, "exercises", e.exerciseId),
-        time: e.time,
-        reps: e.reps,
-        sets: e.sets,
-      })),
+      exercises: day.exercises.map((e) => {
+        return {
+          reference: doc(db, "exercises", e.exerciseId),
+          time: e.time,
+          reps: e.reps,
+          sets: e.sets,
+        };
+      }),
     };
   },
 
@@ -70,6 +72,21 @@ export const programDayConverter = {
     const convertedExercises =
       exercises?.map((exercise) => {
         const { reference, ...rest } = exercise;
+
+        // @ts-ignore this is for users with deprecated programs
+        if (typeof exercise.quantity === "number") {
+          const time = exercise.reps >= 15 ? exercise.reps : 0;
+          // @ts-ignore
+          const reps = exercise.reps >= 15 ? exercise.quantity : exercise.reps;
+          return {
+            ...rest,
+            time: time,
+            reps: reps === 1 && exercise.sets === 1 ? 0 : reps,
+            sets: exercise.sets,
+            exerciseId: reference.id,
+          };
+        }
+
         return {
           ...rest,
           exerciseId: reference.id,
@@ -98,6 +115,25 @@ export const programPhaseConverter = {
     options: SnapshotOptions
   ): TProgramPhaseRead {
     const data = snapshot.data(options);
+
+    // @ts-ignore this is for users with deprecated programs
+    if (data?.nextPhase?.[0].id) {
+      return {
+        ...data,
+        days: data.days.map((day) => day.id as `d${number}`),
+        nextPhase: data.nextPhase.map((phase) => {
+          // @ts-ignore
+          const { id, minPain, maxPain, ...rest } = phase;
+          return {
+            ...rest,
+            phaseId: id,
+            minPainLevel: minPain,
+            maxPainLevel: maxPain,
+          };
+        }),
+      };
+    }
+
     return {
       ...data,
       days: data.days.map((day) => day.id as `d${number}`),
