@@ -78,7 +78,6 @@ export type TOutcomeMeasureAnswerSection = {
   sectionName: string;
   score: number;
   answers: (number | null)[];
-  sectionName: string;
 };
 
 /**

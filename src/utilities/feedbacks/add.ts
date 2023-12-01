@@ -5,7 +5,8 @@ import { TFeedbackAnswer } from "../../types/baseTypes";
 //TODO: fix feedback type any.
 export async function createFeedback(
   feedbackAnswers: TFeedbackAnswer[],
-  clientId: string
+  clientId: string,
+  platform: string
 ) {
   try {
     const clientRef = doc(db, "clients", clientId);
@@ -14,6 +15,7 @@ export async function createFeedback(
       date: new Date(),
       answers: feedbackAnswers,
       client: clientRef,
+      platform,
     });
   } catch (error) {
     console.error("Error creating feedback document: ", error, {
