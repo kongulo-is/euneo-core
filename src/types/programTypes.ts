@@ -49,6 +49,7 @@ export type TConditionAssessmentQuestion = {
   title: string;
   type: "boolean" | "option";
   options: string[];
+  initialPhase?: string[];
 };
 
 // Specific Program Types
