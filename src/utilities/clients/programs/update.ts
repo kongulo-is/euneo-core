@@ -1,6 +1,10 @@
-import { doc, updateDoc } from "firebase/firestore";
+import { DocumentReference, doc } from "firebase/firestore";
 import { db } from "../../../firebase/db";
-import { TClientProgramWrite } from "../../../types/clientTypes";
+import {
+  TClientProgramDayWrite,
+  TClientProgramWrite,
+} from "../../../types/clientTypes";
+import { updateDoc } from "../../updateDoc";
 
 export async function updateProgramDay(
   clientId: string,
@@ -19,7 +23,7 @@ export async function updateProgramDay(
       clientProgramId,
       "days",
       dayId.toString()
-    );
+    ) as DocumentReference<TClientProgramDayWrite>;
 
     updateDoc(day, {
       adherence: adherence,
@@ -54,7 +58,7 @@ export async function updateProgramDayDate(
       clientProgramId,
       "days",
       dayId
-    );
+    ) as DocumentReference<TClientProgramDayWrite>;
 
     return await updateDoc(day, {
       date: newDate,
@@ -83,10 +87,29 @@ export async function updateProgramFields(
     clientId,
     "programs",
     clientProgramId
-  );
+  ) as DocumentReference<TClientProgramWrite>;
 
   return await updateDoc(clientProgramRef, {
     ...fields,
+  })
+    .then(() => true)
+    .catch(() => false);
+}
+
+export async function completeProgram(
+  clientId: string,
+  clientProgramId: string
+) {
+  const clientProgramRef = doc(
+    db,
+    "clients",
+    clientId,
+    "programs",
+    clientProgramId
+  ) as DocumentReference<TClientProgramWrite>;
+
+  return await updateDoc(clientProgramRef, {
+    completed: true,
   })
     .then(() => true)
     .catch(() => false);

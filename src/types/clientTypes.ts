@@ -78,7 +78,6 @@ export type TOutcomeMeasureAnswerSection = {
   sectionName: string;
   score: number;
   answers: (number | null)[];
-  sectionName: string;
 };
 
 /**
@@ -132,6 +131,7 @@ export type TClientProgramBase = {
   trainingDays: boolean[];
   conditionAssessmentAnswers?: TConditionAssessmentAnswer[];
   phases?: TPhase[];
+  completed?: boolean;
 };
 
 /**
@@ -205,6 +205,7 @@ export type TClientProgramWrite = {
   trainingDays: boolean[];
   physicalInformation: TClientPhysicalInformation;
   phases?: TPhase[];
+  completed?: boolean;
 };
 
 export type TOutcomeMeasureAnswerWrite = {
