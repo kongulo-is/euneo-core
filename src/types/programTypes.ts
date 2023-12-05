@@ -38,6 +38,7 @@ export type TProgramPhaseBase = {
   nextPhase?: TNextPhase[];
   finalPhase: boolean;
   description?: string;
+  mode: "finite" | "continuous" | "maintenance";
 };
 
 export type TProgramPhaseRead = TProgramPhaseBase;
