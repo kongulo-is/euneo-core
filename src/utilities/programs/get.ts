@@ -71,10 +71,12 @@ export async function getAllEuneoPrograms(): Promise<TEuneoProgram[]> {
 
   const ref = collection(db, "programs") as CollectionReference<TProgramWrite>;
 
-  const query = await getDocs(collection(db, "programs"));
+  const querySnapshot = await getDocs(
+    query(collection(db, "programs"), where("isLive", "==", true))
+  );
 
   // map and _getProgramFromRef for each program
-  const programs = query.docs.map((doc) => {
+  const programs = querySnapshot.docs.map((doc) => {
     const ref = doc.ref as DocumentReference<TProgramWrite>;
     return _getProgramFromRef(ref);
   });

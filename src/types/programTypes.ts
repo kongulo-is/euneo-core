@@ -96,6 +96,7 @@ export type TPhaseProgram = TProgramRead & {
 
 export type TEuneoProgram = (TContinuousProgram | TPhaseProgram) & {
   euneoProgramId: TEuneoProgramId;
+  isLive: boolean;
   version?: string;
 };
 
