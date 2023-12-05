@@ -79,6 +79,7 @@ export type TProgramBase = {
   outcomeMeasureIds?: TOutcomeMeasureId[];
   conditionAssessment?: TConditionAssessmentQuestion[];
   conditionId: TConditionId | null;
+  isLive?: boolean;
 };
 
 export type TProgramRead = TProgramBase;
@@ -96,7 +97,6 @@ export type TPhaseProgram = TProgramRead & {
 
 export type TEuneoProgram = (TContinuousProgram | TPhaseProgram) & {
   euneoProgramId: TEuneoProgramId;
-  isLive: boolean;
   version?: string;
 };
 
