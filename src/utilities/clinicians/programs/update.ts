@@ -6,11 +6,13 @@ import {
   TClinicianProgram,
   TProgramWrite,
   TProgramDayWrite,
+  TProgramPhaseRead,
 } from "../../../types/programTypes";
 import { programConverter, programDayConverter } from "../../converters";
 
 export async function updateClinicianProgram(
   clinicianProgram: TProgramRead,
+  phases: Record<`p${number}`, TProgramPhaseRead>,
   days: Record<`d${number}`, TProgramDayRead>,
   clinicianProgramId: string,
   clinicianId: string
@@ -43,6 +45,7 @@ export async function updateClinicianProgram(
 
     return {
       ...clinicianProgram,
+      phases,
       days,
       clinicianProgramId,
       clinicianId,
