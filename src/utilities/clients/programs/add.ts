@@ -61,7 +61,8 @@ async function _addDaysToFirestore(
 export async function addClinicianProgramToClient(
   clientId: string,
   clientClinicianProgram: TClientClinicianProgramRead,
-  program: TClinicianProgram
+  program: TClinicianProgram,
+  startPhase: `p${number}`
 ): Promise<TClientClinicianProgram> {
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
@@ -74,6 +75,7 @@ export async function addClinicianProgramToClient(
   const clientProgramDays = createContinuousDays(
     trainingDays,
     program,
+    startPhase,
     new Date()
   );
 
@@ -125,7 +127,8 @@ export async function addEuneoProgramToClient(
 ): Promise<{ clientProgram: TClientEuneoProgram }> {
   // const { clinicianId, conditionId, clinicianProgramId, days } = clinicianProgram;
 
-  const phaseProgram = program.mode === "phase";
+  const programPhases = program.phases;
+  const isFinite = programPhases[phaseId].mode === "finite";
 
   let phaseDays: `d${number}`[] = [];
   let currentPhaseLength = 0;
@@ -134,7 +137,7 @@ export async function addEuneoProgramToClient(
 
   const { trainingDays } = clientProgramRead;
 
-  if (phaseProgram) {
+  if (isFinite) {
     const currentPhase = program.phases[phaseId];
     phaseDays = currentPhase.days;
     currentPhaseLength = currentPhase.length;
@@ -146,7 +149,12 @@ export async function addEuneoProgramToClient(
       currentPhaseLength
     );
   } else {
-    clientProgramDays = createContinuousDays(trainingDays, program, new Date());
+    clientProgramDays = createContinuousDays(
+      trainingDays,
+      program,
+      phaseId,
+      new Date()
+    );
   }
 
   // Store the program in the Firestore database

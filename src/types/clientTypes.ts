@@ -10,7 +10,7 @@ import {
   TClinicianReferenceIds,
 } from "./baseTypes";
 import { TProgramWrite } from "./programTypes";
-import { TOutcomeMeasureId, TClinicianClientWrite } from "./clinicianTypes";
+import { TOutcomeMeasureId } from "./clinicianTypes";
 
 /**
  * @description Client data from client collection
@@ -90,7 +90,7 @@ export type TOutcomeMeasureAnswerSection = {
  */
 export type TClientProgramDay = {
   dayId: `d${number}`;
-  phaseId?: `p${number}`;
+  phaseId: `p${number}`;
   date: Date;
   finished: boolean;
   adherence: number;
@@ -130,7 +130,7 @@ export type TClientProgramBase = {
   physicalInformation: TClientPhysicalInformation;
   trainingDays: boolean[];
   conditionAssessmentAnswers?: TConditionAssessmentAnswer[];
-  phases?: TPhase[];
+  phases: TPhase[];
   completed?: boolean;
 };
 
@@ -204,7 +204,7 @@ export type TClientProgramWrite = {
   conditionAssessmentAnswers?: Array<boolean | string>;
   trainingDays: boolean[];
   physicalInformation: TClientPhysicalInformation;
-  phases?: TPhase[];
+  phases: TPhase[];
   completed?: boolean;
 };
 

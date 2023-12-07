@@ -2,15 +2,10 @@ import { Timestamp, DocumentReference } from "@firebase/firestore";
 import { TConditionId, TExerciseType } from "./baseTypes";
 import {
   TClientPhysicalInformation,
-  TOutcomeMeasureAnswerSection,
   TOutcomeMeasureAnswerWrite,
   TPhase,
 } from "./clientTypes";
-import {
-  TConditionAssessmentQuestion,
-  TNextPhase,
-  TProgramMode,
-} from "./programTypes";
+import { TConditionAssessmentQuestion, TNextPhase } from "./programTypes";
 import { DocumentData } from "firebase/firestore";
 import { TOutcomeMeasureId, TPrescriptionStatus } from "./clinicianTypes";
 
@@ -29,7 +24,7 @@ export type ClientWrite = {
 
 export type ClientProgramDayWrite = {
   dayId: `d${number}`;
-  phaseId?: string;
+  phaseId: string;
   date: Timestamp;
   finished: boolean;
   adherence: number;
@@ -38,10 +33,7 @@ export type ClientProgramDayWrite = {
 };
 
 export type ClientProgramWrite = {
-  programRef: DocumentReference<
-    ContinuousProgramWrite | PhaseProgramWrite,
-    DocumentData
-  >;
+  programRef: DocumentReference<PhaseProgramWrite, DocumentData>;
   conditionId: TConditionId;
   outcomeMeasuresAnswers: Record<
     TOutcomeMeasureId,
@@ -51,7 +43,7 @@ export type ClientProgramWrite = {
   conditionAssessmentAnswers?: Array<boolean | string>;
   trainingDays: boolean[];
   physicalInformation: TClientPhysicalInformation;
-  phases?: TPhase[];
+  phases: TPhase[];
 };
 
 type PainLevelWrite = {
@@ -109,7 +101,6 @@ export type ProgramWrite = {
   conditionId: TConditionId;
   outcomeMeasureRefs: DocumentReference[]; // Always exists but might be empty
   conditionAssessment: TConditionAssessmentQuestion[]; // Always exists but might be empty
-  mode: TProgramMode;
   version: string;
 };
 
@@ -122,19 +113,7 @@ export type PhaseProgramWrite = {
   conditionId: TConditionId;
   outcomeMeasureRefs: DocumentReference[];
   conditionAssessment?: TConditionAssessmentQuestion[];
-  mode: "phase";
   version: string;
-};
-
-/**
- * @description custom program data as it is stored in the database in program subcollection in clinician collection
- * @path /clinicians/{clinicianId}/programs/{programId}
- */
-export type ContinuousProgramWrite = {
-  name: string;
-  conditionId: TConditionId;
-  outcomeMeasureRefs: DocumentReference[];
-  mode: "continuous";
 };
 
 /**
@@ -153,9 +132,10 @@ export type ProgramDayWrite = {
  */
 export type ProgramPhaseWrite = {
   days: DocumentReference[];
-  length: number;
+  length?: number;
   nextPhase?: TNextPhase[];
   finalPhase: boolean;
+  mode: "finite" | "continuous" | "maintenance";
 };
 
 /**

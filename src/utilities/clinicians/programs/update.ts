@@ -43,7 +43,6 @@ export async function updateClinicianProgram(
 
     return {
       ...clinicianProgram,
-      mode: "continuous",
       days,
       clinicianProgramId,
       clinicianId,

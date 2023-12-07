@@ -40,7 +40,7 @@ export async function getClinicianProgramsWithDays(
       programsRef.withConverter(programConverter)
     );
 
-    // for each program, get the days
+    // for each program, get the phases and days
     const daysSnap = await Promise.all(
       programsSnap.docs.map((doc) =>
         getDocs(collection(doc.ref, "days").withConverter(programDayConverter))
@@ -56,7 +56,6 @@ export async function getClinicianProgramsWithDays(
         days,
         clinicianProgramId: doc.id,
         clinicianId,
-        mode: "continuous",
       };
     });
 

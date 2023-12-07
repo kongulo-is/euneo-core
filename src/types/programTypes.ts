@@ -20,7 +20,7 @@ export type TProgramDayExercise = {
 
 export type TNextPhase = {
   phaseId: `p${number}`;
-  length: number;
+  length?: number;
   maxPainLevel: number;
   minPainLevel: number;
 };
@@ -30,11 +30,10 @@ export type TProgramDay = { exercises: TProgramDayExercise[] };
 export type TProgramDayRead = TProgramDay;
 
 // Common Types
-export type TProgramMode = "continuous" | "phase";
 
 export type TProgramPhaseBase = {
   days: `d${number}`[];
-  length: number;
+  length?: number;
   nextPhase?: TNextPhase[];
   finalPhase: boolean;
   description?: string;
@@ -43,7 +42,16 @@ export type TProgramPhaseBase = {
 
 export type TProgramPhaseRead = TProgramPhaseBase;
 
-export type TProgramPhase = TProgramPhaseRead;
+export type TProgramFinitePhase = TProgramPhaseRead & {
+  length: number;
+  mode: "finite";
+};
+
+export type TProgramContinuousPhase = TProgramPhaseRead & {
+  mode: "continuous" | "maintenance";
+};
+
+export type TProgramPhase = TProgramFinitePhase | TProgramContinuousPhase;
 
 export type TConditionAssessmentQuestion = {
   question: string;
@@ -53,30 +61,10 @@ export type TConditionAssessmentQuestion = {
   initialPhase?: string[];
 };
 
-// Specific Program Types
-// export interface TContinuousProgram {
-//   name: string;
-//   conditionId: TConditionId;
-//   outcomeMeasureIds?: TOutcomeMeasureId[];
-//   days: Record<`d${number}`, TProgramDay>;
-//   mode: "continuous";
-// }
-
-// export interface TPhaseProgram {
-//   name: string;
-//   conditionId: TConditionId;
-//   days: Record<`d${number}`, TProgramDay>;
-//   mode: "phase";
-//   phases: Record<`p${number}`, TProgramPhase>;
-//   outcomeMeasureIds?: TOutcomeMeasureId[];
-//   conditionAssessment?: TProgramQuestion[];
-// }
-
 // Exported Types
 
 export type TProgramBase = {
   name: string;
-  mode: TProgramMode;
   outcomeMeasureIds?: TOutcomeMeasureId[];
   conditionAssessment?: TConditionAssessmentQuestion[];
   conditionId: TConditionId | null;
@@ -85,23 +73,17 @@ export type TProgramBase = {
 
 export type TProgramRead = TProgramBase;
 
-export type TContinuousProgram = TProgramRead & {
-  days: Record<`d${number}`, TProgramDay>;
-  mode: "continuous";
-};
-
 export type TPhaseProgram = TProgramRead & {
   days: Record<`d${number}`, TProgramDay>;
   phases: Record<`p${number}`, TProgramPhase>;
-  mode: "phase";
 };
 
-export type TEuneoProgram = (TContinuousProgram | TPhaseProgram) & {
+export type TEuneoProgram = TPhaseProgram & {
   euneoProgramId: TEuneoProgramId;
   version?: string;
 };
 
-export type TClinicianProgram = TContinuousProgram & {
+export type TClinicianProgram = TPhaseProgram & {
   clinicianProgramId: string;
   clinicianId: string;
 };
@@ -119,7 +101,6 @@ export type TProgramWrite = {
   conditionId: TConditionId | null;
   outcomeMeasureRefs: DocumentReference<TOutcomeMeasureWrite>[]; // Always exists but might be empty
   conditionAssessment: TConditionAssessmentQuestion[]; // Always exists but might be empty
-  mode: TProgramMode;
   version: string;
 };
 
@@ -139,9 +120,10 @@ export type TProgramDayWrite = {
  */
 export type TProgramPhaseWrite = {
   days: DocumentReference[];
-  length: number;
+  length?: number;
   nextPhase?: TNextPhase[];
   finalPhase: boolean;
+  mode: "finite" | "continuous" | "maintenance";
 };
 
 /**

@@ -164,7 +164,6 @@ export const programConverter = {
     const data: TProgramWrite = {
       name: program.name,
       conditionId: program.conditionId,
-      mode: program.mode,
       outcomeMeasureRefs,
       conditionAssessment,
       version: "1",
@@ -286,14 +285,11 @@ export const clientProgramConverter = {
       programRef: programRef,
       trainingDays: program.trainingDays,
       physicalInformation: program.physicalInformation,
+      phases: program.phases,
     };
 
     if ("conditionAssessmentAnswers" in program) {
       data["conditionAssessmentAnswers"] = program.conditionAssessmentAnswers;
-    }
-
-    if ("phases" in program) {
-      data.phases = program.phases;
     }
 
     return data;
@@ -562,10 +558,6 @@ export const clientConverter = {
 //       outcomeMeasureRefs?.map(
 //         (measure: DocumentReference) => measure.id as TOutcomeMeasureId
 //       ) || [];
-
-//     if (rest.mode === "phase") {
-//     }
-
 //     return {
 //       ...rest,
 //       ...(outcomeMeasureIds.length && { outcomeMeasureIds }),

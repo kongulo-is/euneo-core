@@ -9,7 +9,6 @@ import {
   TProgramWrite,
   TProgram,
   TPhaseProgram,
-  TContinuousProgram,
   TEuneoProgram,
   TClinicianProgram,
 } from "../types/programTypes";
@@ -18,7 +17,7 @@ import {
   programDayConverter,
   programPhaseConverter,
 } from "./converters";
-import { TClientProgram, TClientProgramDay } from "../types/clientTypes";
+import { TClientProgramDay } from "../types/clientTypes";
 
 export async function _fetchProgramBase(
   programRef: DocumentReference<TProgramWrite>
@@ -53,28 +52,21 @@ export async function _fetchPhases(programRef: DocumentReference) {
 export async function _getProgramFromRef(
   programRef: DocumentReference<TProgramWrite>
 ): Promise<TProgram> {
-  const [programBase, days] = await Promise.all([
+  const [programBase, phases, days] = await Promise.all([
     _fetchProgramBase(programRef),
+    _fetchPhases(programRef),
     _fetchDays(programRef),
   ]);
 
   const programId = programRef.id;
 
-  let programMode: TPhaseProgram | TContinuousProgram;
-
-  if (programBase.mode === "phase") {
-    const phases = await _fetchPhases(programRef);
-    programMode = { ...programBase, days, phases, mode: "phase" };
-  } else {
-    programMode = { ...programBase, days, mode: "continuous" };
-  }
+  const programMode: TPhaseProgram = { ...programBase, days, phases };
 
   let program: TProgram;
 
   if (programRef.parent.parent) {
     program = {
       ...programMode,
-      mode: "continuous",
       clinicianId: programRef.parent.parent.id,
       clinicianProgramId: programId,
     };
@@ -128,6 +120,7 @@ export function createPhase(
 export function createContinuousDays(
   trainingDays: Array<boolean>,
   program: TEuneoProgram | TClinicianProgram,
+  phaseId: `p${number}`,
   date: Date,
   length?: number,
   startDayIndex?: number
@@ -150,6 +143,7 @@ export function createContinuousDays(
 
     dayList.push({
       dayId: dayId,
+      phaseId: phaseId,
       date: new Date(d),
       finished: false,
       adherence: 0,
