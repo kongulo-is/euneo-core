@@ -39,19 +39,18 @@ export type TProgramPhaseBase = {
   description?: string;
   mode: "finite" | "continuous" | "maintenance";
 };
-
-export type TProgramPhaseRead = TProgramPhaseBase;
-
-export type TProgramFinitePhase = TProgramPhaseRead & {
+export type TProgramFinitePhase = TProgramPhaseBase & {
   length: number;
   mode: "finite";
 };
 
-export type TProgramContinuousPhase = TProgramPhaseRead & {
+export type TProgramContinuousPhase = TProgramPhaseBase & {
   mode: "continuous" | "maintenance";
 };
 
-export type TProgramPhase = TProgramFinitePhase | TProgramContinuousPhase;
+export type TProgramPhaseRead = TProgramFinitePhase | TProgramContinuousPhase;
+
+export type TProgramPhase = TProgramPhaseRead;
 
 export type TConditionAssessmentQuestion = {
   question: string;
@@ -73,17 +72,17 @@ export type TProgramBase = {
 
 export type TProgramRead = TProgramBase;
 
-export type TPhaseProgram = TProgramRead & {
+export type TProgramWithSubCollections = TProgramRead & {
   days: Record<`d${number}`, TProgramDay>;
   phases: Record<`p${number}`, TProgramPhase>;
 };
 
-export type TEuneoProgram = TPhaseProgram & {
+export type TEuneoProgram = TProgramWithSubCollections & {
   euneoProgramId: TEuneoProgramId;
   version?: string;
 };
 
-export type TClinicianProgram = TPhaseProgram & {
+export type TClinicianProgram = TProgramWithSubCollections & {
   clinicianProgramId: string;
   clinicianId: string;
 };
@@ -123,6 +122,7 @@ export type TProgramPhaseWrite = {
   length?: number;
   nextPhase?: TNextPhase[];
   finalPhase: boolean;
+  description?: string;
   mode: "finite" | "continuous" | "maintenance";
 };
 

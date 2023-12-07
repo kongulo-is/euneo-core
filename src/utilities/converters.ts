@@ -15,8 +15,10 @@ import {
 } from "@firebase/firestore";
 import {
   TConditionAssessmentQuestion,
+  TProgramContinuousPhase,
   TProgramDayRead,
   TProgramDayWrite,
+  TProgramFinitePhase,
   TProgramPhaseRead,
   TProgramPhaseWrite,
   TProgramRead,
@@ -116,8 +118,10 @@ export const programPhaseConverter = {
   ): TProgramPhaseRead {
     const data = snapshot.data(options);
 
+    // TODO: remove this when all users have updated programs, this is for users with deprecated programs
     // @ts-ignore this is for users with deprecated programs
     if (data?.nextPhase?.[0].id) {
+      // @ts-ignore this is for users with deprecated programs
       return {
         ...data,
         days: data.days.map((day) => day.id as `d${number}`),
@@ -134,10 +138,24 @@ export const programPhaseConverter = {
       };
     }
 
-    return {
-      ...data,
-      days: data.days.map((day) => day.id as `d${number}`),
-    };
+    if (data.mode === "finite" && data.length) {
+      const finitePhase: TProgramFinitePhase = {
+        ...data,
+        days: data.days.map((day) => day.id as `d${number}`),
+        length: data.length,
+        mode: data.mode,
+      };
+      return finitePhase;
+    } else if (data.mode === "continuous" || data.mode === "maintenance") {
+      const continuousPhase: TProgramContinuousPhase = {
+        ...data,
+        days: data.days.map((day) => day.id as `d${number}`),
+        mode: data.mode,
+      };
+      return continuousPhase;
+    } else {
+      throw new Error("Invalid program phase");
+    }
   },
 };
 
