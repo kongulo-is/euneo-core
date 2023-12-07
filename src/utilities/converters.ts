@@ -111,7 +111,6 @@ export const programPhaseConverter = {
       ),
     };
   },
-
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TProgramPhaseWrite>,
     options: SnapshotOptions

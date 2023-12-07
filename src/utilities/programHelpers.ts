@@ -8,8 +8,6 @@ import { TEuneoProgramId } from "../types/baseTypes";
 import {
   TProgramWrite,
   TProgram,
-  TEuneoProgram,
-  TClinicianProgram,
   TProgramWithSubCollections,
   TProgramPhase,
 } from "../types/programTypes";
