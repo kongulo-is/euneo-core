@@ -91,7 +91,7 @@ export async function convertUser(userId: string): Promise<boolean> {
 
     // Convert the program if user has program
     const program = userDoc.data()?.programs?.["plantar-heel-pain"];
-    if (program) {
+    if (program && program.days.length > 0) {
       const { days } = program;
       const programData = {
         conditionAssessmentAnswers: program.general,
@@ -145,65 +145,6 @@ export async function convertUser(userId: string): Promise<boolean> {
     }
 
     // If you reach this point without errors, the transaction will commit automatically
-    return true;
-
-    // convert the program if user has program
-    // const program = userDoc.data()?.programs?.["plantar-heel-pain"];
-
-    const { days } = program;
-
-    // create program
-    const programRef = collection(clientRef, "programs");
-    const newProgram = await addDoc(programRef, {
-      conditionAssessmentAnswers: program.general,
-      conditionId: "plantar-heel-pain",
-      outcomeMeasuresAnswers: {
-        faam: program.assessments.map((assessment: any) => {
-          return {
-            date: assessment.date,
-            outcomeMeasureId: "faam",
-            sections: assessment.sections,
-          };
-        }),
-      },
-      painLevels: program.painLevel,
-      phases: program.phases.map((phase: any) => {
-        const phaseId = Object.keys(phase)[0];
-        const length = phase[phaseId];
-        return { key: phaseId, value: length };
-      }),
-      physicalInformation: program.userInfo,
-      programRef: doc(db, "programs", "plantar-heel-pain"),
-      trainingDays: program.trainingDays,
-    });
-
-    await updateDoc(clientRef, {
-      currentProgramRef: doc(programRef, newProgram.id),
-    });
-
-    // create days subcollection
-    // map through days and create each day
-    await Promise.all(
-      days.map((day: any, i: number) => {
-        const dayCol = doc(
-          clientRef,
-          "programs",
-          newProgram.id,
-          "days",
-          i.toString()
-        );
-        return setDoc(dayCol, {
-          adherence: day.adherence,
-          date: day.date,
-          exercises: day.exercises,
-          finished: day.finished,
-          phaseId: day.phaseId,
-          dayId: day.id,
-          restDay: day.restDay,
-        });
-      })
-    );
-
     return true;
   });
 }
