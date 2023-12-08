@@ -48,7 +48,13 @@ export type TProgramContinuousPhase = TProgramPhaseBase & {
   mode: "continuous" | "maintenance";
 };
 
-export type TProgramPhaseRead = TProgramFinitePhase | TProgramContinuousPhase;
+export type TProgramPhaseRead = (
+  | TProgramFinitePhase
+  | TProgramContinuousPhase
+) & {
+  programId: string;
+  clinicianId?: string;
+};
 
 export type TProgramPhase = TProgramPhaseRead;
 

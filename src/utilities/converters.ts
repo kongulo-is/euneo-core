@@ -103,19 +103,32 @@ export const programDayConverter = {
 
 export const programPhaseConverter = {
   toFirestore(phase: TProgramPhaseRead): TProgramPhaseWrite {
-    return {
-      ...phase,
-      days: phase.days.map((day) =>
-        // @ts-ignore // TODO: Skoða þetta (vantar programId til að geta skrifað í db en það er ekki í phase)
-        doc(db, "programs", programId, "days", day)
-      ),
-    };
+    if ("clinicianId" in phase && phase.clinicianId) {
+      const { clinicianId, programId, ...rest } = phase;
+      return {
+        ...rest,
+        days: phase.days.map((day) =>
+          doc(db, "clinicians", clinicianId, "programs", programId, "days", day)
+        ),
+      };
+    } else {
+      const { programId, ...rest } = phase;
+      return {
+        ...rest,
+        days: phase.days.map((day) =>
+          doc(db, "programs", programId, "days", day)
+        ),
+      };
+    }
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TProgramPhaseWrite>,
     options: SnapshotOptions
   ): TProgramPhaseRead {
     const data = snapshot.data(options);
+
+    const programId = snapshot.id;
+    const clinicianId = snapshot.ref.parent.parent?.id;
 
     // TODO: remove this when all users have updated programs, this is for users with deprecated programs
     // @ts-ignore this is for users with deprecated programs
@@ -144,14 +157,22 @@ export const programPhaseConverter = {
         length: data.length,
         mode: data.mode,
       };
-      return finitePhase;
+      return {
+        ...finitePhase,
+        programId,
+        ...(clinicianId && { clinicianId }),
+      };
     } else if (data.mode === "continuous" || data.mode === "maintenance") {
       const continuousPhase: TProgramContinuousPhase = {
         ...data,
         days: data.days.map((day) => day.id as `d${number}`),
         mode: data.mode,
       };
-      return continuousPhase;
+      return {
+        ...continuousPhase,
+        programId,
+        ...(clinicianId && { clinicianId }),
+      };
     } else {
       throw new Error("Invalid program phase");
     }
