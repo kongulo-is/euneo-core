@@ -6,7 +6,11 @@ import {
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import { TClinicianProgram, TProgramWrite } from "../../../types/programTypes";
-import { programConverter, programDayConverter } from "../../converters";
+import {
+  programConverter,
+  programDayConverter,
+  programPhaseConverter,
+} from "../../converters";
 import { _getProgramFromRef } from "../../programHelpers";
 
 export async function getClinicianProgramWithDays(
@@ -30,7 +34,7 @@ export async function getClinicianProgramWithDays(
   return clinicianProgram;
 }
 
-export async function getClinicianProgramsWithDays(
+export async function getClinicianProgramsWithSubcollections(
   clinicianId: string
 ): Promise<TClinicianProgram[]> {
   try {
@@ -40,7 +44,15 @@ export async function getClinicianProgramsWithDays(
       programsRef.withConverter(programConverter)
     );
 
-    // for each program, get the days
+    // for each program, get the phases and days
+    // TODO: Try doing both at the same time?
+    const phasesSnap = await Promise.all(
+      programsSnap.docs.map((doc) =>
+        getDocs(
+          collection(doc.ref, "phases").withConverter(programPhaseConverter)
+        )
+      )
+    );
     const daysSnap = await Promise.all(
       programsSnap.docs.map((doc) =>
         getDocs(collection(doc.ref, "days").withConverter(programDayConverter))
@@ -48,15 +60,18 @@ export async function getClinicianProgramsWithDays(
     );
     // map the days to the programs
     const programs: TClinicianProgram[] = programsSnap.docs.map((doc, i) => {
+      const phases = Object.fromEntries(
+        phasesSnap[i].docs.map((doc) => [doc.id, doc.data()])
+      );
       const days = Object.fromEntries(
         daysSnap[i].docs.map((doc) => [doc.id, doc.data()])
       );
       return {
         ...doc.data(),
+        phases,
         days,
         clinicianProgramId: doc.id,
         clinicianId,
-        mode: "continuous",
       };
     });
 

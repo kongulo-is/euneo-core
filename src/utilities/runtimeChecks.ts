@@ -169,7 +169,8 @@ const runtimeChecks = {
     assertTypeString(obj.name, "name");
     assertTypeString(obj.clinicianProgramId, "clinicianProgramId");
     assertTypeString(obj.clinicianId, "clinicianId");
-    assertTypeString(obj.mode, "mode");
+    // TODO: Skoða þetta seinna
+    // assertTypeString(obj.mode, "mode");
 
     obj.conditionId && assertTConditionId(obj.conditionId);
 
@@ -211,12 +212,6 @@ const runtimeChecks = {
         "exercises"
       );
     });
-
-    if (obj.mode === "continuous") {
-      // Continuous mode specific validation, if any
-    } else {
-      throw new Error("Invalid mode");
-    }
   },
 };
 

@@ -15,8 +15,10 @@ import {
 } from "@firebase/firestore";
 import {
   TConditionAssessmentQuestion,
+  TProgramContinuousPhase,
   TProgramDayRead,
   TProgramDayWrite,
+  TProgramFinitePhase,
   TProgramPhaseRead,
   TProgramPhaseWrite,
   TProgramRead,
@@ -101,23 +103,37 @@ export const programDayConverter = {
 
 export const programPhaseConverter = {
   toFirestore(phase: TProgramPhaseRead): TProgramPhaseWrite {
-    return {
-      ...phase,
-      days: phase.days.map((day) =>
-        // @ts-ignore // TODO: Skoða þetta (vantar programId til að geta skrifað í db en það er ekki í phase)
-        doc(db, "programs", programId, "days", day)
-      ),
-    };
+    if ("clinicianId" in phase && phase.clinicianId) {
+      const { clinicianId, programId, ...rest } = phase;
+      return {
+        ...rest,
+        days: phase.days.map((day) =>
+          doc(db, "clinicians", clinicianId, "programs", programId, "days", day)
+        ),
+      };
+    } else {
+      const { programId, ...rest } = phase;
+      return {
+        ...rest,
+        days: phase.days.map((day) =>
+          doc(db, "programs", programId, "days", day)
+        ),
+      };
+    }
   },
-
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TProgramPhaseWrite>,
     options: SnapshotOptions
   ): TProgramPhaseRead {
     const data = snapshot.data(options);
 
+    const programId = snapshot.id;
+    const clinicianId = snapshot.ref.parent.parent?.id;
+
+    // TODO: remove this when all users have updated programs, this is for users with deprecated programs
     // @ts-ignore this is for users with deprecated programs
     if (data?.nextPhase?.[0].id) {
+      // @ts-ignore this is for users with deprecated programs
       return {
         ...data,
         days: data.days.map((day) => day.id as `d${number}`),
@@ -134,10 +150,32 @@ export const programPhaseConverter = {
       };
     }
 
-    return {
-      ...data,
-      days: data.days.map((day) => day.id as `d${number}`),
-    };
+    if (data.mode === "finite" && data.length) {
+      const finitePhase: TProgramFinitePhase = {
+        ...data,
+        days: data.days.map((day) => day.id as `d${number}`),
+        length: data.length,
+        mode: data.mode,
+      };
+      return {
+        ...finitePhase,
+        programId,
+        ...(clinicianId && { clinicianId }),
+      };
+    } else if (data.mode === "continuous" || data.mode === "maintenance") {
+      const continuousPhase: TProgramContinuousPhase = {
+        ...data,
+        days: data.days.map((day) => day.id as `d${number}`),
+        mode: data.mode,
+      };
+      return {
+        ...continuousPhase,
+        programId,
+        ...(clinicianId && { clinicianId }),
+      };
+    } else {
+      throw new Error("Invalid program phase");
+    }
   },
 };
 
@@ -164,7 +202,6 @@ export const programConverter = {
     const data: TProgramWrite = {
       name: program.name,
       conditionId: program.conditionId,
-      mode: program.mode,
       outcomeMeasureRefs,
       conditionAssessment,
       version: "1",
@@ -286,14 +323,11 @@ export const clientProgramConverter = {
       programRef: programRef,
       trainingDays: program.trainingDays,
       physicalInformation: program.physicalInformation,
+      phases: program.phases,
     };
 
     if ("conditionAssessmentAnswers" in program) {
       data["conditionAssessmentAnswers"] = program.conditionAssessmentAnswers;
-    }
-
-    if ("phases" in program) {
-      data.phases = program.phases;
     }
 
     return data;
@@ -562,10 +596,6 @@ export const clientConverter = {
 //       outcomeMeasureRefs?.map(
 //         (measure: DocumentReference) => measure.id as TOutcomeMeasureId
 //       ) || [];
-
-//     if (rest.mode === "phase") {
-//     }
-
 //     return {
 //       ...rest,
 //       ...(outcomeMeasureIds.length && { outcomeMeasureIds }),

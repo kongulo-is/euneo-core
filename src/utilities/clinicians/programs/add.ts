@@ -4,20 +4,27 @@ import {
   TProgramRead,
   TProgramDayRead,
   TClinicianProgram,
+  TProgramPhaseRead,
 } from "../../../types/programTypes";
-import { programConverter, programDayConverter } from "../../converters";
+import {
+  programConverter,
+  programDayConverter,
+  programPhaseConverter,
+} from "../../converters";
 
 export async function createClinicianProgram(
-  continuousProgram: TProgramRead,
+  clinicianProgramRead: TProgramRead,
+  phases: Record<`p${number}`, TProgramPhaseRead>,
   days: Record<`d${number}`, TProgramDayRead>,
   clinicianId: string
 ): Promise<TClinicianProgram> {
   try {
     const clinicianRef = doc(db, "clinicians", clinicianId);
     const programsRef = collection(clinicianRef, "programs");
+
     const programRef = await addDoc(
       programsRef.withConverter(programConverter),
-      continuousProgram // * There is no error because
+      clinicianProgramRead // * There is no error because
     );
 
     const daysRef = collection(programRef, "days");
@@ -28,10 +35,20 @@ export async function createClinicianProgram(
       { merge: true }
     );
 
+    const phasesRef = collection(programRef, "phases");
+
+    const phase = { ...phases["p1"], programId: programRef.id };
+
+    await setDoc(
+      doc(phasesRef.withConverter(programPhaseConverter), "p1"),
+      phase,
+      { merge: true }
+    );
+
     const clinicianProgram: TClinicianProgram = {
-      ...continuousProgram,
+      ...clinicianProgramRead,
+      phases,
       days,
-      mode: "continuous",
       clinicianProgramId: programRef.id,
       clinicianId,
     };
@@ -39,7 +56,7 @@ export async function createClinicianProgram(
     return clinicianProgram;
   } catch (error) {
     console.error("Error creating clinician program:", error, {
-      continuousProgram,
+      clinicianProgramRead,
       days,
       clinicianId,
     });

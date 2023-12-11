@@ -5,8 +5,6 @@ import {
   setDoc,
   DocumentReference,
   updateDoc,
-  getDoc,
-  DocumentData,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import {
@@ -21,19 +19,17 @@ import {
   TPainLevel,
   TPhase,
 } from "../../../types/clientTypes";
-import { TEuneoProgram, TClinicianProgram } from "../../../types/programTypes";
+import {
+  TEuneoProgram,
+  TClinicianProgram,
+  TProgramFinitePhase,
+} from "../../../types/programTypes";
 import {
   clientProgramConverter,
   clientProgramDayConverter,
 } from "../../converters";
-import {
-  TOutcomeMeasureId,
-  TClinicianClientWrite,
-  TPrescriptionWrite,
-} from "../../../types/clinicianTypes";
-import { createContinuousDays, createPhase } from "../../programHelpers";
-import { getClinicianClient } from "../../clinicians/clients/get";
-import { updateClinicianClientPrescriptionStatus } from "../../clinicians/clients/update";
+import { TOutcomeMeasureId } from "../../../types/clinicianTypes";
+import { createPhase } from "../../programHelpers";
 
 async function _addDaysToFirestore(
   clientId: string,
@@ -61,7 +57,8 @@ async function _addDaysToFirestore(
 export async function addClinicianProgramToClient(
   clientId: string,
   clientClinicianProgram: TClientClinicianProgramRead,
-  program: TClinicianProgram
+  program: TClinicianProgram,
+  startPhase: `p${number}` = "p1"
 ): Promise<TClientClinicianProgram> {
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
@@ -71,10 +68,12 @@ export async function addClinicianProgramToClient(
     clientClinicianProgram
   );
   const { trainingDays } = clientClinicianProgram;
-  const clientProgramDays = createContinuousDays(
+  const clientProgramDays = createPhase(
     trainingDays,
     program,
-    new Date()
+    startPhase,
+    new Date(),
+    14
   );
 
   await Promise.all(
@@ -123,31 +122,19 @@ export async function addEuneoProgramToClient(
   program: TEuneoProgram,
   phaseId: `p${number}`
 ): Promise<{ clientProgram: TClientEuneoProgram }> {
-  // const { clinicianId, conditionId, clinicianProgramId, days } = clinicianProgram;
+  const { trainingDays, phases } = clientProgramRead;
 
-  const phaseProgram = program.mode === "phase";
+  // const currentPhase = program.phases[phaseId];
+  const phaseLength = phases[phases.length - 1].value;
+  const length = phaseLength;
 
-  let phaseDays: `d${number}`[] = [];
-  let currentPhaseLength = 0;
-
-  let clientProgramDays: TClientProgramDay[] = [];
-
-  const { trainingDays } = clientProgramRead;
-
-  if (phaseProgram) {
-    const currentPhase = program.phases[phaseId];
-    phaseDays = currentPhase.days;
-    currentPhaseLength = currentPhase.length;
-    clientProgramDays = createPhase(
-      trainingDays,
-      program,
-      phaseId,
-      new Date(),
-      currentPhaseLength
-    );
-  } else {
-    clientProgramDays = createContinuousDays(trainingDays, program, new Date());
-  }
+  const clientProgramDays: TClientProgramDay[] = createPhase(
+    trainingDays,
+    program,
+    phaseId,
+    new Date(),
+    length
+  );
 
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
@@ -157,7 +144,6 @@ export async function addEuneoProgramToClient(
     clientProgramRead
   );
 
-  // let clientProgramDays: TClientProgramDay[] = [];
   let d = new Date();
   d.setHours(0, 0, 0, 0);
 
