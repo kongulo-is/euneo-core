@@ -58,7 +58,7 @@ export async function addClinicianProgramToClient(
   clientId: string,
   clientClinicianProgram: TClientClinicianProgramRead,
   program: TClinicianProgram,
-  startPhase: `p${number}`
+  startPhase: `p${number}` = "p1"
 ): Promise<TClientClinicianProgram> {
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
