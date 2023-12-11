@@ -122,13 +122,11 @@ export async function addEuneoProgramToClient(
   program: TEuneoProgram,
   phaseId: `p${number}`
 ): Promise<{ clientProgram: TClientEuneoProgram }> {
-  const programPhases = program.phases;
-  const isFinite = programPhases[phaseId].mode === "finite";
+  const { trainingDays, phases } = clientProgramRead;
 
-  const { trainingDays } = clientProgramRead;
-
-  const currentPhase = program.phases[phaseId];
-  const length = isFinite ? (currentPhase as TProgramFinitePhase).length : 14;
+  // const currentPhase = program.phases[phaseId];
+  const phaseLength = phases[phases.length - 1].value;
+  const length = phaseLength;
 
   const clientProgramDays: TClientProgramDay[] = createPhase(
     trainingDays,

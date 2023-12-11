@@ -63,7 +63,7 @@ export type TConditionAssessmentQuestion = {
   title: string;
   type: "boolean" | "option";
   options: string[];
-  initialPhase?: string[];
+  initialPhases?: { phaseId: `p${number}`; length?: number }[];
 };
 
 // Exported Types
