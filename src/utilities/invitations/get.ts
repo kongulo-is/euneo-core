@@ -7,9 +7,16 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
-import { get } from "http";
+import { TInvitation } from "../../types/clinicianTypes";
 
-export function getProgramCode(clinicianId: string, clinicianClientId: string) {
+export function getProgramCode(
+  clinicianId: string,
+  clinicianClientId: string
+): Promise<TInvitation> {
+  let invitation: TInvitation = {
+    code: "",
+    date: new Date(),
+  };
   // query the database for the invitation code
   const invitationRef = collection(db, "invitations");
   const q = query(
@@ -26,10 +33,12 @@ export function getProgramCode(clinicianId: string, clinicianClientId: string) {
     const [newestDoc] = querySnapshot.docs; // destructuring to get the first doc
 
     if (newestDoc) {
-      const code = newestDoc.data().code;
-      return code; // Assumes code is a string. Format it here if necessary.
+      const data = newestDoc.data();
+      invitation.code = data.code;
+      invitation.date = data.date.toDate();
+      return invitation; // Assumes code is a string. Format it here if necessary.
     }
 
-    return ""; // return an empty string if no documents were found
+    return invitation; // return an empty string if no documents were found
   });
 }

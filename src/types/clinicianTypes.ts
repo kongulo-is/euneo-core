@@ -75,6 +75,11 @@ export type TInvitationWrite = {
   date: Timestamp;
 };
 
+export type TInvitation = {
+  code: string;
+  date: Date;
+};
+
 /**
  * @description clinician data as it is stored in the database in clinician collection
  * @path /clinicians/{clinicianId}
