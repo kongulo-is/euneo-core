@@ -12,8 +12,11 @@ export const conditions: Conditions = {
   "post-surgery": "Post Surgery",
   "ankle-sprain": "Ankle Sprain",
   "knee-replacement": "Knee Replacement",
-  "achilles-tendonitis": "Achilles Tendonitis",
   "severs-disease": "Sever's disease",
+  "plantar-fasciitis": "Plantar Fasciitis",
+  "achilles-tendinopathy": "Achilles Tendinopathy",
+  "patellar-tendinopathy": "Patellar Tendinopathy",
+  "osgood-schlatter-disease": "Osgood Schlatter Disease",
   // "no-condition": "No Condition",
 };
 

@@ -99,7 +99,6 @@ export type TOutcomeMeasure = TOutcomeMeasureBase & {
 export type TOutcomeMeasureWrite = TOutcomeMeasureBase;
 
 export type TConditionId =
-  | "plantar-heel-pain"
   | "acl-treatment"
   | "pulled-hamstring"
   | "calf-injury"
@@ -108,9 +107,12 @@ export type TConditionId =
   | "post-surgery"
   | "ankle-sprain"
   | "knee-replacement"
-  | "achilles-tendonitis"
+  | "patellar-tendinopathy"
+  | "achilles-tendinopathy"
+  | "osgood-schlatter-disease"
+  | "plantar-fasciitis"
+  | "plantar-heel-pain"
   | "severs-disease";
-// | "no-condition";
 
 export type TEuneoProgramId =
   | "plantar-heel-pain"
