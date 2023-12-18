@@ -108,8 +108,11 @@ export type TConditionId =
 
 export type TEuneoProgramId =
   | "plantar-heel-pain"
-  | "plantar-heel-pain-2.0"
-  | "plantar-heel-pain-3.0";
+  | "severs-disease"
+  | "plantar-fasciitis"
+  | "achilles-tendinopathy"
+  | "osgood-schlatter-disease"
+  | "ankle-sprain";
 
 // ! Write types
 
