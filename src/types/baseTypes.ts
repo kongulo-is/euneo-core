@@ -112,7 +112,7 @@ export type TEuneoProgramId =
   | "plantar-fasciitis"
   | "achilles-tendinopathy"
   | "osgood-schlatter-disease"
-  | "ankle-sprain";
+  | "lateral-ankle-sprain";
 
 // ! Write types
 

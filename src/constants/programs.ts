@@ -8,7 +8,7 @@ export const programs: Programs = {
   "plantar-fasciitis": "Plantar Fasciitis",
   "achilles-tendinopathy": "Achilles Tendinopathy",
   "osgood-schlatter-disease": "Osgood-Schlatter Disease",
-  "ankle-sprain": "Ankle Sprain",
+  "lateral-ankle-sprain": "Lateral Ankle Sprain",
 };
 
 export const programOptions = Object.entries(programs).map(
