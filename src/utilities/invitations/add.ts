@@ -3,7 +3,8 @@ import { db } from "../../firebase/db";
 
 export async function createInvitation(
   clinicianId: string,
-  clinicianClientId: string
+  clinicianClientId: string,
+  code: string
 ) {
   const clinicianClientRef = doc(
     db,
@@ -13,7 +14,6 @@ export async function createInvitation(
     clinicianClientId
   );
   // Create invitation for client
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
   const invitationRef = collection(db, "invitations");
 
   await addDoc(invitationRef, {

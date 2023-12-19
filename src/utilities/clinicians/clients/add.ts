@@ -25,7 +25,8 @@ import { createInvitation } from "../../invitations/add";
 export async function addPrescriptionToClinicianClient(
   clinicianId: string,
   clinicianClientId: string,
-  prescription: TPrescription
+  prescription: TPrescription,
+  code: string
 ) {
   try {
     const clinicianClientRef = doc(
@@ -56,7 +57,7 @@ export async function addPrescriptionToClinicianClient(
       prescription: prescriptionConverted,
     });
 
-    await createInvitation(clinicianId, clinicianClientId);
+    await createInvitation(clinicianId, clinicianClientId, code);
 
     // mixpanelTrack({
     //   event: "Prescription sent",
