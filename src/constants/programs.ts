@@ -4,8 +4,11 @@ type Programs = Record<TEuneoProgramId, string>;
 
 export const programs: Programs = {
   "plantar-heel-pain": "Plantar Heel Pain",
-  "plantar-heel-pain-2.0": "Plantar Heel Pain 2.0",
-  "plantar-heel-pain-3.0": "Plantar Heel Pain 3.0",
+  "severs-disease": "Sever's disease",
+  "plantar-fasciitis": "Plantar Fasciitis",
+  "achilles-tendinopathy": "Achilles Tendinopathy",
+  "osgood-schlatter-disease": "Osgood-Schlatter Disease",
+  "lateral-ankle-sprain": "Lateral Ankle Sprain",
 };
 
 export const programOptions = Object.entries(programs).map(

@@ -4,19 +4,11 @@ type Conditions = Record<TConditionId, string>;
 
 export const conditions: Conditions = {
   "plantar-heel-pain": "Plantar Heel Pain",
-  "acl-treatment": "ACL Treatment",
-  "pulled-hamstring": "Pulled Hamstring",
-  "calf-injury": "Calf Injury",
-  "hip-replacement": "Hip Replacement",
-  "dislocated-shoulder": "Dislocated Shoulder",
-  "post-surgery": "Post Surgery",
-  "ankle-sprain": "Ankle Sprain",
-  "knee-replacement": "Knee Replacement",
   "severs-disease": "Sever's disease",
   "plantar-fasciitis": "Plantar Fasciitis",
   "achilles-tendinopathy": "Achilles Tendinopathy",
-  "patellar-tendinopathy": "Patellar Tendinopathy",
-  "osgood-schlatter-disease": "Osgood Schlatter Disease",
+  "osgood-schlatter-disease": "Osgood-Schlatter Disease",
+  "ankle-sprain": "Ankle Sprain",
   // "no-condition": "No Condition",
 };
 

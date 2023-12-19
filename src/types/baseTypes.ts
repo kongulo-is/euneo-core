@@ -99,25 +99,20 @@ export type TOutcomeMeasure = TOutcomeMeasureBase & {
 export type TOutcomeMeasureWrite = TOutcomeMeasureBase;
 
 export type TConditionId =
-  | "acl-treatment"
-  | "pulled-hamstring"
-  | "calf-injury"
-  | "hip-replacement"
-  | "dislocated-shoulder"
-  | "post-surgery"
-  | "ankle-sprain"
-  | "knee-replacement"
-  | "patellar-tendinopathy"
-  | "achilles-tendinopathy"
-  | "osgood-schlatter-disease"
-  | "plantar-fasciitis"
   | "plantar-heel-pain"
-  | "severs-disease";
+  | "plantar-fasciitis"
+  | "osgood-schlatter-disease"
+  | "achilles-tendinopathy"
+  | "severs-disease"
+  | "ankle-sprain";
 
 export type TEuneoProgramId =
   | "plantar-heel-pain"
-  | "plantar-heel-pain-2.0"
-  | "plantar-heel-pain-3.0";
+  | "severs-disease"
+  | "plantar-fasciitis"
+  | "achilles-tendinopathy"
+  | "osgood-schlatter-disease"
+  | "lateral-ankle-sprain";
 
 // ! Write types
 
