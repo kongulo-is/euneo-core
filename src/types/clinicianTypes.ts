@@ -17,6 +17,7 @@ export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
 export type TPrescriptionBase = {
   prescriptionDate: Date;
   status: TPrescriptionStatus;
+  clientProgramId?: string;
   clientId?: string;
 };
 
