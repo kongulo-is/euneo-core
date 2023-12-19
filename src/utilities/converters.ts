@@ -475,7 +475,7 @@ export const prescriptionConverter = {
   toFirestore(prescription: TPrescription): TPrescriptionWrite {
     let clientProgramRef: DocumentReference<TClientProgramWrite> | undefined;
 
-    if (prescription.clientId && prescription.clientProgramId) {
+    if (prescription.clientId) {
       clientProgramRef = doc(
         db,
         "clients",
