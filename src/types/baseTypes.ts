@@ -104,7 +104,8 @@ export type TConditionId =
   | "osgood-schlatter-disease"
   | "achilles-tendinopathy"
   | "severs-disease"
-  | "ankle-sprain";
+  | "ankle-sprain"
+  | "knee-replacement";
 
 export type TEuneoProgramId =
   | "plantar-heel-pain"
@@ -112,7 +113,8 @@ export type TEuneoProgramId =
   | "plantar-fasciitis"
   | "achilles-tendinopathy"
   | "osgood-schlatter-disease"
-  | "lateral-ankle-sprain";
+  | "lateral-ankle-sprain"
+  | "knee-replacement";
 
 // ! Write types
 

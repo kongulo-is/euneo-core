@@ -9,6 +9,7 @@ export const conditions: Conditions = {
   "achilles-tendinopathy": "Achilles tendinopathy",
   "osgood-schlatter-disease": "Osgood-Schlatter disease",
   "ankle-sprain": "Ankle sprain",
+  "knee-replacement": "Knee replacement",
   // "no-condition": "No Condition",
 };
 
