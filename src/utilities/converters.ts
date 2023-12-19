@@ -132,7 +132,7 @@ export const programPhaseConverter = {
 
     // TODO: remove this when all users have updated programs, this is for users with deprecated programs
     // @ts-ignore this is for users with deprecated programs
-    if (data?.nextPhase?.[0].id) {
+    if (data?.nextPhase?.length && data.nextPhase[0].id) {
       // @ts-ignore this is for users with deprecated programs
       return {
         ...data,
