@@ -34,6 +34,7 @@ export type TOutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis" | "pgq";
 export type TClinician = {
   email: string;
   name: string;
+  isAdmin?: boolean;
 };
 
 /**

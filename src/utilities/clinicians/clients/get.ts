@@ -6,7 +6,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
-import { TClientProgram, TClientWrite } from "../../../types/clientTypes";
+import { TClientProgram } from "../../../types/clientTypes";
 import {
   TClinicianClient,
   TClinicianClientBase,
@@ -14,6 +14,7 @@ import {
 } from "../../../types/clinicianTypes";
 import { clinicianClientConverter } from "../../converters";
 import { getClientProgram } from "../../clients/programs/get";
+import { isEmptyObject } from "../../basicHelpers";
 
 async function _clientProgram({
   clientData,
@@ -64,7 +65,7 @@ export async function getClinicianClient(
     return {
       ...clientData,
       clinicianClientId: clientSnap.id,
-      ...(clientProgram && { clientProgram }),
+      ...(clientProgram && !isEmptyObject(clientProgram) && { clientProgram }),
     };
   } catch (error) {
     console.error("Error fetching client:", error, {
@@ -78,7 +79,8 @@ export async function getClinicianClient(
 
 // Get all clinician clients
 export async function getClinicianClients(
-  clinicianId: string
+  clinicianId: string,
+  includeClinicianId: boolean = false
 ): Promise<TClinicianClient[]> {
   try {
     // Get clients data form clinician collection
@@ -97,7 +99,9 @@ export async function getClinicianClients(
         return {
           ...clientData,
           clinicianClientId: c.id,
-          ...(clientProgram && { clientProgram }),
+          ...(includeClinicianId && { clinicianId }),
+          ...(clientProgram &&
+            !isEmptyObject(clientProgram) && { clientProgram }),
         };
       })
     ).catch((err) => {
