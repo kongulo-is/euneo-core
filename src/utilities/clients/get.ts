@@ -1,19 +1,19 @@
 import {
-  addDoc,
   collection,
+  CollectionReference,
   doc,
   DocumentReference,
   getDoc,
+  getDocs,
   onSnapshot,
   runTransaction,
-  setDoc,
-  updateDoc,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
-import { TClient, TClientRead } from "../../types/clientTypes";
+import { TClient, TClientProgram, TClientRead } from "../../types/clientTypes";
 import { clientConverter } from "../converters";
 import { Unsubscribe } from "firebase/auth";
 import { createClientDocument } from "./add";
+import { getClientProgram } from "./programs/get";
 
 export async function checkIfClientExists(clientId: string): Promise<boolean> {
   try {
@@ -28,6 +28,42 @@ export async function checkIfClientExists(clientId: string): Promise<boolean> {
     console.error("Error checking if client exists: ", error, { clientId });
     throw error;
   }
+}
+
+export async function getAllClients(): Promise<
+  (TClient & { clientProgram?: TClientProgram })[]
+> {
+  const clientsRef = collection(
+    db,
+    "clients"
+  ) as CollectionReference<TClientRead>;
+
+  const clientsSnap = await getDocs(clientsRef.withConverter(clientConverter));
+
+  const clientData = await Promise.all(
+    clientsSnap.docs.map(async (client) => {
+      let clientProgram: TClientProgram | null = null;
+
+      const currentProgramId = client.data().currentProgramId;
+      if (currentProgramId) {
+        clientProgram = await getClientProgram(client.id, currentProgramId);
+      }
+
+      return {
+        ...client.data(),
+        clientId: client.id,
+        ...(clientProgram && { clientProgram }),
+      };
+    })
+  );
+
+  if (!clientData) {
+    // throw new Error("No client found");
+    // signOut(auth);
+    return [];
+  }
+
+  return clientData;
 }
 
 export async function getClient(clientId: string): Promise<TClient> {
