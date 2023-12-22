@@ -21,6 +21,7 @@ import {
   prescriptionConverter,
 } from "../../converters";
 import { createInvitation } from "../../invitations/add";
+import { mixpanelTrack } from "../../../mixpanel/init";
 
 export async function addPrescriptionToClinicianClient(
   clinicianId: string,
@@ -38,7 +39,8 @@ export async function addPrescriptionToClinicianClient(
 
     // check if user has a current prescription
     const clinicianClientSnapshot = await getDoc(clinicianClientRef);
-    const currentPrescription = clinicianClientSnapshot.data()?.prescription;
+    const clinicianClientData = clinicianClientSnapshot.data();
+    const currentPrescription = clinicianClientData?.prescription;
     if (currentPrescription) {
       // store current prescription in past prescription sub collection
       const pastPrescriptionRef = collection(
@@ -58,16 +60,26 @@ export async function addPrescriptionToClinicianClient(
 
     await createInvitation(clinicianId, clinicianClientId);
 
-    // mixpanelTrack({
-    //   event: "Prescription sent",
-    //   data: {
-    //     distinct_id:
-    //       clinicianClientId + "-" + prescriptionConverted.prescriptionDate,
-    //     condition_id: conditionId,
-    //     clinician_id: clinicianId,
-    //     program_id: prescriptionConverted.programRef.id,
-    //   },
-    // });
+    mixpanelTrack({
+      event: "Prescription sent",
+      data: {
+        clinicianClient_id: clinicianClientId,
+        condition_id: clinicianClientData?.conditionId || null,
+        clinician_id: clinicianId,
+        program_id: prescriptionConverted.programRef.id,
+      },
+    });
+    mixpanelTrack({
+      event: "Invitation",
+      data: {
+        distinct_id:
+          clinicianClientId + "-" + prescriptionConverted.prescriptionDate,
+        clinicianClient_id: clinicianClientId,
+        condition_id: clinicianClientData?.conditionId || null,
+        clinician_id: clinicianId,
+        program_id: prescriptionConverted.programRef.id,
+      },
+    });
 
     return true;
   } catch (error) {
