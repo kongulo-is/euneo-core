@@ -74,6 +74,7 @@ export type TProgramBase = {
   conditionAssessment?: TConditionAssessmentQuestion[];
   conditionId: TConditionId | null;
   isLive?: boolean;
+  variation?: string;
 };
 
 export type TProgramRead = TProgramBase;
