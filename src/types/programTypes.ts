@@ -92,6 +92,7 @@ export type TEuneoProgram = TProgramWithSubCollections & {
 export type TClinicianProgram = TProgramWithSubCollections & {
   clinicianProgramId: string;
   clinicianId: string;
+  isArchived?: boolean;
 };
 
 export type TProgram = TEuneoProgram | TClinicianProgram;
