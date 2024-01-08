@@ -200,7 +200,7 @@ export const programConverter = {
     }
 
     const data: TProgramWrite = {
-      name: program.name,
+      ...(program.name && { name: program.name }),
       conditionId: program.conditionId,
       outcomeMeasureRefs,
       conditionAssessment,

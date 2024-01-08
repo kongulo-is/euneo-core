@@ -69,7 +69,7 @@ export type TConditionAssessmentQuestion = {
 // Exported Types
 
 export type TProgramBase = {
-  name: string;
+  name?: string;
   outcomeMeasureIds?: TOutcomeMeasureId[];
   conditionAssessment?: TConditionAssessmentQuestion[];
   conditionId: TConditionId | null;
@@ -104,7 +104,7 @@ export type TProgram = TEuneoProgram | TClinicianProgram;
  * @path /clinicians/{clinicianId}/programs/{programId}
  */
 export type TProgramWrite = {
-  name: string;
+  name?: string;
   conditionId: TConditionId | null;
   outcomeMeasureRefs: DocumentReference<TOutcomeMeasureWrite>[]; // Always exists but might be empty
   conditionAssessment: TConditionAssessmentQuestion[]; // Always exists but might be empty
