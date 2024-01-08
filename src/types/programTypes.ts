@@ -109,6 +109,7 @@ export type TProgramWrite = {
   outcomeMeasureRefs: DocumentReference<TOutcomeMeasureWrite>[]; // Always exists but might be empty
   conditionAssessment: TConditionAssessmentQuestion[]; // Always exists but might be empty
   version: string;
+  variation?: string;
 };
 
 /**

@@ -205,6 +205,7 @@ export const programConverter = {
       outcomeMeasureRefs,
       conditionAssessment,
       version: "1",
+      ...(program.variation && { variation: program.variation }),
     };
     return data;
   },
