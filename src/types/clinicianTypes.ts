@@ -55,7 +55,7 @@ export type TClinicianClientRead = TClinicianClientBase;
 /**
  * @description Client info for the clinician.
  * @param clinicianClientId Id of the client in clinician collection.
- * @param status Status of the client (Active, Not Started, Inactive, No Prescription) (not stored in firebase).
+ * @param status Status of the client (Active, Invited, Inactive, No prescription) (not stored in firebase).
  * @param clientProgram clients program data/progress form client collection. (progress, days, pain levels, etc.)
  */
 export type TClinicianClient = TClinicianClientBase & {

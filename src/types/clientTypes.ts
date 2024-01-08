@@ -52,9 +52,9 @@ export type TPainLevel = {
 
 export type TClientStatus =
   | "Active"
-  | "Not Started"
+  | "Invited"
   | "Inactive"
-  | "No Prescription";
+  | "No prescription";
 
 /**
  * @memberof TClientProgram
