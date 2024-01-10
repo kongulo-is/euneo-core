@@ -4,6 +4,8 @@ import {
   DocumentReference,
   getDoc,
   getDocs,
+  orderBy,
+  query,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import { TClientProgram } from "../../../types/clientTypes";
@@ -86,8 +88,12 @@ export async function getClinicianClients(
     // Get clients data form clinician collection
     const clinicianRef = doc(db, "clinicians", clinicianId);
     const clientsRef = collection(clinicianRef, "clients");
+    const q = query(clientsRef, orderBy("date")).withConverter(
+      clinicianClientConverter
+    );
     const snapshot = await getDocs(
-      clientsRef.withConverter(clinicianClientConverter)
+      // clientsRef.withConverter(clinicianClientConverter)
+      q
     );
 
     // get clients program data from programs subcollection to client.
