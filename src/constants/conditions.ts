@@ -63,6 +63,7 @@ export const conditions: Conditions = {
   "severs-disease": "Sever’s disease",
   "shin-splints": "Shin splints",
   "stress-fracture": "Stress fracture",
+  "sports-hernia": "Sports hernia",
   "tarsal-tunnel-syndrome": "Tarsal tunnel syndrome",
   "turf-toe": "Turf toe",
   "knee-replacement": "Knee replacement",

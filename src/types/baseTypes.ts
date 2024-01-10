@@ -159,6 +159,7 @@ export type TConditionId =
   | "severs-disease"
   | "shin-splints"
   | "stress-fracture"
+  | "sports-hernia"
   | "tarsal-tunnel-syndrome"
   | "turf-toe"
   | "knee-replacement";
