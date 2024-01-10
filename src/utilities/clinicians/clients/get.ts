@@ -88,7 +88,7 @@ export async function getClinicianClients(
     // Get clients data form clinician collection
     const clinicianRef = doc(db, "clinicians", clinicianId);
     const clientsRef = collection(clinicianRef, "clients");
-    const q = query(clientsRef, orderBy("date")).withConverter(
+    const q = query(clientsRef, orderBy("date", "desc")).withConverter(
       clinicianClientConverter
     );
     const snapshot = await getDocs(
