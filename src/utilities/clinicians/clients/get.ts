@@ -1,11 +1,14 @@
 import {
   collection,
+  CollectionReference,
   doc,
+  DocumentData,
   DocumentReference,
   getDoc,
   getDocs,
   orderBy,
   query,
+  QueryDocumentSnapshot,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import { TClientProgram } from "../../../types/clientTypes";
@@ -13,8 +16,13 @@ import {
   TClinicianClient,
   TClinicianClientBase,
   TClinicianClientWrite,
+  TPrescription,
+  TPrescriptionWrite,
 } from "../../../types/clinicianTypes";
-import { clinicianClientConverter } from "../../converters";
+import {
+  clinicianClientConverter,
+  prescriptionConverter,
+} from "../../converters";
 import { getClientProgram } from "../../clients/programs/get";
 import { isEmptyObject } from "../../basicHelpers";
 
@@ -25,6 +33,8 @@ async function _clientProgram({
 }) {
   // get clients program data.
   let clientProgram: TClientProgram | undefined;
+
+  console.log("clientData", clientData);
 
   // Get client program data if client has accepted a prescription
   if (
@@ -39,6 +49,40 @@ async function _clientProgram({
   }
 
   return clientProgram;
+}
+
+export async function getClinicianClientPastPrescriptions(
+  clinicianId: string,
+  clinicianClientId: string
+) {
+  try {
+    // get all past prescriptions in pastPrescription subcollection under /clinicians/{clinicianId}/clients/{clinicianClientId}/pastPrescriptions
+    const clinicianClientPastPrescriptionsRef = collection(
+      doc(db, "clinicians", clinicianId, "clients", clinicianClientId),
+      "pastPrescriptions"
+    ) as CollectionReference<TPrescriptionWrite>;
+    const q = query(
+      clinicianClientPastPrescriptionsRef,
+      orderBy("prescriptionDate", "desc")
+    );
+    const snapshot = await getDocs(q);
+
+    // get clients program data from programs subcollection to client.
+    const pastPrescriptions = snapshot.docs.map((c) => {
+      return prescriptionConverter.fromFirestore(c.data());
+    });
+
+    return pastPrescriptions;
+  } catch (error) {
+    console.error(
+      "Error fetching Clinician client past prescriptions:",
+      error,
+      {
+        clinicianId,
+        clinicianClientId,
+      }
+    );
+  }
 }
 
 // get single clinician client
