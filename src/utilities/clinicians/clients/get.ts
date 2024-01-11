@@ -34,8 +34,6 @@ async function _clientProgram({
   // get clients program data.
   let clientProgram: TClientProgram | undefined;
 
-  console.log("clientData", clientData);
-
   // Get client program data if client has accepted a prescription
   if (
     clientData.prescription?.clientId &&
