@@ -32,7 +32,7 @@ export type TProgramDayRead = TProgramDay;
 // Common Types
 
 export type TProgramPhaseBase = {
-  days: `d${number}`[];
+  days: `d${number}`[] | `${string}_d${number}`[];
   length?: number;
   nextPhase?: TNextPhase[];
   finalPhase: boolean;
