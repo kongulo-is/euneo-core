@@ -14,11 +14,13 @@ export async function createInvitation(
     clinicianClientId
   );
   // Create invitation for client
-  const invitationRef = collection(db, "invitations");
+  const invitationsRef = collection(db, "invitations");
 
-  await addDoc(invitationRef, {
+  const invitationRef = await addDoc(invitationsRef, {
     clinicianClientRef,
     code,
     date: new Date(),
   });
+
+  return invitationRef.id;
 }

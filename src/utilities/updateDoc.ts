@@ -15,6 +15,7 @@ import {
   TClinicianWrite,
   TClinicianClientWrite,
   TClinicianClientRead,
+  TInvitationWrite,
 } from "../types/clinicianTypes";
 import {
   TProgramWrite,
@@ -33,7 +34,8 @@ type AllWrites =
   | TClinicianClientWrite
   | TProgramWrite
   | TProgramDayWrite
-  | TExerciseDayWrite;
+  | TExerciseDayWrite
+  | TInvitationWrite;
 
 type AllReads =
   | TClientProgramRead

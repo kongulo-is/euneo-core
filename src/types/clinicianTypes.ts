@@ -77,6 +77,7 @@ export type TInvitationWrite = {
 };
 
 export type TInvitation = {
+  invitationId: string;
   code: string;
   date: Date;
 };

@@ -14,6 +14,7 @@ export function getProgramCode(
   clinicianClientId: string
 ): Promise<TInvitation> {
   let invitation: TInvitation = {
+    invitationId: "",
     code: "",
     date: new Date(),
   };
@@ -34,6 +35,7 @@ export function getProgramCode(
 
     if (newestDoc) {
       const data = newestDoc.data();
+      invitation.invitationId = newestDoc.id;
       invitation.code = data.code;
       invitation.date = data.date.toDate();
       return invitation; // Assumes code is a string. Format it here if necessary.
