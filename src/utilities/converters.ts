@@ -19,6 +19,7 @@ import {
   TProgramDayRead,
   TProgramDayWrite,
   TProgramFinitePhase,
+  TProgramPhaseKey,
   TProgramPhaseRead,
   TProgramPhaseWrite,
   TProgramRead,
@@ -416,7 +417,7 @@ export const clientProgramDayConverter = {
     const data = snapshot.data(options);
     const clientProgramDay: TClientProgramDay = {
       ...data,
-      phaseId: data.phaseId as `p${number}`,
+      phaseId: data.phaseId as TProgramPhaseKey,
       date: data.date.toDate(),
     };
 

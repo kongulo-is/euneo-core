@@ -10,6 +10,7 @@ import {
   TProgram,
   TProgramWithSubCollections,
   TProgramPhase,
+  TProgramPhaseKey,
 } from "../types/programTypes";
 import {
   programConverter,
@@ -85,7 +86,7 @@ export async function _getProgramFromRef(
 export function createPhase(
   trainingDays: boolean[],
   program: TProgram,
-  phaseId: `p${number}`,
+  phaseId: TProgramPhaseKey,
   date?: Date,
   length?: number,
   startDayIndex?: number

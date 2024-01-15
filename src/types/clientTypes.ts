@@ -9,7 +9,11 @@ import {
   TPhysicalActivity,
   TClinicianReferenceIds,
 } from "./baseTypes";
-import { TProgramWrite } from "./programTypes";
+import {
+  TProgramDayKey,
+  TProgramPhaseKey,
+  TProgramWrite,
+} from "./programTypes";
 import { TOutcomeMeasureId } from "./clinicianTypes";
 
 /**
@@ -89,8 +93,8 @@ export type TOutcomeMeasureAnswerSection = {
  * @param exercises array completed exercises in a day (0 = not completed, 1 = completed)
  */
 export type TClientProgramDay = {
-  dayId: `d${number}`;
-  phaseId: `p${number}`;
+  dayId: TProgramDayKey;
+  phaseId: TProgramPhaseKey;
   date: Date;
   finished: boolean;
   adherence: number;
@@ -184,8 +188,8 @@ export type TClientWrite = {
 };
 
 export type TClientProgramDayWrite = {
-  dayId: `d${number}`;
-  phaseId?: string;
+  dayId: TProgramDayKey;
+  phaseId?: TProgramPhaseKey;
   date: Timestamp;
   finished: boolean;
   adherence: number;
