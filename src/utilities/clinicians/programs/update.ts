@@ -87,7 +87,7 @@ export async function addUniqueClientDayToClinicianProgram(
   clinicianProgramId: string,
   clinicianId: string,
   clinicianClientId: string
-): Promise<boolean> {
+): Promise<TClinicianProgram> {
   try {
     const { days, phases } = clinicianProgram;
     // Create new day key clinicianClientId_d?
@@ -137,7 +137,19 @@ export async function addUniqueClientDayToClinicianProgram(
     ) as DocumentReference<TProgramPhaseWrite>;
     await setDoc(phaseRef, phase);
 
-    return true;
+    return {
+      ...clinicianProgram,
+      phases: {
+        ...phases,
+        [newPhaseKey]: newPhase,
+      },
+      days: {
+        ...days,
+        [newDayKey]: newDay,
+      },
+      clinicianProgramId,
+      clinicianId,
+    };
   } catch (error) {
     console.error(
       "Error updating clinician program: ",
