@@ -9,6 +9,7 @@ import {
   TProgramPhaseRead,
   TProgramPhaseWrite,
   TProgramPhase,
+  TProgramPhaseKey,
 } from "../../../types/programTypes";
 import {
   programConverter,
@@ -87,7 +88,10 @@ export async function addUniqueClientDayToClinicianProgram(
   clinicianProgramId: string,
   clinicianId: string,
   clinicianClientId: string
-): Promise<TClinicianProgram> {
+): Promise<{
+  clinicianProgram: TClinicianProgram;
+  newPhase: TProgramPhaseKey;
+}> {
   try {
     const { days, phases } = clinicianProgram;
     // Create new day key clinicianClientId_d?
@@ -103,7 +107,9 @@ export async function addUniqueClientDayToClinicianProgram(
     const customPhasesCount = phases
       ? Object.keys(phases).filter((p) => p.includes(clinicianClientId))
       : [];
-    const newPhaseKey = `${clinicianClientId}_p${customPhasesCount.length + 1}`;
+    const newPhaseKey = `${clinicianClientId}_p${
+      customPhasesCount.length + 1
+    }` as TProgramPhaseKey;
 
     // convert and update program days and phases.
     const day = programDayConverter.toFirestore(newDay);
@@ -137,18 +143,20 @@ export async function addUniqueClientDayToClinicianProgram(
     ) as DocumentReference<TProgramPhaseWrite>;
     await setDoc(phaseRef, phase);
 
+    // return updated clinician program and new phase
     return {
-      ...clinicianProgram,
-      phases: {
-        ...phases,
-        [newPhaseKey]: newPhase,
+      clinicianProgram: {
+        ...clinicianProgram,
+        days: {
+          ...days,
+          [newDayKey]: newDay,
+        },
+        phases: {
+          ...phases,
+          [newPhaseKey]: newPhase,
+        },
       },
-      days: {
-        ...days,
-        [newDayKey]: newDay,
-      },
-      clinicianProgramId,
-      clinicianId,
+      newPhase: newPhaseKey,
     };
   } catch (error) {
     console.error(
