@@ -19,7 +19,7 @@ export type TProgramDayExercise = {
 };
 
 export type TNextPhase = {
-  phaseId: `p${number}`;
+  phaseId: TProgramPhaseKey;
   length?: number;
   maxPainLevel: number;
   minPainLevel: number;
@@ -30,9 +30,10 @@ export type TProgramDay = { exercises: TProgramDayExercise[] };
 export type TProgramDayRead = TProgramDay;
 
 // Common Types
+export type TProgramDayKey = `d${number}` | `${string}_d${number}`;
 
 export type TProgramPhaseBase = {
-  days: `d${number}`[] | `${string}_d${number}`[];
+  days: TProgramDayKey[];
   length?: number;
   nextPhase?: TNextPhase[];
   finalPhase: boolean;
@@ -55,6 +56,7 @@ export type TProgramPhaseRead = (
   programId: string;
   clinicianId?: string;
 };
+export type TProgramPhaseKey = `p${number}` | `${string}_p${number}`;
 
 export type TProgramPhase = TProgramPhaseRead;
 
@@ -63,7 +65,7 @@ export type TConditionAssessmentQuestion = {
   title: string;
   type: "boolean" | "option";
   options: string[];
-  initialPhases?: { phaseId: `p${number}`; length?: number }[];
+  initialPhases?: { phaseId: TProgramPhaseKey; length?: number }[];
 };
 
 // Exported Types
@@ -80,8 +82,8 @@ export type TProgramBase = {
 export type TProgramRead = TProgramBase;
 
 export type TProgramWithSubCollections = TProgramRead & {
-  days: Record<`d${number}`, TProgramDay>;
-  phases: Record<`p${number}`, TProgramPhase>;
+  days: Record<TProgramDayKey, TProgramDay>;
+  phases: Record<TProgramPhaseKey, TProgramPhase>;
 };
 
 export type TEuneoProgram = TProgramWithSubCollections & {

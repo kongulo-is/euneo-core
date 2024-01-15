@@ -142,7 +142,6 @@ export async function addUniqueClientDayToClinicianProgram(
     console.error(
       "Error updating clinician program: ",
       error,
-      days,
       clinicianProgramId,
       clinicianId
     );
