@@ -134,9 +134,8 @@ export async function changeClientPhase(
 
   const numDaysFiltered = days.length - daysBeforeCurrent.length;
 
-  const currDayIndex = Object.keys(program.days).findIndex(
-    (day) => day === lastDay.dayId
-  );
+  // find the current day index in the client program
+  const currDayIndex = days.findIndex((day) => day.date === lastDay.date);
 
   // call the function  that adds a continuous phase to client
   const newDays = createPhase(
@@ -158,10 +157,15 @@ export async function changeClientPhase(
 
   const updatedPhases = [...clientProgram.phases];
   const currentPhase = updatedPhases[updatedPhases.length - 1];
-  updatedPhases[updatedPhases.length - 1] = {
-    ...currentPhase,
-    value: currentPhase.value - numDaysFiltered,
-  };
+
+  if (currentPhase.value - 1 - numDaysFiltered === 0) {
+    updatedPhases.pop();
+  } else if (numDaysFiltered > 0) {
+    updatedPhases[updatedPhases.length - 1] = {
+      ...currentPhase,
+      value: currentPhase.value - 1 - numDaysFiltered,
+    };
+  }
 
   updatedPhases.push({
     key: newPhase,
