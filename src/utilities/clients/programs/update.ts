@@ -196,5 +196,6 @@ export async function changeClientPhase(
 
   updateProgramFields(clientId, clientProgram.clientProgramId, {
     phases: updatedPhases,
+    shouldRefetch: true,
   });
 }
