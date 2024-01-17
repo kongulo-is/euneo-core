@@ -1,4 +1,4 @@
-import { DocumentReference, doc } from "firebase/firestore";
+import { DocumentReference, deleteField, doc } from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import {
   TClientProgram,
@@ -117,6 +117,28 @@ export async function completeProgram(
   })
     .then(() => true)
     .catch(() => false);
+}
+
+export async function removeRefetchFromProgram(
+  clientId: string,
+  clientProgramId: string
+) {
+  const clientProgramRef = doc(
+    db,
+    "clients",
+    clientId,
+    "programs",
+    clientProgramId
+  ) as DocumentReference<TClientProgramWrite>;
+
+  return await updateDoc(clientProgramRef, {
+    shouldRefetch: deleteField(),
+  })
+    .then(() => true)
+    .catch((err) => {
+      console.log("Error: ", err);
+      return false;
+    });
 }
 
 // function that changes the phase a client is in
