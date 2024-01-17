@@ -124,18 +124,35 @@ export async function changeClientPhase(
   clientProgram: TClientProgram,
   clientId: string,
   program: TProgram,
-  newPhase: TProgramPhaseKey
+  newPhase: TProgramPhaseKey,
+  currentPhaseId: TProgramPhaseKey
 ) {
+  console.log("currentPhaseId", currentPhaseId);
+  console.log("newPhase", newPhase);
   // start by removing the current day and future days from the client's program
   const { days, trainingDays } = clientProgram;
-  // filter the days to only include days that are before the current day and count them
-  const daysBeforeCurrent = days.filter((day) => day.date < new Date());
-  const lastDay = daysBeforeCurrent[daysBeforeCurrent.length - 1];
+  console.log("days", days);
+  // filter the days to only include days that are before the current day in current phase and count them
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysBeforeCurrent = days.filter(
+    (day) =>
+      day.date.getTime() < today.getTime() && day.phaseId === currentPhaseId
+  );
 
-  const numDaysFiltered = days.length - daysBeforeCurrent.length;
+  console.log("today", today);
+
+  // const numDaysFiltered = days.length - daysBeforeCurrent.length;
+  console.log("days length", days.length);
+  console.log("daysBeforeCurrent length", daysBeforeCurrent.length);
 
   // find the current day index in the client program
-  const currDayIndex = days.findIndex((day) => day.date === lastDay.date);
+  const currDayIndex =
+    days.findIndex((day) => day.date.getTime() === today.getTime()) || 0;
+  console.log("currDayIndex", currDayIndex);
+
+  const phaseLength = days.length - currDayIndex;
+  console.log("phaseLength", phaseLength);
 
   // call the function  that adds a continuous phase to client
   const newDays = createPhase(
@@ -143,9 +160,11 @@ export async function changeClientPhase(
     program,
     newPhase,
     new Date(),
-    14,
-    currDayIndex + 1
+    phaseLength,
+    0 // on start of new phase, start at day 0
   );
+  console.log("newDays", newDays);
+
   addContinuousDaysToClientProgram(
     clientId,
     clientProgram.clientProgramId,
@@ -156,14 +175,16 @@ export async function changeClientPhase(
   // then update the phases map property of the client's program so that it is correct
 
   const updatedPhases = [...clientProgram.phases];
+  console.log("updatedPhases", updatedPhases);
+
   const currentPhase = updatedPhases[updatedPhases.length - 1];
 
-  if (currentPhase.value - 1 - numDaysFiltered === 0) {
+  if (daysBeforeCurrent.length === 0) {
     updatedPhases.pop();
-  } else if (numDaysFiltered > 0) {
+  } else if (daysBeforeCurrent.length > 0) {
     updatedPhases[updatedPhases.length - 1] = {
       ...currentPhase,
-      value: currentPhase.value - 1 - numDaysFiltered,
+      value: daysBeforeCurrent.length,
     };
   }
 
@@ -171,6 +192,8 @@ export async function changeClientPhase(
     key: newPhase,
     value: newDays.length,
   });
+
+  console.log("updatedPhases after push:", updatedPhases);
 
   updateProgramFields(clientId, clientProgram.clientProgramId, {
     phases: updatedPhases,
