@@ -210,6 +210,7 @@ export type TClientProgramWrite = {
   physicalInformation: TClientPhysicalInformation;
   phases: TPhase[];
   completed?: boolean;
+  shouldRefetch?: boolean;
 };
 
 export type TOutcomeMeasureAnswerWrite = {
