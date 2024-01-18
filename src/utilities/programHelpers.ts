@@ -83,6 +83,16 @@ export async function _getProgramFromRef(
   }
 }
 
+/**
+ *
+ * @param trainingDays
+ * @param program
+ * @param phaseId
+ * @param date
+ * @param length
+ * @param startDayIndex what day of the phase to start on (not the day of the program)
+ * @returns
+ */
 export function createPhase(
   trainingDays: boolean[],
   program: TProgram,

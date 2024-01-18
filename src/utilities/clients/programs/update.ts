@@ -169,12 +169,18 @@ export async function changeClientPhase(
   console.log("days length", days.length);
   console.log("daysBeforeCurrent length", daysBeforeCurrent.length);
 
-  // find the current day index in the client program
-  const currDayIndex =
-    days.findIndex((day) => day.date.getTime() === today.getTime()) || 0;
-  console.log("currDayIndex", currDayIndex);
+  // find the current day index in the client program if it does not exist, set it to 0
+  const currDay = days.findIndex(
+    (day) => day.date.getTime() === today.getTime()
+  );
 
-  const phaseLength = days.length - currDayIndex;
+  const startDayIndex = currDay === -1 ? 0 : currDay;
+  const startDocIndex = currDay === -1 ? days.length : currDay;
+
+  console.log("startDayIndex", startDayIndex);
+  console.log("startDocIndex", startDocIndex);
+
+  const phaseLength = days.length - startDayIndex;
   console.log("phaseLength", phaseLength);
 
   // call the function  that adds a continuous phase to client
@@ -192,7 +198,7 @@ export async function changeClientPhase(
     clientId,
     clientProgram.clientProgramId,
     newDays,
-    currDayIndex
+    startDocIndex
   );
 
   // then update the phases map property of the client's program so that it is correct
