@@ -8,13 +8,14 @@ import {
   TEuneoReferenceIds,
   TPhysicalActivity,
   TClinicianReferenceIds,
+  TClinicianClientReferenceIds,
 } from "./baseTypes";
 import {
   TProgramDayKey,
   TProgramPhaseKey,
   TProgramWrite,
 } from "./programTypes";
-import { TOutcomeMeasureId } from "./clinicianTypes";
+import { TClinicianClientWrite, TOutcomeMeasureId } from "./clinicianTypes";
 
 /**
  * @description Client data from client collection
@@ -136,7 +137,7 @@ export type TClientProgramBase = {
   conditionAssessmentAnswers?: TConditionAssessmentAnswer[];
   phases: TPhase[];
   completed?: boolean;
-};
+} & Partial<TClinicianClientReferenceIds>;
 
 /**
  * Everything between the base and read is specific to each type of program
@@ -209,6 +210,7 @@ export type TClientProgramWrite = {
   trainingDays: boolean[];
   physicalInformation: TClientPhysicalInformation;
   phases: TPhase[];
+  clinicianClientRef?: DocumentReference<TClinicianClientWrite, DocumentData>;
   completed?: boolean;
   shouldRefetch?: boolean;
 };

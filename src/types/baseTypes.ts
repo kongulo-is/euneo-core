@@ -9,6 +9,11 @@ export type TClinicianReferenceIds = {
   clinicianId: string;
 };
 
+export type TClinicianClientReferenceIds = {
+  clinicianClientId: string;
+  clinicianId: string;
+};
+
 // Component types
 // export type TOption = {
 //   value: string;

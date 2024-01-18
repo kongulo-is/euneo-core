@@ -276,6 +276,8 @@ export const clientProgramConverter = {
     // Perform runtime checks
     runtimeChecks.assertTClientProgram(program, true); // Assertion done here if needed
 
+    const { clinicianId, clinicianClientId } = program;
+
     const outcomeMeasuresAnswers = {} as Record<
       TOutcomeMeasureId,
       TOutcomeMeasureAnswerWrite[]
@@ -307,7 +309,7 @@ export const clientProgramConverter = {
         "programs",
         program.euneoProgramId
       ) as DocumentReference<TProgramWrite>;
-    } else if ("clinicianId" in program) {
+    } else if ("clinicianProgramId" in program) {
       programRef = doc(
         db,
         "clinicians",
@@ -319,6 +321,19 @@ export const clientProgramConverter = {
       throw new Error("Program must have either euneoProgramId or clinicianId");
     }
 
+    let clinicianClientRef:
+      | DocumentReference<TClinicianClientWrite>
+      | undefined;
+    if (clinicianId && clinicianClientId) {
+      clinicianClientRef = doc(
+        db,
+        "clinicians",
+        clinicianId,
+        "clients",
+        clinicianClientId
+      ) as DocumentReference<TClinicianClientWrite>;
+    }
+
     const data: TClientProgramWrite = {
       outcomeMeasuresAnswers,
       conditionId: program.conditionId,
@@ -327,6 +342,7 @@ export const clientProgramConverter = {
       trainingDays: program.trainingDays,
       physicalInformation: program.physicalInformation,
       phases: program.phases,
+      ...(clinicianClientRef && { clinicianClientRef }),
     };
 
     if ("conditionAssessmentAnswers" in program) {
@@ -341,7 +357,7 @@ export const clientProgramConverter = {
   ): TClientProgramRead {
     // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
     const data = snapshot.data(options);
-    let { programRef, painLevels, ...rest } = data;
+    let { programRef, painLevels, clinicianClientRef, ...rest } = data;
 
     // convert timestamps to dates in outcomeMeasures and painLevels
     const outcomeMeasuresAnswers = {} as Record<
@@ -370,6 +386,13 @@ export const clientProgramConverter = {
       date: pain.date.toDate(),
     }));
 
+    let clinicianId: string | undefined;
+    let clinicianClientId: string | undefined;
+    if (clinicianClientRef) {
+      clinicianId = clinicianClientRef.parent.parent!.id;
+      clinicianClientId = clinicianClientRef.id;
+    }
+
     if (!programRef?.parent.parent) {
       clientProgram = {
         ...rest,
@@ -390,6 +413,14 @@ export const clientProgramConverter = {
       };
       runtimeChecks.assertTClientProgram(clientProgram, true);
     }
+
+    // Add clinicianClientIds if they exist
+    clientProgram = {
+      ...clientProgram,
+      ...(clinicianClientId &&
+        clinicianId && { clinicianClientId, clinicianId }),
+    };
+
     return clientProgram;
   },
 };
