@@ -5,7 +5,12 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
-import { TClinicianProgram, TProgramWrite } from "../../../types/programTypes";
+import {
+  TClinicianProgram,
+  TProgramDayKey,
+  TProgramPhaseKey,
+  TProgramWrite,
+} from "../../../types/programTypes";
 import {
   programConverter,
   programDayConverter,
@@ -15,7 +20,8 @@ import { _getProgramFromRef } from "../../programHelpers";
 
 export async function getClinicianProgramWithDays(
   clinicianId: string,
-  clinicianProgramId: string
+  clinicianProgramId: string,
+  clinicianClientId?: string
 ): Promise<TClinicianProgram> {
   let programRef = doc(
     db,
@@ -29,6 +35,21 @@ export async function getClinicianProgramWithDays(
 
   if (!("clinicianId" in clinicianProgram)) {
     throw new Error("Program is not a clinician program");
+  }
+
+  // TODO: Review á filteringu hér
+  if (clinicianClientId) {
+    Object.keys(clinicianProgram.phases).forEach((key) => {
+      if (key.includes("_") && !key.includes(clinicianClientId)) {
+        delete clinicianProgram.phases[key as TProgramPhaseKey];
+      }
+    });
+
+    Object.keys(clinicianProgram.days).forEach((key) => {
+      if (key.includes("_") && !key.includes(clinicianClientId)) {
+        delete clinicianProgram.days[key as TProgramDayKey];
+      }
+    });
   }
 
   return clinicianProgram;
