@@ -145,12 +145,12 @@ export function createPhase(
 // export function createContinuousDays(
 //   trainingDays: Array<boolean>,
 //   program: TProgram,
-//   phaseId: `p${number}`,
+//   phaseId: TProgramPhaseKey`,
 //   date?: Date,
 //   length?: number,
 //   startDayIndex?: number
 // ) {
-//   const dayIdList = Object.keys(program.days) as Array<`d${number}`>;
+//   const dayIdList = Object.keys(program.days) as Array<TProgramDayKey>;
 //   let dayList = [] as Array<TClientProgramDay>;
 
 //   let dayIndex = startDayIndex || 0;

@@ -10,6 +10,7 @@ import {
   TProgramPhaseWrite,
   TProgramPhase,
   TProgramPhaseKey,
+  TProgramDayKey,
 } from "../../../types/programTypes";
 import {
   programConverter,
@@ -19,8 +20,8 @@ import {
 
 export async function updateClinicianProgram(
   clinicianProgram: TProgramRead,
-  phases: Record<`p${number}`, TProgramPhaseRead>,
-  days: Record<`d${number}`, TProgramDayRead>,
+  phases: Record<TProgramPhaseKey, TProgramPhaseRead>,
+  days: Record<TProgramDayKey, TProgramDayRead>,
   clinicianProgramId: string,
   clinicianId: string
 ): Promise<TClinicianProgram> {
@@ -101,7 +102,7 @@ export async function addUniqueClientDayToClinicianProgram(
 
     const newDayKey = `${clinicianClientId}_d${
       customDaysCount.length + 1
-    }` as `${string}_d${number}`;
+    }` as TProgramDayKey;
 
     // Create new phase key clinicianClientId_d?
     const customPhasesCount = phases

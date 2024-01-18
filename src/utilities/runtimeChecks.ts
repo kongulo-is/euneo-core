@@ -14,6 +14,7 @@ import {
   TConditionAssessmentQuestion,
   TClinicianProgram,
   TProgramDayExercise,
+  TProgramDayKey,
 } from "../types/programTypes";
 import { TOutcomeMeasureId } from "../types/clinicianTypes";
 import { isEmptyObject } from "./basicHelpers";
@@ -196,7 +197,7 @@ const runtimeChecks = {
     }
 
     Object.keys(obj.days).forEach((dayKey: string) => {
-      const day = obj.days[dayKey as `d${number}`];
+      const day = obj.days[dayKey as TProgramDayKey];
       assertArray<TProgramDayExercise>(
         day.exercises,
         (exercise: TProgramDayExercise) => {

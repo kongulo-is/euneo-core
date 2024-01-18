@@ -23,6 +23,7 @@ import {
   TEuneoProgram,
   TClinicianProgram,
   TProgramFinitePhase,
+  TProgramPhaseKey,
 } from "../../../types/programTypes";
 import {
   clientProgramConverter,
@@ -58,7 +59,7 @@ export async function addClinicianProgramToClient(
   clientId: string,
   clientClinicianProgram: TClientClinicianProgramRead,
   program: TClinicianProgram,
-  startPhase: `p${number}` = "p1"
+  startPhase: TProgramPhaseKey = "p1"
 ): Promise<TClientClinicianProgram> {
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
@@ -120,7 +121,7 @@ export async function addEuneoProgramToClient(
   clientId: string,
   clientProgramRead: TClientEuneoProgramRead,
   program: TEuneoProgram,
-  phaseId: `p${number}`
+  phaseId: TProgramPhaseKey
 ): Promise<{ clientProgram: TClientEuneoProgram }> {
   const { trainingDays, phases } = clientProgramRead;
 

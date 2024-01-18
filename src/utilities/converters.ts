@@ -16,6 +16,7 @@ import {
 import {
   TConditionAssessmentQuestion,
   TProgramContinuousPhase,
+  TProgramDayKey,
   TProgramDayRead,
   TProgramDayWrite,
   TProgramFinitePhase,
@@ -137,7 +138,7 @@ export const programPhaseConverter = {
       // @ts-ignore this is for users with deprecated programs
       return {
         ...data,
-        days: data.days.map((day) => day.id as `d${number}`),
+        days: data.days.map((day) => day.id as TProgramDayKey),
         nextPhase: data.nextPhase.map((phase) => {
           // @ts-ignore
           const { id, minPain, maxPain, ...rest } = phase;
@@ -154,7 +155,7 @@ export const programPhaseConverter = {
     if (data.mode === "finite" && data.length) {
       const finitePhase: TProgramFinitePhase = {
         ...data,
-        days: data.days.map((day) => day.id as `d${number}`),
+        days: data.days.map((day) => day.id as TProgramDayKey),
         length: data.length,
         mode: data.mode,
       };
@@ -166,7 +167,7 @@ export const programPhaseConverter = {
     } else if (data.mode === "continuous" || data.mode === "maintenance") {
       const continuousPhase: TProgramContinuousPhase = {
         ...data,
-        days: data.days.map((day) => day.id as `d${number}`),
+        days: data.days.map((day) => day.id as TProgramDayKey),
         mode: data.mode,
       };
       return {

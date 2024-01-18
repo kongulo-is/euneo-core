@@ -5,6 +5,8 @@ import {
   TProgramDayRead,
   TClinicianProgram,
   TProgramPhaseRead,
+  TProgramPhaseKey,
+  TProgramDayKey,
 } from "../../../types/programTypes";
 import {
   programConverter,
@@ -14,8 +16,8 @@ import {
 
 export async function createClinicianProgram(
   clinicianProgramRead: TProgramRead,
-  phases: Record<`p${number}`, TProgramPhaseRead>,
-  days: Record<`d${number}`, TProgramDayRead>,
+  phases: Record<TProgramPhaseKey, TProgramPhaseRead>,
+  days: Record<TProgramDayKey, TProgramDayRead>,
   clinicianId: string
 ): Promise<TClinicianProgram> {
   try {

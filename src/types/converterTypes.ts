@@ -5,7 +5,11 @@ import {
   TOutcomeMeasureAnswerWrite,
   TPhase,
 } from "./clientTypes";
-import { TConditionAssessmentQuestion, TNextPhase } from "./programTypes";
+import {
+  TConditionAssessmentQuestion,
+  TNextPhase,
+  TProgramDayKey,
+} from "./programTypes";
 import { DocumentData } from "firebase/firestore";
 import { TOutcomeMeasureId, TPrescriptionStatus } from "./clinicianTypes";
 
@@ -23,7 +27,7 @@ export type ClientWrite = {
 };
 
 export type ClientProgramDayWrite = {
-  dayId: `d${number}`;
+  dayId: TProgramDayKey;
   phaseId: string;
   date: Timestamp;
   finished: boolean;
