@@ -18,6 +18,8 @@ import {
 import {
   TClinicianProgram,
   TEuneoProgram,
+  TProgramDayKey,
+  TProgramPhaseKey,
   TProgramWrite,
 } from "../../types/programTypes";
 import { _getProgramFromRef } from "../programHelpers";
@@ -52,6 +54,19 @@ export async function getProgramFromCode(code: string): Promise<{
 
   const { programRef } = clinicianClientData.prescription;
   const program = await _getProgramFromRef(programRef);
+
+  // TODO: Review með Kjarrman
+  Object.keys(program.phases).forEach((key) => {
+    if (key.includes("_") && !key.includes(clinicianClientRef.id)) {
+      delete program.phases[key as TProgramPhaseKey];
+    }
+  });
+
+  Object.keys(program.days).forEach((key) => {
+    if (key.includes("_") && !key.includes(clinicianClientRef.id)) {
+      delete program.days[key as TProgramDayKey];
+    }
+  });
 
   // runtimeChecks.assertTClinicianProgram(program);
 
