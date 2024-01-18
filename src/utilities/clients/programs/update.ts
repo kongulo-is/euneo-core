@@ -9,6 +9,7 @@ import { updateDoc } from "../../updateDoc";
 import { TProgram, TProgramPhaseKey } from "../../../types/programTypes";
 import { createPhase } from "../../programHelpers";
 import { addContinuousDaysToClientProgram } from "./add";
+import { TClinicianClientWrite } from "../../../types/clinicianTypes";
 
 export async function updateProgramDay(
   clientId: string,
@@ -147,13 +148,13 @@ export async function changeClientPhase(
   clientId: string,
   program: TProgram,
   newPhase: TProgramPhaseKey,
-  currentPhaseId: TProgramPhaseKey
+  currentPhaseId: TProgramPhaseKey,
+  clinicianId: string,
+  clinicianClientId: string
 ) {
-  console.log("currentPhaseId", currentPhaseId);
-  console.log("newPhase", newPhase);
   // start by removing the current day and future days from the client's program
   const { days, trainingDays } = clientProgram;
-  console.log("days", days);
+
   // filter the days to only include days that are before the current day in current phase and count them
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -215,10 +216,25 @@ export async function changeClientPhase(
     value: newDays.length,
   });
 
-  console.log("updatedPhases after push:", updatedPhases);
+  console.log("updatedPhases after push:", updatedPhases, {
+    clinicianClientRef: doc(
+      db,
+      "clinicians",
+      clinicianId,
+      "clients",
+      clinicianClientId
+    ) as DocumentReference<TClinicianClientWrite>,
+  });
 
   updateProgramFields(clientId, clientProgram.clientProgramId, {
     phases: updatedPhases,
+    clinicianClientRef: doc(
+      db,
+      "clinicians",
+      clinicianId,
+      "clients",
+      clinicianClientId
+    ) as DocumentReference<TClinicianClientWrite>,
     shouldRefetch: true,
   });
 }
