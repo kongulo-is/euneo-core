@@ -87,7 +87,7 @@ export async function getAllEuneoPrograms(): Promise<TEuneoProgram[]> {
   const ref = collection(db, "programs") as CollectionReference<TProgramWrite>;
 
   const querySnapshot = await getDocs(
-    query(collection(db, "programs"), where("isLive", "==", true))
+    query(collection(db, "programs"), where("isConsoleLive", "==", true))
     // query(
     //   collection(db, "programs"),
     //   where("conditionId", "==", "paprika-bell")
