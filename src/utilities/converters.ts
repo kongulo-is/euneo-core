@@ -176,8 +176,6 @@ export const programPhaseConverter = {
         ...(clinicianId && { clinicianId }),
       };
     } else {
-      console.log(data.mode);
-
       throw new Error("Invalid program phase");
     }
   },
