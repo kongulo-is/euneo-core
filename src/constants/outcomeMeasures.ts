@@ -42,3 +42,7 @@ export const outcomeMeasureOptions = Object.entries(outcomeMeasures).map(
     label: measure.name,
   })
 );
+
+export const outcomeMeasureIdEnum = Object.keys(outcomeMeasures) as [
+  keyof typeof outcomeMeasures,
+];

@@ -71,7 +71,11 @@ export const conditions: Conditions = {
 
 export const conditionOptions = Object.entries(conditions).map(
   ([value, label]) => ({
-    value,
+    value: value as TConditionId,
     label,
   })
 );
+
+export const conditionIdEnum = Object.keys(conditions) as [
+  keyof typeof conditions,
+];
