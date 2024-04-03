@@ -26,7 +26,13 @@ export type TEuneoPrescription = TPrescriptionBase & TEuneoReferenceIds;
 export type TClinicianPrescription = TPrescriptionBase & TClinicianReferenceIds;
 export type TPrescription = TEuneoPrescription | TClinicianPrescription;
 
-export type TOutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis" | "pgq";
+export type TOutcomeMeasureId =
+  | "faam"
+  | "sf-36"
+  | "visa-a"
+  | "promis"
+  | "odi"
+  | "pgq";
 
 /**
  * @description Physician data type

@@ -29,6 +29,11 @@ export const outcomeMeasures: OutcomeMeasures = {
     name: "Patient-Reported Outcomes Measurement Information System",
     acronym: "PROMIS",
   },
+  odi: {
+    id: "odi",
+    name: "Oswestry Disability Index",
+    acronym: "ODI",
+  },
   pgq: {
     id: "pgq",
     name: "Patient Global Question",
