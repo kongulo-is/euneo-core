@@ -57,20 +57,14 @@ export async function addPrescriptionToClinicianClient(
       prescription: prescriptionConverted,
     });
 
-    await createInvitation(clinicianId, clinicianClientId, code);
+    // send invitation to client and return the invitation id
+    const invitationId = await createInvitation(
+      clinicianId,
+      clinicianClientId,
+      code
+    );
 
-    // mixpanelTrack({
-    //   event: "Prescription sent",
-    //   data: {
-    //     distinct_id:
-    //       clinicianClientId + "-" + prescriptionConverted.prescriptionDate,
-    //     condition_id: conditionId,
-    //     clinician_id: clinicianId,
-    //     program_id: prescriptionConverted.programRef.id,
-    //   },
-    // });
-
-    return true;
+    return invitationId;
   } catch (error) {
     console.error(
       "Error adding prescription to clinician client",
