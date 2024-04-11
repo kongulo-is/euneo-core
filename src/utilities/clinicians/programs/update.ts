@@ -1,4 +1,4 @@
-import { doc, DocumentReference, setDoc, updateDoc } from "firebase/firestore";
+import { collection, doc, DocumentReference, setDoc } from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import {
   TProgramRead,
@@ -11,14 +11,16 @@ import {
   TProgramPhase,
   TProgramPhaseKey,
   TProgramDayKey,
+  TProgramVersionWrite,
 } from "../../../types/programTypes";
 import {
   programConverter,
   programDayConverter,
   programPhaseConverter,
 } from "../../converters";
+import { updateDoc } from "../../updateDoc";
 
-export async function updateClinicianProgram(
+export async function createNewClinicianProgramVersion(
   clinicianProgram: TProgramRead,
   phases: Record<TProgramPhaseKey, TProgramPhaseRead>,
   days: Record<TProgramDayKey, TProgramDayRead>,
@@ -32,36 +34,49 @@ export async function updateClinicianProgram(
       clinicianId,
       "programs",
       clinicianProgramId
+    ) as DocumentReference<TProgramVersionWrite>;
+    const newProgramVersionRef = doc(
+      programRef,
+      "versions",
+      clinicianProgram.version
     ) as DocumentReference<TProgramWrite>;
 
-    // convert and update program.
-    const programConverted = programConverter.toFirestore(clinicianProgram);
-    await updateDoc(programRef, programConverted);
+    // Update current version
+    await updateDoc(programRef, {
+      currentVersion: newProgramVersionRef,
+    });
+    // convert and create new program version.
+    const programVersionConverted =
+      programConverter.toFirestore(clinicianProgram);
+    await setDoc(newProgramVersionRef, programVersionConverted);
 
-    // convert and update program days and phases.
-    const day = programDayConverter.toFirestore(days["d1"]);
-    const dayRef = doc(
-      db,
-      "clinicians",
-      clinicianId,
-      "programs",
-      clinicianProgramId,
-      "days",
-      "d1"
-    ) as DocumentReference<TProgramDayWrite>;
-    await updateDoc(dayRef, day);
+    // create days and phases for new version
+    const daysRef = collection(newProgramVersionRef, "days");
 
-    const phase = programPhaseConverter.toFirestore(phases["p1"]);
-    const phaseRef = doc(
-      db,
-      "clinicians",
-      clinicianId,
-      "programs",
-      clinicianProgramId,
-      "phases",
-      "p1"
-    ) as DocumentReference<TProgramPhaseWrite>;
-    await updateDoc(phaseRef, phase);
+    await Promise.all(
+      Object.keys(days).map((id) => {
+        const dayId = id as `d${number}`;
+        return setDoc(
+          doc(daysRef.withConverter(programDayConverter), dayId),
+          days[dayId],
+          { merge: true }
+        );
+      })
+    );
+
+    const phasesRef = collection(newProgramVersionRef, "phases");
+
+    await Promise.all(
+      Object.keys(phases).map((id) => {
+        const phaseId = id as `p${number}`;
+        const phase = { ...phases[phaseId], programId: programRef.id };
+        return setDoc(
+          doc(phasesRef.withConverter(programPhaseConverter), phaseId),
+          phase,
+          { merge: true }
+        );
+      })
+    );
 
     return {
       ...clinicianProgram,
@@ -72,7 +87,7 @@ export async function updateClinicianProgram(
     };
   } catch (error) {
     console.error(
-      "Error updating clinician program: ",
+      "Error creating new version: ",
       error,
       clinicianProgram,
       days,

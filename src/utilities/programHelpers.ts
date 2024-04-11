@@ -152,6 +152,33 @@ export function createPhase(
   return dayList;
 }
 
+export function incrementBaseVersion(
+  version: `${number}.${number}`
+): `${number}.${number}` {
+  // Split the string at the period
+  const parts = version.split(".");
+
+  // Convert the first part to a number and increment it
+  const incremented = parseInt(parts[0]) + 1;
+
+  // Concatenate the incremented number with '.0'
+  return `${incremented}.0`;
+}
+
+export function incrementModifiedVersion(
+  version: `${number}.${number}`
+): `${number}.${number}` {
+  // Split the string at the period
+  const parts = version.split(".");
+
+  // Convert the first part to a number and increment it
+  const base = parseInt(parts[0]);
+  const incremented = parseInt(parts[1]) + 1;
+
+  // Concatenate the incremented number with '.0'
+  return `${base}.${incremented}`;
+}
+
 // export function createContinuousDays(
 //   trainingDays: Array<boolean>,
 //   program: TProgram,

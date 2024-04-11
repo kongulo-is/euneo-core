@@ -15,6 +15,7 @@ import {
 } from "@firebase/firestore";
 import {
   TConditionAssessmentQuestion,
+  TProgramBase,
   TProgramContinuousPhase,
   TProgramDayKey,
   TProgramDayRead,
@@ -24,6 +25,8 @@ import {
   TProgramPhaseRead,
   TProgramPhaseWrite,
   TProgramRead,
+  TProgramVersionRead,
+  TProgramVersionWrite,
   TProgramWrite,
 } from "../types/programTypes";
 import {
@@ -206,7 +209,6 @@ export const programConverter = {
       conditionId: program.conditionId,
       outcomeMeasureRefs,
       conditionAssessment,
-      version: "1",
       ...(program.variation && { variation: program.variation }),
     };
     return data;
@@ -215,8 +217,8 @@ export const programConverter = {
     snapshot: QueryDocumentSnapshot<TProgramWrite>,
     options: SnapshotOptions
   ): TProgramRead {
-    const data = snapshot.data(options);
-    let { outcomeMeasureRefs, ...rest } = data;
+    const programWrite = snapshot.data(options);
+    let { outcomeMeasureRefs, ...rest } = programWrite;
 
     const outcomeMeasureIds =
       outcomeMeasureRefs?.map(
@@ -224,11 +226,44 @@ export const programConverter = {
           measure.id as TOutcomeMeasureId
       ) || [];
 
-    const datas: TProgramRead = {
+    const data: TProgramRead = {
       ...rest,
       ...(outcomeMeasureIds.length && { outcomeMeasureIds }),
+      version: snapshot.id as TProgramBase["version"],
     };
-    return datas;
+    return data;
+  },
+};
+
+export const programVersionConverter = {
+  toFirestore(program: TProgramVersionRead): TProgramVersionWrite {
+    return {
+      currentVersion: doc(
+        db,
+        "clinicians",
+        program.clinicianId,
+        "programs",
+        program.programId,
+        "versions",
+        program.currentVersion
+      ) as DocumentReference<TProgramWrite>,
+    };
+  },
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<TProgramVersionWrite>,
+    options: SnapshotOptions
+  ): TProgramVersionRead {
+    const data = snapshot.data(options);
+    const currentVersionRef = data.currentVersion;
+    const clinicianId =
+      currentVersionRef.parent.parent?.parent?.parent?.id || "";
+    const programId = currentVersionRef.parent.parent?.id || "";
+    const currentVersion = currentVersionRef.id;
+    return {
+      clinicianId,
+      programId,
+      currentVersion,
+    };
   },
 };
 

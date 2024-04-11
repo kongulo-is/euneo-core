@@ -23,6 +23,8 @@ import {
   TExerciseDayWrite,
   TProgramRead,
   TProgramDayRead,
+  TProgramPhaseWrite,
+  TProgramVersionWrite,
 } from "../types/programTypes";
 import { TExercise } from "../types/baseTypes";
 
@@ -32,10 +34,12 @@ type AllWrites =
   | TClientProgramDayWrite
   | TClinicianWrite
   | TClinicianClientWrite
+  | TProgramVersionWrite
   | TProgramWrite
   | TProgramDayWrite
   | TExerciseDayWrite
-  | TInvitationWrite;
+  | TInvitationWrite
+  | TProgramPhaseWrite;
 
 type AllReads =
   | TClientProgramRead

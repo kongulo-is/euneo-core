@@ -1,4 +1,4 @@
-import { doc, collection, addDoc, setDoc } from "firebase/firestore";
+import { doc, collection, setDoc, DocumentReference } from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import {
   TProgramRead,
@@ -7,6 +7,8 @@ import {
   TProgramPhaseRead,
   TProgramPhaseKey,
   TProgramDayKey,
+  TProgramWrite,
+  TProgramVersionWrite,
 } from "../../../types/programTypes";
 import {
   programConverter,
@@ -22,29 +24,52 @@ export async function createClinicianProgram(
 ): Promise<TClinicianProgram> {
   try {
     const clinicianRef = doc(db, "clinicians", clinicianId);
-    const programsRef = collection(clinicianRef, "programs");
+    // Program reference
+    const programRef = doc(
+      collection(clinicianRef, "programs")
+    ) as DocumentReference<TProgramVersionWrite>;
+    // Program version ref
+    const currentProgramRef = doc(
+      programRef,
+      "versions",
+      "1.0"
+    ) as DocumentReference<TProgramWrite>;
+    await setDoc(programRef, {
+      currentVersion: currentProgramRef,
+    });
 
-    const programRef = await addDoc(
-      programsRef.withConverter(programConverter),
-      clinicianProgramRead // * There is no error because
+    await Promise.all([
+      setDoc(
+        currentProgramRef.withConverter(programConverter),
+        clinicianProgramRead
+      ),
+    ]);
+
+    const daysRef = collection(currentProgramRef, "days");
+
+    await Promise.all(
+      Object.keys(days).map((id) => {
+        const dayId = id as `d${number}`;
+        return setDoc(
+          doc(daysRef.withConverter(programDayConverter), dayId),
+          days[dayId],
+          { merge: true }
+        );
+      })
     );
 
-    const daysRef = collection(programRef, "days");
+    const phasesRef = collection(currentProgramRef, "phases");
 
-    await setDoc(
-      doc(daysRef.withConverter(programDayConverter), "d1"),
-      days["d1"],
-      { merge: true }
-    );
-
-    const phasesRef = collection(programRef, "phases");
-
-    const phase = { ...phases["p1"], programId: programRef.id };
-
-    await setDoc(
-      doc(phasesRef.withConverter(programPhaseConverter), "p1"),
-      phase,
-      { merge: true }
+    await Promise.all(
+      Object.keys(phases).map((id) => {
+        const phaseId = id as `p${number}`;
+        const phase = { ...phases[phaseId], programId: programRef.id };
+        return setDoc(
+          doc(phasesRef.withConverter(programPhaseConverter), phaseId),
+          phase,
+          { merge: true }
+        );
+      })
     );
 
     const clinicianProgram: TClinicianProgram = {
@@ -53,6 +78,7 @@ export async function createClinicianProgram(
       days,
       clinicianProgramId: programRef.id,
       clinicianId,
+      version: "1.0",
     };
 
     return clinicianProgram;
