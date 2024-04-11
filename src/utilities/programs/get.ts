@@ -30,6 +30,8 @@ import { updateDoc } from "../updateDoc";
 export async function getProgramFromCode(code: string): Promise<{
   program: TClinicianProgram | TEuneoProgram;
   clinicianClientRef: DocumentReference<TClinicianClientWrite, DocumentData>;
+  clinicianId: string;
+  invitationId: string;
 }> {
   // We dont need a converter here because it would not convert anything
   const q = query(collection(db, "invitations"), where("code", "==", code));
@@ -68,6 +70,9 @@ export async function getProgramFromCode(code: string): Promise<{
     }
   });
 
+  const clinicianId = clinicianClientRef.parent.parent!.id;
+  const invitationId = firstDoc.id;
+
   // runtimeChecks.assertTClinicianProgram(program);
 
   // update clinician clientProgramRef
@@ -78,7 +83,7 @@ export async function getProgramFromCode(code: string): Promise<{
     },
   });
 
-  return { program, clinicianClientRef };
+  return { program, clinicianClientRef, clinicianId, invitationId };
 }
 
 export async function getAllEuneoPrograms(): Promise<TEuneoProgram[]> {
