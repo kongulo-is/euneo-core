@@ -60,6 +60,7 @@ export type TProgramPhaseRead = (
 ) & {
   programId: string;
   clinicianId?: string;
+  version: string;
 };
 export type TProgramPhaseKey = `p${number}` | `${string}_p${number}`;
 
@@ -83,7 +84,7 @@ export type TProgramBase = {
   isLive?: boolean;
   isConsoleLive?: boolean;
   variation?: string;
-  version: `${number}.${number}`;
+  version: string;
 };
 
 export type TProgramRead = TProgramBase;
@@ -113,6 +114,7 @@ export type TProgramVersionRead = {
 
 export type TProgramVersionWrite = {
   currentVersion: DocumentReference<TProgramWrite>;
+  isConsoleLive?: boolean;
 };
 
 export type TProgram = TEuneoProgram | TClinicianProgram;

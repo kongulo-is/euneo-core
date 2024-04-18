@@ -24,6 +24,7 @@ import { _getProgramFromRef } from "../../programHelpers";
 export async function getClinicianProgramWithDays(
   clinicianId: string,
   clinicianProgramId: string,
+  version: string,
   clinicianClientId?: string
 ): Promise<TClinicianProgram> {
   let programRef = doc(
@@ -31,7 +32,9 @@ export async function getClinicianProgramWithDays(
     "clinicians",
     clinicianId,
     "programs",
-    clinicianProgramId
+    clinicianProgramId,
+    "versions",
+    version
   ) as DocumentReference<TProgramWrite>;
 
   const clinicianProgram = await _getProgramFromRef(programRef);
@@ -107,13 +110,15 @@ export async function getClinicianProgramsWithSubcollections(
         const days = Object.fromEntries(
           daysSnap[i].docs.map((doc) => [doc.id, doc.data()])
         );
+        console.log("Ids: ", clinicianId, doc.ref.parent.parent?.id, doc.id);
+
         return {
           ...(doc.data() as TProgramBase),
           phases,
           days,
           clinicianProgramId: doc.ref.parent.parent?.id || "",
           clinicianId,
-          version: doc.id as TProgramBase["version"],
+          version: doc.id,
         };
       }
     );

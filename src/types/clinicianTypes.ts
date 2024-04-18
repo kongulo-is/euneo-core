@@ -19,6 +19,7 @@ export type TPrescriptionBase = {
   status: TPrescriptionStatus;
   clientProgramId?: string;
   clientId?: string;
+  version: string;
 };
 
 export type TEuneoPrescription = TPrescriptionBase & TEuneoReferenceIds;

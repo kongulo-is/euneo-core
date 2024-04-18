@@ -10,6 +10,7 @@ import {
 import { db } from "../../../firebase/db";
 import {
   TClientProgram,
+  TClientProgramBase,
   TClientProgramWrite,
 } from "../../../types/clientTypes";
 import {

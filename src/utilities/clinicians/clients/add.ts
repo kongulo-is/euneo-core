@@ -36,11 +36,14 @@ export async function addPrescriptionToClinicianClient(
       "clients",
       clinicianClientId
     ) as DocumentReference<TClinicianClientWrite>;
-
+    console.log("Here 1");
     // check if user has a current prescription
     const clinicianClientSnapshot = await getDoc(clinicianClientRef);
+    console.log("Here 2");
+
     const currentPrescription = clinicianClientSnapshot.data()?.prescription;
     if (currentPrescription) {
+      console.log("Here 3");
       // store current prescription in past prescription sub collection
       const pastPrescriptionRef = collection(
         clinicianClientRef,
@@ -48,16 +51,19 @@ export async function addPrescriptionToClinicianClient(
       ) as CollectionReference<TPrescriptionWrite>;
       await addDoc(pastPrescriptionRef, currentPrescription);
     }
-
+    console.log("Here 4", prescription);
     // change the clinician client's prescription
     const prescriptionConverted =
       prescriptionConverter.toFirestore(prescription);
+    console.log("Here 4.5", prescriptionConverted);
 
     await updateDoc(clinicianClientRef, {
       prescription: prescriptionConverted,
     });
+    console.log("Here 5");
 
     await createInvitation(clinicianId, clinicianClientId, code);
+    console.log("Here 6");
 
     // mixpanelTrack({
     //   event: "Prescription sent",

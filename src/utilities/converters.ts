@@ -48,6 +48,7 @@ import {
   TClinicianClientWrite,
   TPrescription,
   TPrescriptionWrite,
+  TPrescriptionBase,
 } from "../types/clinicianTypes";
 import { db } from "../firebase/db";
 import { isEmptyObject } from "./basicHelpers";
@@ -109,19 +110,29 @@ export const programDayConverter = {
 export const programPhaseConverter = {
   toFirestore(phase: TProgramPhaseRead): TProgramPhaseWrite {
     if ("clinicianId" in phase && phase.clinicianId) {
-      const { clinicianId, programId, ...rest } = phase;
+      const { clinicianId, programId, version, ...rest } = phase;
       return {
         ...rest,
         days: phase.days.map((day) =>
-          doc(db, "clinicians", clinicianId, "programs", programId, "days", day)
+          doc(
+            db,
+            "clinicians",
+            clinicianId,
+            "programs",
+            programId,
+            "versions",
+            version,
+            "days",
+            day
+          )
         ),
       };
     } else {
-      const { programId, ...rest } = phase;
+      const { programId, version, ...rest } = phase;
       return {
         ...rest,
         days: phase.days.map((day) =>
-          doc(db, "programs", programId, "days", day)
+          doc(db, "programs", programId, "versions", version, "days", day)
         ),
       };
     }
@@ -132,8 +143,9 @@ export const programPhaseConverter = {
   ): TProgramPhaseRead {
     const data = snapshot.data(options);
 
-    const programId = snapshot.id;
-    const clinicianId = snapshot.ref.parent.parent?.id;
+    const programId = snapshot.ref.parent.parent!.parent!.parent!.id;
+    const clinicianId =
+      snapshot.ref.parent.parent?.parent?.parent?.parent?.parent?.id;
 
     // TODO: remove this when all users have updated programs, this is for users with deprecated programs
     // @ts-ignore this is for users with deprecated programs
@@ -165,6 +177,7 @@ export const programPhaseConverter = {
       return {
         ...finitePhase,
         programId,
+        version: snapshot.ref.parent.parent!.id,
         ...(clinicianId && { clinicianId }),
       };
     } else if (data.mode === "continuous" || data.mode === "maintenance") {
@@ -176,6 +189,7 @@ export const programPhaseConverter = {
       return {
         ...continuousPhase,
         programId,
+        version: snapshot.ref.parent.parent!.id,
         ...(clinicianId && { clinicianId }),
       };
     } else {
@@ -229,7 +243,7 @@ export const programConverter = {
     const data: TProgramRead = {
       ...rest,
       ...(outcomeMeasureIds.length && { outcomeMeasureIds }),
-      version: snapshot.id as TProgramBase["version"],
+      version: snapshot.id,
     };
     return data;
   },
@@ -428,23 +442,25 @@ export const clientProgramConverter = {
       clinicianClientId = clinicianClientRef.id;
     }
 
-    if (!programRef?.parent.parent) {
+    if (!programRef?.parent.parent?.parent?.parent) {
       clientProgram = {
         ...rest,
         outcomeMeasuresAnswers,
         painLevels: painLevelsClient,
         euneoProgramId: programRef.id as TEuneoProgramId,
+        programVersion: programRef.id,
       };
       runtimeChecks.assertTClientProgram(clientProgram, true);
     } else {
-      const clinicianProgramId = programRef?.id;
-      const clinicianId = programRef?.parent.parent!.id;
+      const clinicianProgramId = programRef.parent.parent.id;
+      const clinicianId = programRef.parent.parent.parent.parent.id;
       clientProgram = {
         ...rest,
         outcomeMeasuresAnswers,
         painLevels: painLevelsClient,
         clinicianProgramId,
         clinicianId,
+        programVersion: programRef.id,
       };
       runtimeChecks.assertTClientProgram(clientProgram, true);
     }
@@ -570,7 +586,9 @@ export const prescriptionConverter = {
           "clinicians",
           prescription.clinicianId,
           "programs",
-          prescription.clinicianProgramId
+          prescription.clinicianProgramId,
+          "versions",
+          prescription.version
         ) as DocumentReference<TProgramWrite>,
         prescriptionDate: Timestamp.fromDate(prescription.prescriptionDate),
         status: prescription.status,
@@ -598,19 +616,21 @@ export const prescriptionConverter = {
       };
     }
 
-    if (programRef.parent.parent) {
+    if (programRef.parent.parent?.parent?.parent) {
       prescription = {
         ...rest,
         prescriptionDate: rest.prescriptionDate.toDate(),
-        clinicianId: programRef.parent.parent.id,
-        clinicianProgramId: programRef.id,
+        clinicianId: programRef.parent.parent.parent.parent.id,
+        clinicianProgramId: programRef.parent.parent.id,
+        version: programRef.id,
         ...(clientProgramObj && { ...clientProgramObj }),
       };
     } else {
       prescription = {
         ...rest,
         prescriptionDate: rest.prescriptionDate.toDate(),
-        euneoProgramId: programRef.id as TEuneoProgramId,
+        euneoProgramId: programRef.parent.parent!.id as TEuneoProgramId,
+        version: programRef.id,
         ...(clientProgramObj && { ...clientProgramObj }),
       };
     }
@@ -652,24 +672,195 @@ export const clientConverter = {
   },
 };
 
-// export const invitationConverter = (db: Firestore) => ({
-//   fromFirestore(
-//     snapshot: QueryDocumentSnapshot<InvitationWrite>,
-//     options: SnapshotOptions
-//   ): Omit<TEuneoProgram, "days"> {
-//     // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
-//     const data = snapshot.data(options);
-//     let { outcomeMeasureRefs, ...rest } = data;
+// Converters for deprecated programs
+export const oldProgramConverter = {
+  toFirestore(program: TProgramRead): TProgramWrite {
+    // * we only create/edit clinician programs
+    let outcomeMeasureRefs: DocumentReference<TOutcomeMeasureWrite>[] = [];
+    if (program.outcomeMeasureIds) {
+      outcomeMeasureRefs = program.outcomeMeasureIds.map(
+        (id) =>
+          doc(
+            db,
+            "outcomeMeasures",
+            id
+          ) as DocumentReference<TOutcomeMeasureWrite>
+      );
+    }
 
-//     const outcomeMeasureIds =
-//       outcomeMeasureRefs?.map(
-//         (measure: DocumentReference) => measure.id as TOutcomeMeasureId
-//       ) || [];
-//     return {
-//       ...rest,
-//       ...(outcomeMeasureIds.length && { outcomeMeasureIds }),
-//       // createdBy: "Euneo",
-//       programId: snapshot.id,
-//     };
-//   },
-// });
+    let conditionAssessment: TConditionAssessmentQuestion[] = [];
+    if (program.conditionAssessment) {
+      conditionAssessment = program.conditionAssessment;
+    }
+
+    const data: TProgramWrite = {
+      ...(program.name && { name: program.name }),
+      conditionId: program.conditionId,
+      outcomeMeasureRefs,
+      conditionAssessment,
+      ...(program.variation && { variation: program.variation }),
+    };
+    return data;
+  },
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<TProgramWrite>,
+    options: SnapshotOptions
+  ): TProgramRead {
+    const programWrite = snapshot.data(options);
+    let { outcomeMeasureRefs, ...rest } = programWrite;
+
+    const outcomeMeasureIds =
+      outcomeMeasureRefs?.map(
+        (measure: DocumentReference<TOutcomeMeasureWrite>) =>
+          measure.id as TOutcomeMeasureId
+      ) || [];
+
+    const data: TProgramRead = {
+      ...rest,
+      ...(outcomeMeasureIds.length && { outcomeMeasureIds }),
+      version: "1.0",
+    };
+    return data;
+  },
+};
+
+export const oldProgramPhaseConverter = {
+  toFirestore(phase: TProgramPhaseRead): TProgramPhaseWrite {
+    if ("clinicianId" in phase && phase.clinicianId) {
+      const { clinicianId, programId, ...rest } = phase;
+      return {
+        ...rest,
+        days: phase.days.map((day) =>
+          doc(
+            db,
+            "clinicians",
+            clinicianId,
+            "programs",
+            programId,
+            "versions",
+            "1.0",
+            "days",
+            day
+          )
+        ),
+      };
+    } else {
+      const { programId, ...rest } = phase;
+      return {
+        ...rest,
+        days: phase.days.map((day) =>
+          doc(db, "programs", programId, "versions", "1.0", "days", day)
+        ),
+      };
+    }
+  },
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<TProgramPhaseWrite>,
+    options: SnapshotOptions
+  ): TProgramPhaseRead {
+    const data = snapshot.data(options);
+
+    const programId = snapshot.ref.parent.parent!.id;
+    const clinicianId = snapshot.ref.parent.parent?.parent?.parent?.id;
+
+    // TODO: remove this when all users have updated programs, this is for users with deprecated programs
+    // @ts-ignore this is for users with deprecated programs
+    if (data?.nextPhase?.length && data.nextPhase[0].id) {
+      // @ts-ignore this is for users with deprecated programs
+      return {
+        ...data,
+        days: data.days.map((day) => day.id as TProgramDayKey),
+        nextPhase: data.nextPhase.map((phase) => {
+          // @ts-ignore
+          const { id, minPain, maxPain, ...rest } = phase;
+          return {
+            ...rest,
+            phaseId: id,
+            minPainLevel: minPain,
+            maxPainLevel: maxPain,
+          };
+        }),
+      };
+    }
+
+    if (data.mode === "finite" && data.length) {
+      const finitePhase: TProgramFinitePhase = {
+        ...data,
+        days: data.days.map((day) => day.id as TProgramDayKey),
+        length: data.length,
+        mode: data.mode,
+      };
+      return {
+        ...finitePhase,
+        programId,
+        version: "1.0",
+        ...(clinicianId && { clinicianId }),
+      };
+    } else if (data.mode === "continuous" || data.mode === "maintenance") {
+      const continuousPhase: TProgramContinuousPhase = {
+        ...data,
+        days: data.days.map((day) => day.id as TProgramDayKey),
+        mode: data.mode,
+      };
+      return {
+        ...continuousPhase,
+        programId,
+        version: "1.0",
+        ...(clinicianId && { clinicianId }),
+      };
+    } else {
+      throw new Error("Invalid program phase");
+    }
+  },
+};
+
+export const oldProgramDayConverter = {
+  toFirestore(day: TProgramDayRead): TProgramDayWrite {
+    return {
+      exercises: day.exercises.map((e) => {
+        return {
+          reference: doc(db, "exercises", e.exerciseId),
+          time: e.time,
+          reps: e.reps,
+          sets: e.sets,
+        };
+      }),
+    };
+  },
+
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<TProgramDayWrite>,
+    options: SnapshotOptions
+  ): TProgramDayRead {
+    const data = snapshot.data(options);
+    let { exercises } = data;
+
+    const convertedExercises =
+      exercises?.map((exercise) => {
+        const { reference, ...rest } = exercise;
+
+        // @ts-ignore this is for users with deprecated programs
+        if (typeof exercise.quantity === "number") {
+          const time = exercise.reps >= 15 ? exercise.reps : 0;
+          // @ts-ignore
+          const reps = exercise.reps >= 15 ? exercise.quantity : exercise.reps;
+          return {
+            ...rest,
+            time: time,
+            reps: reps === 1 && exercise.sets === 1 ? 0 : reps,
+            sets: exercise.sets,
+            exerciseId: reference.id,
+          };
+        }
+
+        return {
+          ...rest,
+          exerciseId: reference.id,
+        };
+      }) || [];
+
+    return {
+      exercises: convertedExercises,
+    };
+  },
+};

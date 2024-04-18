@@ -5,10 +5,7 @@ import {
   TProgramDayRead,
   TClinicianProgram,
   TProgramWrite,
-  TProgramDayWrite,
   TProgramPhaseRead,
-  TProgramPhaseWrite,
-  TProgramPhase,
   TProgramPhaseKey,
   TProgramDayKey,
   TProgramVersionWrite,
@@ -35,16 +32,99 @@ export async function createNewClinicianProgramVersion(
       "programs",
       clinicianProgramId
     ) as DocumentReference<TProgramVersionWrite>;
+    console.log("programRef", programRef);
+
+    const newProgramVersionRef = doc(
+      programRef,
+      "versions",
+      clinicianProgram.version
+    ) as DocumentReference<TProgramWrite>;
+    console.log("newProgramVersionRef", newProgramVersionRef);
+
+    // Update current version
+    await updateDoc(programRef, {
+      currentVersion: newProgramVersionRef,
+    });
+    console.log("new currentVersion added!");
+    // convert and create new program version.
+    const programVersionConverted =
+      programConverter.toFirestore(clinicianProgram);
+    await setDoc(newProgramVersionRef, programVersionConverted);
+    console.log("new program version created!");
+    // create days and phases for new version
+    const daysRef = collection(newProgramVersionRef, "days");
+
+    await Promise.all(
+      Object.keys(days).map((id) => {
+        const dayId = id as `d${number}`;
+        return setDoc(
+          doc(daysRef.withConverter(programDayConverter), dayId),
+          days[dayId],
+          { merge: true }
+        );
+      })
+    );
+    console.log("days created!");
+
+    const phasesRef = collection(newProgramVersionRef, "phases");
+
+    await Promise.all(
+      Object.keys(phases).map((id) => {
+        const phaseId = id as `p${number}`;
+        const phase = { ...phases[phaseId], programId: programRef.id };
+        return setDoc(
+          doc(phasesRef.withConverter(programPhaseConverter), phaseId),
+          phase,
+          { merge: true }
+        );
+      })
+    );
+    console.log("phases created!");
+    return {
+      ...clinicianProgram,
+      phases,
+      days,
+      clinicianProgramId,
+      clinicianId,
+    };
+  } catch (error) {
+    console.error(
+      "Error creating new version: ",
+      error,
+      clinicianProgram,
+      days,
+      clinicianProgramId,
+      clinicianId
+    );
+  }
+  throw new Error("Error updating clinician program");
+}
+
+export async function createModifiedClinicianProgramVersion(
+  clinicianProgram: TProgramRead,
+  phases: Record<TProgramPhaseKey, TProgramPhaseRead>,
+  days: Record<TProgramDayKey, TProgramDayRead>,
+  clinicianProgramId: string,
+  clinicianId: string
+): Promise<TClinicianProgram> {
+  try {
+    const programRef = doc(
+      db,
+      "clinicians",
+      clinicianId,
+      "programs",
+      clinicianProgramId
+    ) as DocumentReference<TProgramVersionWrite>;
     const newProgramVersionRef = doc(
       programRef,
       "versions",
       clinicianProgram.version
     ) as DocumentReference<TProgramWrite>;
 
-    // Update current version
-    await updateDoc(programRef, {
-      currentVersion: newProgramVersionRef,
-    });
+    // // Update current version
+    // await updateDoc(programRef, {
+    //   currentVersion: newProgramVersionRef,
+    // });
     // convert and create new program version.
     const programVersionConverted =
       programConverter.toFirestore(clinicianProgram);
@@ -98,89 +178,89 @@ export async function createNewClinicianProgramVersion(
   throw new Error("Error updating clinician program");
 }
 
-export async function addUniqueClientDayToClinicianProgram(
-  clinicianProgram: TClinicianProgram,
-  newDay: TProgramDayRead,
-  clinicianProgramId: string,
-  clinicianId: string,
-  clinicianClientId: string
-): Promise<{
-  clinicianProgram: TClinicianProgram;
-  newPhase: TProgramPhaseKey;
-}> {
-  try {
-    const { days, phases } = clinicianProgram;
-    // Create new day key clinicianClientId_d?
-    const customDaysCount = days
-      ? Object.keys(days).filter((d) => d.includes(clinicianClientId))
-      : [];
+// export async function addUniqueClientDayToClinicianProgram(
+//   clinicianProgram: TClinicianProgram,
+//   newDay: TProgramDayRead,
+//   clinicianProgramId: string,
+//   clinicianId: string,
+//   clinicianClientId: string
+// ): Promise<{
+//   clinicianProgram: TClinicianProgram;
+//   newPhase: TProgramPhaseKey;
+// }> {
+//   try {
+//     const { days, phases } = clinicianProgram;
+//     // Create new day key clinicianClientId_d?
+//     const customDaysCount = days
+//       ? Object.keys(days).filter((d) => d.includes(clinicianClientId))
+//       : [];
 
-    const newDayKey = `${clinicianClientId}_d${
-      customDaysCount.length + 1
-    }` as TProgramDayKey;
+//     const newDayKey = `${clinicianClientId}_d${
+//       customDaysCount.length + 1
+//     }` as TProgramDayKey;
 
-    // Create new phase key clinicianClientId_d?
-    const customPhasesCount = phases
-      ? Object.keys(phases).filter((p) => p.includes(clinicianClientId))
-      : [];
-    const newPhaseKey = `${clinicianClientId}_p${
-      customPhasesCount.length + 1
-    }` as TProgramPhaseKey;
+//     // Create new phase key clinicianClientId_d?
+//     const customPhasesCount = phases
+//       ? Object.keys(phases).filter((p) => p.includes(clinicianClientId))
+//       : [];
+//     const newPhaseKey = `${clinicianClientId}_p${
+//       customPhasesCount.length + 1
+//     }` as TProgramPhaseKey;
 
-    // convert and update program days and phases.
-    const day = programDayConverter.toFirestore(newDay);
-    const dayRef = doc(
-      db,
-      "clinicians",
-      clinicianId,
-      "programs",
-      clinicianProgramId,
-      "days",
-      newDayKey
-    ) as DocumentReference<TProgramDayWrite>;
-    await setDoc(dayRef, day);
+//     // convert and update program days and phases.
+//     const day = programDayConverter.toFirestore(newDay);
+//     const dayRef = doc(
+//       db,
+//       "clinicians",
+//       clinicianId,
+//       "programs",
+//       clinicianProgramId,
+//       "days",
+//       newDayKey
+//     ) as DocumentReference<TProgramDayWrite>;
+//     await setDoc(dayRef, day);
 
-    const newPhase: TProgramPhaseRead = {
-      days: [newDayKey],
-      finalPhase: true,
-      mode: "continuous",
-      programId: clinicianProgramId,
-    };
+//     const newPhase: TProgramPhaseRead = {
+//       days: [newDayKey],
+//       finalPhase: true,
+//       mode: "continuous",
+//       programId: clinicianProgramId,
+//     };
 
-    const phase = programPhaseConverter.toFirestore(newPhase);
-    const phaseRef = doc(
-      db,
-      "clinicians",
-      clinicianId,
-      "programs",
-      clinicianProgramId,
-      "phases",
-      newPhaseKey
-    ) as DocumentReference<TProgramPhaseWrite>;
-    await setDoc(phaseRef, phase);
+//     const phase = programPhaseConverter.toFirestore(newPhase);
+//     const phaseRef = doc(
+//       db,
+//       "clinicians",
+//       clinicianId,
+//       "programs",
+//       clinicianProgramId,
+//       "phases",
+//       newPhaseKey
+//     ) as DocumentReference<TProgramPhaseWrite>;
+//     await setDoc(phaseRef, phase);
 
-    // return updated clinician program and new phase
-    return {
-      clinicianProgram: {
-        ...clinicianProgram,
-        days: {
-          ...days,
-          [newDayKey]: newDay,
-        },
-        phases: {
-          ...phases,
-          [newPhaseKey]: newPhase,
-        },
-      },
-      newPhase: newPhaseKey,
-    };
-  } catch (error) {
-    console.error(
-      "Error updating clinician program: ",
-      error,
-      clinicianProgramId,
-      clinicianId
-    );
-    throw new Error("Error updating clinician program");
-  }
-}
+//     // return updated clinician program and new phase
+//     return {
+//       clinicianProgram: {
+//         ...clinicianProgram,
+//         days: {
+//           ...days,
+//           [newDayKey]: newDay,
+//         },
+//         phases: {
+//           ...phases,
+//           [newPhaseKey]: newPhase,
+//         },
+//       },
+//       newPhase: newPhaseKey,
+//     };
+//   } catch (error) {
+//     console.error(
+//       "Error updating clinician program: ",
+//       error,
+//       clinicianProgramId,
+//       clinicianId
+//     );
+//     throw new Error("Error updating clinician program");
+//   }
+// }

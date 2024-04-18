@@ -6,7 +6,12 @@ import {
   TClientProgramWrite,
 } from "../../../types/clientTypes";
 import { updateDoc } from "../../updateDoc";
-import { TProgram, TProgramPhaseKey } from "../../../types/programTypes";
+import {
+  TClinicianProgram,
+  TProgram,
+  TProgramPhaseKey,
+  TProgramWrite,
+} from "../../../types/programTypes";
 import { createPhase } from "../../programHelpers";
 import { addContinuousDaysToClientProgram } from "./add";
 import { TClinicianClientWrite } from "../../../types/clinicianTypes";
@@ -140,6 +145,112 @@ export async function removeRefetchFromProgram(
       console.log("Error: ", err);
       return false;
     });
+}
+
+// function that changes the phase a client is in
+export async function updateClientProgramVersion(
+  clientId: string,
+  clientProgram: TClientProgram,
+  program: TClinicianProgram,
+  clinicianId: string,
+  clinicianClientId: string,
+  version: string
+) {
+  try {
+    // start by removing the current day and future days from the client's program
+    const { days, trainingDays } = clientProgram;
+    const currentPhaseId = clientProgram.phases[clientProgram.phases.length - 1]
+      .key as `p${number}`;
+    // filter the days to only include days that are before the current day in current phase and count them
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const daysBeforeCurrent = days.filter(
+      (day) =>
+        day.date.getTime() < today.getTime() && day.phaseId === currentPhaseId
+    );
+
+    // find the current day index in the client program if it does not exist, set it to 0
+    const currDay = days.findIndex(
+      (day) => day.date.getTime() === today.getTime()
+    );
+
+    const startDayIndex = currDay === -1 ? 0 : currDay;
+    const startDocIndex = currDay === -1 ? days.length : currDay;
+
+    const phaseLength = days.length - startDayIndex;
+    // call the function  that adds a continuous phase to client
+    const newDays = createPhase(
+      trainingDays,
+      program,
+      currentPhaseId,
+      new Date(),
+      phaseLength,
+      0 // on start of new phase, start at day 0
+    );
+    console.log("newDays", newDays);
+
+    addContinuousDaysToClientProgram(
+      clientId,
+      clientProgram.clientProgramId,
+      newDays,
+      startDocIndex
+    );
+
+    // then update the phases map property of the client's program so that it is correct
+
+    const updatedPhases = [...clientProgram.phases];
+    const oldPhaseData = updatedPhases.pop();
+    // const currentPhase = updatedPhases[updatedPhases.length - 1];
+
+    // if (daysBeforeCurrent.length === 0) {
+    //   updatedPhases.pop();
+    // } else if (daysBeforeCurrent.length > 0) {
+    //   updatedPhases[updatedPhases.length - 1] = {
+    //     ...currentPhase,
+    //     value: daysBeforeCurrent.length,
+    //   };
+    // }
+
+    updatedPhases.push({
+      key: currentPhaseId,
+      value: oldPhaseData?.value || days.length,
+    });
+
+    console.log("updatedPhases after push:", updatedPhases, {
+      clinicianClientRef: doc(
+        db,
+        "clinicians",
+        clinicianId,
+        "clients",
+        clinicianClientId
+      ) as DocumentReference<TClinicianClientWrite>,
+    });
+
+    updateProgramFields(clientId, clientProgram.clientProgramId, {
+      phases: updatedPhases,
+      clinicianClientRef: doc(
+        db,
+        "clinicians",
+        clinicianId,
+        "clients",
+        clinicianClientId
+      ) as DocumentReference<TClinicianClientWrite>,
+      programRef: doc(
+        db,
+        "clinicians",
+        clinicianId,
+        "programs",
+        program.clinicianProgramId,
+        "versions",
+        version
+      ) as DocumentReference<TProgramWrite>,
+      shouldRefetch: true,
+    });
+
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 // function that changes the phase a client is in
