@@ -2,7 +2,6 @@ import { DocumentReference, doc, updateDoc } from "firebase/firestore";
 import { TClinicianProgram, TProgramWrite } from "../../types/programTypes";
 import { db } from "../../firebase/db";
 import { _getDeprecatedProgramFromRef } from "../programHelpers";
-import { programConverter, programPhaseConverter } from "../converters";
 import { createVersionForDeprecatedProgram } from "./add";
 
 export const archiveClinicianProgram = async (program: TClinicianProgram) => {
@@ -36,7 +35,9 @@ export const upgradeDeprecatedProgram = async (
   await createVersionForDeprecatedProgram(
     program,
     program.phases,
-    program.days
+    program.days,
+    "clinicianId" in program ? program.clinicianId : undefined,
+    "clinicianProgramId" in program ? program.clinicianProgramId : undefined
   );
   return program;
 };

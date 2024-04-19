@@ -17,7 +17,6 @@ import {
   programDayConverter,
   programPhaseConverter,
 } from "../converters";
-import { updateDoc } from "../updateDoc";
 
 export async function createVersionForDeprecatedProgram(
   program: TProgramRead,
@@ -27,67 +26,140 @@ export async function createVersionForDeprecatedProgram(
   clinicianProgramId?: string
 ): Promise<TProgram> {
   try {
-    const euneoProgram = program as TEuneoProgram;
-    const programRef = doc(
-      db,
-      "testPrograms",
-      euneoProgram.euneoProgramId
-    ) as DocumentReference<TProgramVersionWrite>;
-    console.log("programRef", programRef);
+    if (clinicianId && clinicianProgramId) {
+      const clinicianProgram = program as TClinicianProgram;
+      const programRef = doc(
+        db,
+        "clinicians",
+        clinicianId,
+        "programs",
+        clinicianProgramId
+      ) as DocumentReference<TProgramVersionWrite>;
+      console.log("programRef", programRef);
 
-    const newProgramVersionRef = doc(
-      programRef,
-      "versions",
-      "1.0"
-    ) as DocumentReference<TProgramWrite>;
-    console.log("newProgramVersionRef", newProgramVersionRef);
-    console.log("HERE 1");
+      const newProgramVersionRef = doc(
+        programRef,
+        "versions",
+        "1.0"
+      ) as DocumentReference<TProgramWrite>;
+      console.log("newProgramVersionRef", newProgramVersionRef);
+      console.log("HERE 1");
 
-    // Update current version
-    await setDoc(programRef, {
-      currentVersion: newProgramVersionRef,
-      isConsoleLive: program.isConsoleLive || false,
-    });
-    console.log("HERE 2");
-    console.log("new currentVersion added!");
-    // convert and create new program version.
-    const programVersionConverted = programConverter.toFirestore(euneoProgram);
-    await setDoc(newProgramVersionRef, programVersionConverted);
-    console.log("new program version created!");
-    // create days and phases for new version
-    const daysRef = collection(newProgramVersionRef, "days");
+      // Update current version
+      await setDoc(
+        programRef,
+        {
+          currentVersion: newProgramVersionRef,
+        },
+        {
+          merge: true,
+        }
+      );
+      console.log("HERE 2");
+      console.log("new currentVersion added!");
+      // convert and create new program version.
+      const programVersionConverted =
+        programConverter.toFirestore(clinicianProgram);
+      await setDoc(newProgramVersionRef, programVersionConverted);
+      console.log("new program version created!");
+      // create days and phases for new version
+      const daysRef = collection(newProgramVersionRef, "days");
 
-    await Promise.all(
-      Object.keys(days).map((id) => {
-        const dayId = id as `d${number}`;
-        return setDoc(
-          doc(daysRef.withConverter(programDayConverter), dayId),
-          days[dayId],
-          { merge: true }
-        );
-      })
-    );
-    console.log("days created!");
+      await Promise.all(
+        Object.keys(days).map((id) => {
+          const dayId = id as `d${number}`;
+          return setDoc(
+            doc(daysRef.withConverter(programDayConverter), dayId),
+            days[dayId],
+            { merge: true }
+          );
+        })
+      );
+      console.log("days created!");
 
-    const phasesRef = collection(newProgramVersionRef, "phases");
+      const phasesRef = collection(newProgramVersionRef, "phases");
 
-    await Promise.all(
-      Object.keys(phases).map((id) => {
-        const phaseId = id as `p${number}`;
-        const phase = { ...phases[phaseId], programId: programRef.id };
-        return setDoc(
-          doc(phasesRef.withConverter(programPhaseConverter), phaseId),
-          phase,
-          { merge: true }
-        );
-      })
-    );
-    console.log("phases created!");
-    return {
-      ...euneoProgram,
-      phases,
-      days,
-    };
+      await Promise.all(
+        Object.keys(phases).map((id) => {
+          const phaseId = id as `p${number}`;
+          const phase = { ...phases[phaseId], programId: programRef.id };
+          return setDoc(
+            doc(phasesRef.withConverter(programPhaseConverter), phaseId),
+            phase,
+            { merge: true }
+          );
+        })
+      );
+      console.log("phases created!");
+      return {
+        ...clinicianProgram,
+        phases,
+        days,
+      };
+    } else {
+      const euneoProgram = program as TEuneoProgram;
+      const programRef = doc(
+        db,
+        "testPrograms",
+        euneoProgram.euneoProgramId
+      ) as DocumentReference<TProgramVersionWrite>;
+      console.log("programRef", programRef);
+
+      const newProgramVersionRef = doc(
+        programRef,
+        "versions",
+        "1.0"
+      ) as DocumentReference<TProgramWrite>;
+      console.log("newProgramVersionRef", newProgramVersionRef);
+      console.log("HERE 1");
+
+      // Update current version
+      await setDoc(programRef, {
+        currentVersion: newProgramVersionRef,
+        isConsoleLive: program.isConsoleLive || false,
+      });
+      console.log("HERE 2");
+      console.log("new currentVersion added!");
+      // convert and create new program version.
+      const programVersionConverted =
+        programConverter.toFirestore(euneoProgram);
+      await setDoc(newProgramVersionRef, programVersionConverted);
+      console.log("new program version created!");
+      // create days and phases for new version
+      const daysRef = collection(newProgramVersionRef, "days");
+
+      await Promise.all(
+        Object.keys(days).map((id) => {
+          const dayId = id as `d${number}`;
+          return setDoc(
+            doc(daysRef.withConverter(programDayConverter), dayId),
+            days[dayId],
+            { merge: true }
+          );
+        })
+      );
+      console.log("days created!");
+
+      const phasesRef = collection(newProgramVersionRef, "phases");
+
+      await Promise.all(
+        Object.keys(phases).map((id) => {
+          const phaseId = id as `p${number}`;
+          const phase = { ...phases[phaseId], programId: programRef.id };
+          return setDoc(
+            doc(phasesRef.withConverter(programPhaseConverter), phaseId),
+            phase,
+            { merge: true }
+          );
+        })
+      );
+      console.log("phases created!");
+      return {
+        ...euneoProgram,
+        phases,
+        days,
+      };
+    }
   } catch (error) {
     console.error(
       "Error creating new version: ",

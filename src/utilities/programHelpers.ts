@@ -3,6 +3,7 @@ import {
   getDoc,
   getDocs,
   collection,
+  doc,
 } from "firebase/firestore";
 import { TEuneoProgramId } from "../types/baseTypes";
 import {
@@ -21,6 +22,7 @@ import {
   programPhaseConverter,
 } from "./converters";
 import { TClientProgramDay } from "../types/clientTypes";
+import { db } from "../firebase/db";
 
 export async function _fetchProgramBase(
   programRef: DocumentReference<TProgramWrite>
@@ -63,8 +65,6 @@ export async function _getProgramFromRef(
     _fetchPhases(programRef),
     _fetchDays(programRef),
   ]);
-
-  console.log("Program reference: ", programRef);
 
   const programId = programRef.parent.parent!.id;
 
@@ -169,21 +169,21 @@ export function incrementBaseVersion(version: string): `${number}.${number}` {
   return `${incremented}.0`;
 }
 
-export function createModifiedVersion(
-  version: string,
-  clinicianClientId: string
-): `${number}.${string}` {
+export function createModifiedVersion(version: string) {
   // Split the string at the period
   const parts = version.split(".");
-
   // Convert the first part to a number
   const base = parseInt(parts[0]);
+  if (parseInt(parts[1]) === 0) {
+    const docRef = doc(collection(db, "newProgram"));
+    return `${base}.${docRef.id}`;
+  }
 
-  return `${base}.${clinicianClientId}`;
+  return version;
 }
 
 // Deprecated program functions
-
+// TODO: Remove when all clients are stable
 export async function _fetchDeprecatedProgramBase(
   programRef: DocumentReference<TProgramWrite>
 ) {

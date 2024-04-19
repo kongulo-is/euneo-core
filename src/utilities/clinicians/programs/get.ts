@@ -20,6 +20,7 @@ import {
   programVersionConverter,
 } from "../../converters";
 import { _getProgramFromRef } from "../../programHelpers";
+import { upgradeDeprecatedProgram } from "../../programs/update";
 
 export async function getClinicianProgramWithDays(
   clinicianId: string,
@@ -73,52 +74,72 @@ export async function getClinicianProgramsWithSubcollections(
     const programsData = programsSnap.docs.map((doc) => doc.data());
     const programsCurrentVersionSnap = await Promise.all(
       programsData.map(async (program) => {
-        return await getDoc(
-          doc(
-            db,
-            "clinicians",
-            program.clinicianId,
-            "programs",
-            program.programId,
-            "versions",
-            program.currentVersion
-          ).withConverter(programConverter)
-        );
+        if (program.currentVersion) {
+          return await getDoc(
+            doc(
+              programsRef,
+              program.programId,
+              "versions",
+              program.currentVersion
+            ).withConverter(programConverter)
+          );
+        } else {
+          const upgradedProgram = await upgradeDeprecatedProgram(
+            doc(
+              programsRef,
+              program.programId
+            ) as DocumentReference<TProgramWrite>
+          );
+          console.log("upgradedProgram", upgradedProgram);
+          return await getDoc(
+            doc(
+              programsRef,
+              program.programId,
+              "versions",
+              upgradedProgram.version
+            ).withConverter(programConverter)
+          );
+        }
       })
     );
+
+    console.log("programsCurrentVersionSnap", programsCurrentVersionSnap);
 
     // for each program, get the phases and days
     // TODO: Try doing both at the same time?
     const phasesSnap = await Promise.all(
-      programsCurrentVersionSnap.map((doc) =>
-        getDocs(
-          collection(doc.ref, "phases").withConverter(programPhaseConverter)
-        )
-      )
+      programsCurrentVersionSnap.map((programSnap) => {
+        return getDocs(
+          collection(programSnap.ref, "phases").withConverter(
+            programPhaseConverter
+          )
+        );
+      })
     );
     const daysSnap = await Promise.all(
-      programsCurrentVersionSnap.map((doc) =>
-        getDocs(collection(doc.ref, "days").withConverter(programDayConverter))
-      )
+      programsCurrentVersionSnap.map((programSnap) => {
+        return getDocs(
+          collection(programSnap.ref, "days").withConverter(programDayConverter)
+        );
+      })
     );
     // map the days to the programs
     const programs: TClinicianProgram[] = programsCurrentVersionSnap.map(
-      (doc, i) => {
+      (programSnap, i) => {
         const phases = Object.fromEntries(
           phasesSnap[i].docs.map((doc) => [doc.id, doc.data()])
         );
         const days = Object.fromEntries(
           daysSnap[i].docs.map((doc) => [doc.id, doc.data()])
         );
-        console.log("Ids: ", clinicianId, doc.ref.parent.parent?.id, doc.id);
 
         return {
-          ...(doc.data() as TProgramBase),
+          ...(programSnap.data() as TProgramBase),
           phases,
           days,
-          clinicianProgramId: doc.ref.parent.parent?.id || "",
+          clinicianProgramId: programSnap.ref.parent.parent?.id || "",
           clinicianId,
-          version: doc.id,
+          version: programSnap.id || "",
         };
       }
     );

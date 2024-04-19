@@ -2,13 +2,11 @@ import {
   collection,
   CollectionReference,
   doc,
-  DocumentData,
   DocumentReference,
   getDoc,
   getDocs,
   orderBy,
   query,
-  QueryDocumentSnapshot,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import { TClientProgram } from "../../../types/clientTypes";
@@ -16,7 +14,6 @@ import {
   TClinicianClient,
   TClinicianClientBase,
   TClinicianClientWrite,
-  TPrescription,
   TPrescriptionWrite,
 } from "../../../types/clinicianTypes";
 import {
@@ -141,21 +138,27 @@ export async function getClinicianClients(
     // get clients program data from programs subcollection to client.
     const clientsData: TClinicianClient[] = await Promise.all(
       snapshot.docs.map(async (c) => {
-        const clientData: TClinicianClientBase = c.data();
-        const clientProgram = await _clientProgram({ clientData });
+        try {
+          const clientData: TClinicianClientBase = c.data();
+          const clientProgram = await _clientProgram({ clientData });
 
-        return {
-          ...clientData,
-          clinicianClientId: c.id,
-          ...(includeClinicianId && { clinicianId }),
-          ...(clientProgram &&
-            !isEmptyObject(clientProgram) && { clientProgram }),
-        };
+          return {
+            ...clientData,
+            clinicianClientId: c.id,
+            ...(includeClinicianId && { clinicianId }),
+            ...(clientProgram &&
+              !isEmptyObject(clientProgram) && { clientProgram }),
+          };
+        } catch (error) {
+          console.error("Error getting clients data:", error, c);
+          throw new Error(error as any);
+        }
       })
     ).catch((err) => {
       console.error(err);
       return [];
     });
+    console.log("clientsData", clientsData);
 
     return clientsData;
   } catch (error) {

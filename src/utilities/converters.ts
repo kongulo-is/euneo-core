@@ -268,16 +268,30 @@ export const programVersionConverter = {
     options: SnapshotOptions
   ): TProgramVersionRead {
     const data = snapshot.data(options);
-    const currentVersionRef = data.currentVersion;
-    const clinicianId =
-      currentVersionRef.parent.parent?.parent?.parent?.id || "";
-    const programId = currentVersionRef.parent.parent?.id || "";
-    const currentVersion = currentVersionRef.id;
-    return {
-      clinicianId,
-      programId,
-      currentVersion,
-    };
+    try {
+      const currentVersionRef = data.currentVersion;
+      const clinicianId =
+        currentVersionRef.parent.parent?.parent?.parent?.id || "";
+      const programId = currentVersionRef.parent.parent?.id || "";
+      const currentVersion = currentVersionRef.id;
+      return {
+        clinicianId,
+        programId,
+        currentVersion,
+      };
+    } catch (error) {
+      console.log({
+        clinicianId: snapshot.ref.parent.parent?.id || "",
+        programId: snapshot.id || "",
+        currentVersion: "",
+      });
+
+      return {
+        clinicianId: snapshot.ref.parent.parent?.id || "",
+        programId: snapshot.id || "",
+        currentVersion: "",
+      };
+    }
   },
 };
 
