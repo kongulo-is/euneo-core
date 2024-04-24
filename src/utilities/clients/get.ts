@@ -155,7 +155,7 @@ export async function convertUser(userId: string): Promise<boolean> {
           return { key: phaseId, value: length };
         }),
         physicalInformation: program.userInfo,
-        programRef: doc(db, "programs", "plantar-heel-pain"),
+        programRef: doc(db, "testPrograms", "plantar-heel-pain"),
         trainingDays: program.trainingDays,
       };
       const programRef = doc(collection(clientRef, "programs"));

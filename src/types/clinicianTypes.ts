@@ -42,6 +42,7 @@ export type TClinician = {
   email: string;
   name: string;
   isAdmin?: boolean;
+  upgradeNeeded?: boolean;
 };
 
 /**
@@ -96,6 +97,7 @@ export type TInvitation = {
 export type TClinicianWrite = {
   email: string;
   name: string;
+  upgradeNeeded?: boolean;
 };
 
 /**
