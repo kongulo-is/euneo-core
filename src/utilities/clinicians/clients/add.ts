@@ -42,9 +42,9 @@ export async function addPrescriptionToClinicianClient(
     console.log("Here 2");
 
     const currentPrescription = clinicianClientSnapshot.data()?.prescription;
-    if (currentPrescription) {
+    if (currentPrescription && currentPrescription.status === "Started") {
       console.log("Here 3");
-      // store current prescription in past prescription sub collection
+      // store current prescription in past prescription sub collection if it was already started
       const pastPrescriptionRef = collection(
         clinicianClientRef,
         "pastPrescriptions"

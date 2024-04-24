@@ -175,7 +175,7 @@ export function createModifiedVersion(version: string) {
   // Convert the first part to a number
   const base = parseInt(parts[0]);
   if (parseInt(parts[1]) === 0) {
-    const docRef = doc(collection(db, "newProgram"));
+    const docRef = doc(collection(db, "newPrograms"));
     return `${base}.${docRef.id}`;
   }
 

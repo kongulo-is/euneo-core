@@ -129,7 +129,7 @@ export async function getEuneoProgramWithDays(
 ): Promise<TEuneoProgram> {
   let programRef = doc(
     db,
-    "programs",
+    "testPrograms",
     euneoProgramId
   ) as DocumentReference<TProgramWrite>;
 
