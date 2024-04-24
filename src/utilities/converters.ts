@@ -370,7 +370,9 @@ export const clientProgramConverter = {
       programRef = doc(
         db,
         "programs",
-        program.euneoProgramId
+        program.euneoProgramId,
+        "versions",
+        program.programVersion
       ) as DocumentReference<TProgramWrite>;
     } else if ("clinicianProgramId" in program) {
       programRef = doc(
@@ -378,7 +380,9 @@ export const clientProgramConverter = {
         "clinicians",
         program.clinicianId,
         "programs",
-        program.clinicianProgramId
+        program.clinicianProgramId,
+        "versions",
+        program.programVersion
       ) as DocumentReference<TProgramWrite>;
     } else {
       throw new Error("Program must have either euneoProgramId or clinicianId");
@@ -461,7 +465,7 @@ export const clientProgramConverter = {
         ...rest,
         outcomeMeasuresAnswers,
         painLevels: painLevelsClient,
-        euneoProgramId: programRef.id as TEuneoProgramId,
+        euneoProgramId: programRef.parent.parent!.id as TEuneoProgramId,
         programVersion: programRef.id,
       };
       runtimeChecks.assertTClientProgram(clientProgram, true);
