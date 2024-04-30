@@ -6,7 +6,9 @@ import {
   getDoc,
   getDocs,
   onSnapshot,
+  query,
   runTransaction,
+  where,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
 import { TClient, TClientProgram, TClientRead } from "../../types/clientTypes";
@@ -53,6 +55,37 @@ export async function getAllClients(): Promise<
         ...client.data(),
         clientId: client.id,
         ...(clientProgram && { clientProgram }),
+      };
+    })
+  );
+
+  if (!clientData) {
+    // throw new Error("No client found");
+    // signOut(auth);
+    return [];
+  }
+
+  return clientData;
+}
+
+export async function getAllClientsToUpgrade(): Promise<TClient[]> {
+  const clientsRef = collection(
+    db,
+    "clients"
+  ) as CollectionReference<TClientRead>;
+
+  // const clientsQuery = query(clientsRef, where("name", ">", ""));
+  const clientsQuery = query(clientsRef, where("name", "==", "Developer"));
+
+  const clientsSnap = await getDocs(
+    clientsQuery.withConverter(clientConverter)
+  );
+
+  const clientData = await Promise.all(
+    clientsSnap.docs.map(async (client) => {
+      return {
+        ...client.data(),
+        clientId: client.id,
       };
     })
   );

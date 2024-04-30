@@ -6,6 +6,8 @@ import {
   query,
   collection,
   orderBy,
+  CollectionReference,
+  where,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import {
@@ -20,6 +22,44 @@ import {
   oldClientProgramDayConverter,
 } from "../../converters";
 import runtimeChecks from "../../runtimeChecks";
+
+export async function getClientProgramsForUpdate(
+  clientId: string
+): Promise<
+  (TClientProgramWrite & { clientProgramId: string; clientId: string })[]
+> {
+  try {
+    const clientProgramsRef = collection(
+      db,
+      "clients",
+      clientId,
+      "programs"
+    ) as CollectionReference<TClientProgramWrite>;
+
+    const clientProgramsSnap = await getDocs(clientProgramsRef);
+
+    const clientPrograms = clientProgramsSnap.docs.map((doc) => {
+      const clientProgramWrite = doc.data();
+      return {
+        ...clientProgramWrite,
+        clientProgramId: doc.id,
+        clientId: clientId,
+      };
+    });
+
+    const filteredClientPrograms = clientPrograms.filter(
+      (program) => !program.clinicianClientRef
+    );
+
+    return filteredClientPrograms;
+  } catch (error) {
+    console.error("Error fetching client programs:", error, { clientId });
+  }
+  return [] as (TClientProgramWrite & {
+    clientProgramId: string;
+    clientId: string;
+  })[];
+}
 
 export async function getClientProgram(
   clientId: string,

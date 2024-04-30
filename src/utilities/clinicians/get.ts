@@ -9,6 +9,29 @@ import {
 import { db } from "../../firebase/db";
 import { TClinician } from "../../types/clinicianTypes";
 
+export async function getAllClinicians(): Promise<
+  (TClinician & { uid: string })[]
+> {
+  try {
+    const cliniciansRef = collection(
+      db,
+      "clinicians"
+    ) as CollectionReference<TClinician>;
+
+    const cliniciansDoc = await getDocs(cliniciansRef);
+
+    const clinicians = cliniciansDoc.docs.map((clinician) => ({
+      uid: clinician.id,
+      ...clinician.data(),
+    }));
+
+    return clinicians;
+  } catch (error) {
+    console.error("Error fetching clinicians", error);
+    throw error;
+  }
+}
+
 export async function getAllCliniciansIds(): Promise<string[]> {
   try {
     const cliniciansRef = collection(
