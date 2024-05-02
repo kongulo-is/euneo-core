@@ -86,17 +86,13 @@ export async function getProgramFromCode(code: string): Promise<{
   return { program, clinicianClientRef, clinicianId, invitationId };
 }
 
-export async function getAllEuneoPrograms(): Promise<TEuneoProgram[]> {
+export async function getAllEuneoPrograms(filter: "isConsoleLive" | "isLive" = "isConsoleLive"): Promise<TEuneoProgram[]> {
   const euneoPrograms: TEuneoProgram[] = [];
 
   const ref = collection(db, "programs") as CollectionReference<TProgramWrite>;
 
   const querySnapshot = await getDocs(
-    query(collection(db, "programs"), where("isConsoleLive", "==", true))
-    // query(
-    //   collection(db, "programs"),
-    //   where("conditionId", "==", "paprika-bell")
-    // )
+    query(collection(db, "programs"), where(filter, "==", true))
   );
 
   // map and _getProgramFromRef for each program
