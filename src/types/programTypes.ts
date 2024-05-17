@@ -34,6 +34,7 @@ export type TProgramDayKey = `d${number}` | `${string}_d${number}`;
 
 export type TProgramPhaseBase = {
   days: TProgramDayKey[];
+  name?: string;
   length?: number;
   nextPhase?: TNextPhase[];
   finalPhase: boolean;
@@ -149,6 +150,7 @@ export type TProgramDayWrite = {
  */
 export type TProgramPhaseWrite = {
   days: DocumentReference[];
+  name?: string;
   length?: number;
   nextPhase?: TNextPhase[];
   finalPhase: boolean;
