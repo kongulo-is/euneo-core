@@ -3,6 +3,7 @@ import {
   getDoc,
   getDocs,
   collection,
+  doc,
 } from "firebase/firestore";
 import { TEuneoProgramId } from "../types/baseTypes";
 import {
@@ -13,11 +14,15 @@ import {
   TProgramPhaseKey,
 } from "../types/programTypes";
 import {
+  oldProgramConverter,
+  oldProgramDayConverter,
+  oldProgramPhaseConverter,
   programConverter,
   programDayConverter,
   programPhaseConverter,
 } from "./converters";
 import { TClientProgramDay } from "../types/clientTypes";
+import { db } from "../firebase/db";
 
 export async function _fetchProgramBase(
   programRef: DocumentReference<TProgramWrite>
@@ -61,7 +66,7 @@ export async function _getProgramFromRef(
     _fetchDays(programRef),
   ]);
 
-  const programId = programRef.id;
+  const programId = programRef.parent.parent!.id;
 
   const programMode: TProgramWithSubCollections = {
     ...programBase,
@@ -71,11 +76,12 @@ export async function _getProgramFromRef(
 
   let program: TProgram;
 
-  if (programRef.parent.parent) {
+  if (programRef.parent.parent?.parent?.parent) {
     program = {
       ...programMode,
-      clinicianId: programRef.parent.parent.id,
+      clinicianId: programRef.parent.parent.parent.parent.id,
       clinicianProgramId: programId,
+      version: programRef.id,
     };
     return program;
   } else {
@@ -152,43 +158,101 @@ export function createPhase(
   return dayList;
 }
 
-// export function createContinuousDays(
-//   trainingDays: Array<boolean>,
-//   program: TProgram,
-//   phaseId: TProgramPhaseKey`,
-//   date?: Date,
-//   length?: number,
-//   startDayIndex?: number
-// ) {
-//   const dayIdList = Object.keys(program.days) as Array<TProgramDayKey>;
-//   let dayList = [] as Array<TClientProgramDay>;
+export function incrementBaseVersion(version: string): `${number}.${number}` {
+  // Split the string at the period
+  const parts = version.split(".");
 
-//   let dayIndex = startDayIndex || 0;
+  // Convert the first part to a number and increment it
+  const incremented = parseInt(parts[0]) + 1;
 
-//   let d = date ? date : new Date();
+  // Concatenate the incremented number with '.0'
+  return `${incremented}.0`;
+}
 
-//   const iterator = length ? length : 14;
+export function createModifiedVersion(version: string) {
+  // Split the string at the period
+  const parts = version.split(".");
+  // Convert the first part to a number
+  const base = parseInt(parts[0]);
+  if (parseInt(parts[1]) === 0) {
+    const docRef = doc(collection(db, "newPrograms"));
+    return `${base}.${docRef.id}`;
+  }
 
-//   d.setHours(0, 0, 0, 0);
-//   for (let i = 0; i < iterator; i++) {
-//     const dayId = dayIdList[dayIndex % dayIdList.length];
-//     const infoDay = program.days[dayId];
+  return version;
+}
 
-//     const isRestDay = !trainingDays[(d.getDay() + 6) % 7];
+// Deprecated program functions
+// TODO: Remove when all clients are stable
+export async function _fetchDeprecatedProgramBase(
+  programRef: DocumentReference<TProgramWrite>
+) {
+  const programSnap = await getDoc(
+    programRef.withConverter(oldProgramConverter)
+  );
+  if (!programSnap.exists()) {
+    throw new Error("Program does not exist.");
+  }
+  const programData = programSnap.data();
+  return programData;
+}
 
-//     dayList.push({
-//       dayId: dayId,
-//       phaseId: phaseId,
-//       date: new Date(d),
-//       finished: false,
-//       adherence: 0,
-//       exercises: infoDay?.exercises.map(() => 0),
-//       restDay: isRestDay,
-//     });
+export async function _fetchDeprecatedProgramDays(
+  programRef: DocumentReference
+) {
+  const daySnapshots = await getDocs(
+    collection(programRef, "days").withConverter(oldProgramDayConverter)
+  );
 
-//     d.setDate(d.getDate() + 1);
-//     !isRestDay && dayIndex++;
-//   }
+  return Object.fromEntries(
+    daySnapshots.docs.map((doc) => [doc.id, doc.data()])
+  );
+}
 
-//   return dayList;
-// }
+export async function _fetchDeprecatedProgramPhases(
+  programRef: DocumentReference
+): Promise<{
+  [k: string]: TProgramPhase;
+}> {
+  const phaseSnapshots = await getDocs(
+    collection(programRef, "phases").withConverter(oldProgramPhaseConverter)
+  );
+
+  return Object.fromEntries(
+    phaseSnapshots.docs.map((doc) => [doc.id, doc.data()])
+  );
+}
+
+export async function _getDeprecatedProgramFromRef(
+  programRef: DocumentReference<TProgramWrite>
+): Promise<TProgram> {
+  const [programBase, phases, days] = await Promise.all([
+    _fetchDeprecatedProgramBase(programRef),
+    _fetchDeprecatedProgramPhases(programRef),
+    _fetchDeprecatedProgramDays(programRef),
+  ]);
+
+  console.log("Program reference: ", programRef);
+
+  const programId = programRef.id;
+
+  const programMode: TProgramWithSubCollections = {
+    ...programBase,
+    days,
+    phases,
+  };
+
+  let program: TProgram;
+
+  if (programRef.parent.parent) {
+    program = {
+      ...programMode,
+      clinicianId: programRef.parent.parent.id,
+      clinicianProgramId: programId,
+      version: "1.0",
+    };
+    return program;
+  } else {
+    return { ...programMode, euneoProgramId: programId as TEuneoProgramId };
+  }
+}

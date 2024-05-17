@@ -104,7 +104,8 @@ export async function addClinicianProgramToClient(
       "clients",
       clientId,
       "programs",
-      clientProgramRef.id
+      clientProgramRef.id,
+      
     ),
   });
 

@@ -34,11 +34,17 @@ export type TProgramDayKey = `d${number}` | `${string}_d${number}`;
 
 export type TProgramPhaseBase = {
   days: TProgramDayKey[];
+  name?: string;
   length?: number;
   nextPhase?: TNextPhase[];
   finalPhase: boolean;
   description?: string;
   mode: "finite" | "continuous" | "maintenance";
+  // // New fields
+  // name: string;
+  // phaseNumber: number;
+  // clinicianClientId?: string;
+  // version?: number;
 };
 export type TProgramFinitePhase = TProgramPhaseBase & {
   length: number;
@@ -55,6 +61,7 @@ export type TProgramPhaseRead = (
 ) & {
   programId: string;
   clinicianId?: string;
+  version: string;
 };
 export type TProgramPhaseKey = `p${number}` | `${string}_p${number}`;
 
@@ -78,6 +85,7 @@ export type TProgramBase = {
   isLive?: boolean;
   isConsoleLive?: boolean;
   variation?: string;
+  version: string;
 };
 
 export type TProgramRead = TProgramBase;
@@ -89,13 +97,25 @@ export type TProgramWithSubCollections = TProgramRead & {
 
 export type TEuneoProgram = TProgramWithSubCollections & {
   euneoProgramId: TEuneoProgramId;
-  version?: string;
 };
 
 export type TClinicianProgram = TProgramWithSubCollections & {
   clinicianProgramId: string;
   clinicianId: string;
   isArchived?: boolean;
+};
+
+export type TProgramVersion = TProgramVersionRead;
+
+export type TProgramVersionRead = {
+  clinicianId: string;
+  programId: string;
+  currentVersion: string; // version id
+};
+
+export type TProgramVersionWrite = {
+  currentVersion: DocumentReference<TProgramWrite>;
+  isConsoleLive?: boolean;
 };
 
 export type TProgram = TEuneoProgram | TClinicianProgram;
@@ -111,7 +131,6 @@ export type TProgramWrite = {
   conditionId: TConditionId | null;
   outcomeMeasureRefs: DocumentReference<TOutcomeMeasureWrite>[]; // Always exists but might be empty
   conditionAssessment: TConditionAssessmentQuestion[]; // Always exists but might be empty
-  version: string;
   variation?: string;
 };
 
@@ -131,6 +150,7 @@ export type TProgramDayWrite = {
  */
 export type TProgramPhaseWrite = {
   days: DocumentReference[];
+  name?: string;
   length?: number;
   nextPhase?: TNextPhase[];
   finalPhase: boolean;

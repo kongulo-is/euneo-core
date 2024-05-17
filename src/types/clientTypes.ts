@@ -137,6 +137,7 @@ export type TClientProgramBase = {
   conditionAssessmentAnswers?: TConditionAssessmentAnswer[];
   phases: TPhase[];
   completed?: boolean;
+  programVersion: string;
 } & Partial<TClinicianClientReferenceIds>;
 
 /**

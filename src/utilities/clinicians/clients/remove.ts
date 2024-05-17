@@ -95,3 +95,41 @@ export async function removeClinicianClient(
     return false;
   }
 }
+
+export async function removeClinicianClientPastPrescription(
+  clinicianClientId: string,
+  clinicianId: string,
+  prescriptionId: string
+): Promise<boolean> {
+  try {
+    const clinicianClientRef = doc(
+      db,
+      "clinicians",
+      clinicianId,
+      "clients",
+      clinicianClientId
+    ) as DocumentReference<TClinicianClientWrite>;
+
+    // past prescription sub collection
+    const pastPrescriptionRef = doc(
+      clinicianClientRef,
+      "pastPrescriptions",
+      prescriptionId
+    ) as DocumentReference<TPrescriptionWrite>;
+
+    // delete past prescription
+    await deleteDoc(pastPrescriptionRef);
+
+    return true;
+  } catch (error) {
+    console.error(
+      "Error removing past prescription from clinician client",
+      error,
+      {
+        clinicianClientId,
+        clinicianId,
+      }
+    );
+    return false;
+  }
+}

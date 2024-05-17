@@ -1,6 +1,8 @@
 import { DocumentReference, doc, updateDoc } from "firebase/firestore";
-import { TClinicianProgram } from "../../types/programTypes";
+import { TClinicianProgram, TProgramWrite } from "../../types/programTypes";
 import { db } from "../../firebase/db";
+import { _getDeprecatedProgramFromRef } from "../programHelpers";
+import { createVersionForDeprecatedProgram } from "./add";
 
 export const archiveClinicianProgram = async (program: TClinicianProgram) => {
   try {
@@ -24,4 +26,18 @@ export const archiveClinicianProgram = async (program: TClinicianProgram) => {
     });
     return false;
   }
+};
+
+export const upgradeDeprecatedProgram = async (
+  programRef: DocumentReference<TProgramWrite>
+) => {
+  const program = await _getDeprecatedProgramFromRef(programRef);
+  await createVersionForDeprecatedProgram(
+    program,
+    program.phases,
+    program.days,
+    "clinicianId" in program ? program.clinicianId : undefined,
+    "clinicianProgramId" in program ? program.clinicianProgramId : undefined
+  );
+  return program;
 };

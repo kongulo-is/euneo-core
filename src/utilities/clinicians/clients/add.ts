@@ -36,19 +36,17 @@ export async function addPrescriptionToClinicianClient(
       "clients",
       clinicianClientId
     ) as DocumentReference<TClinicianClientWrite>;
-
     // check if user has a current prescription
     const clinicianClientSnapshot = await getDoc(clinicianClientRef);
     const currentPrescription = clinicianClientSnapshot.data()?.prescription;
-    if (currentPrescription) {
-      // store current prescription in past prescription sub collection
+    if (currentPrescription && currentPrescription.status === "Started") {
+      // store current prescription in past prescription sub collection if it was already started
       const pastPrescriptionRef = collection(
         clinicianClientRef,
         "pastPrescriptions"
       ) as CollectionReference<TPrescriptionWrite>;
       await addDoc(pastPrescriptionRef, currentPrescription);
     }
-
     // change the clinician client's prescription
     const prescriptionConverted =
       prescriptionConverter.toFirestore(prescription);

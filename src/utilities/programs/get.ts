@@ -20,12 +20,14 @@ import {
   TEuneoProgram,
   TProgramDayKey,
   TProgramPhaseKey,
+  TProgramVersionWrite,
   TProgramWrite,
 } from "../../types/programTypes";
 import { _getProgramFromRef } from "../programHelpers";
 import runtimeChecks from "../runtimeChecks";
 import { TEuneoProgramId } from "../../types/baseTypes";
 import { updateDoc } from "../updateDoc";
+import { upgradeDeprecatedProgram } from "./update";
 
 export async function getProgramFromCode(code: string): Promise<{
   program: TClinicianProgram | TEuneoProgram;
@@ -86,19 +88,35 @@ export async function getProgramFromCode(code: string): Promise<{
   return { program, clinicianClientRef, clinicianId, invitationId };
 }
 
-export async function getAllEuneoPrograms(filter: "isConsoleLive" | "isLive" = "isConsoleLive"): Promise<TEuneoProgram[]> {
+export async function getAllEuneoPrograms(
+  filter: "isConsoleLive" | "isLive" = "isConsoleLive"
+): Promise<TEuneoProgram[]> {
   const euneoPrograms: TEuneoProgram[] = [];
 
-  const ref = collection(db, "programs") as CollectionReference<TProgramWrite>;
+  const ref = collection(
+    db,
+    "testPrograms"
+  ) as CollectionReference<TProgramVersionWrite>;
 
   const querySnapshot = await getDocs(
     query(collection(db, "programs"), where(filter, "==", true))
   );
 
   // map and _getProgramFromRef for each program
-  const programs = querySnapshot.docs.map((doc) => {
-    const ref = doc.ref as DocumentReference<TProgramWrite>;
-    return _getProgramFromRef(ref);
+  const programs = querySnapshot.docs.map((programSnap) => {
+    try {
+      const programData = programSnap.data();
+      const currentVersion = programData.currentVersion.id;
+      const programRef = doc(
+        programSnap.ref,
+        "versions",
+        currentVersion
+      ) as DocumentReference<TProgramWrite>;
+      return _getProgramFromRef(programRef);
+    } catch (error) {
+      // Doing as any because the type we think it is is TProgramVersionWrite but it is in fact TProgramWrite
+      return upgradeDeprecatedProgram(programSnap.ref as any);
+    }
   });
 
   const resolvedPrograms = await Promise.all(programs);
@@ -118,7 +136,7 @@ export async function getEuneoProgramWithDays(
 ): Promise<TEuneoProgram> {
   let programRef = doc(
     db,
-    "programs",
+    "testPrograms",
     euneoProgramId
   ) as DocumentReference<TProgramWrite>;
 

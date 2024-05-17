@@ -29,6 +29,11 @@ export const outcomeMeasures: OutcomeMeasures = {
     name: "Patient-Reported Outcomes Measurement Information System",
     acronym: "PROMIS",
   },
+  odi: {
+    id: "odi",
+    name: "Oswestry Disability Index",
+    acronym: "ODI",
+  },
   pgq: {
     id: "pgq",
     name: "Patient Global Question",
@@ -42,3 +47,7 @@ export const outcomeMeasureOptions = Object.entries(outcomeMeasures).map(
     label: measure.name,
   })
 );
+
+export const outcomeMeasureIdEnum = Object.keys(outcomeMeasures) as [
+  keyof typeof outcomeMeasures,
+];
