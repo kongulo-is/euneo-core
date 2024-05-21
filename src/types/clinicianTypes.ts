@@ -33,7 +33,10 @@ export type TOutcomeMeasureId =
   | "visa-a"
   | "promis"
   | "odi"
-  | "pgq";
+  | "pgq"
+  | "hoos"
+  | "koos"
+  | "lefs";
 
 /**
  * @description Physician data type

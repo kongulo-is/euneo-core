@@ -98,8 +98,9 @@ export async function getAllEuneoPrograms(
     "testPrograms"
   ) as CollectionReference<TProgramVersionWrite>;
 
+  // TODO: Change to programs
   const querySnapshot = await getDocs(
-    query(collection(db, "programs"), where(filter, "==", true))
+    query(collection(db, "testPrograms"), where(filter, "==", true))
   );
 
   // map and _getProgramFromRef for each program

@@ -39,6 +39,21 @@ export const outcomeMeasures: OutcomeMeasures = {
     name: "Patient Global Question",
     acronym: "PGQ",
   },
+  hoos: {
+    id: "hoos",
+    name: "Hip disability and Osteoarthritis Outcome Score",
+    acronym: "HOOS",
+  },
+  koos: {
+    id: "koos",
+    name: "Knee injury and Osteoarthritis Outcome Score",
+    acronym: "KOOS",
+  },
+  lefs: {
+    id: "lefs",
+    name: "Lower Extremity Functional Scale",
+    acronym: "LEFS",
+  },
 };
 
 export const outcomeMeasureOptions = Object.entries(outcomeMeasures).map(
