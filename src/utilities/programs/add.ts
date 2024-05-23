@@ -117,6 +117,7 @@ export async function createVersionForDeprecatedProgram(
       await setDoc(programRef, {
         currentVersion: newProgramVersionRef,
         isConsoleLive: program.isConsoleLive || false,
+        isLive: program.isLive || false
       });
       console.log("HERE 2");
       console.log("new currentVersion added!");

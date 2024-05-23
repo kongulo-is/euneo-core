@@ -116,6 +116,7 @@ export type TProgramVersionRead = {
 export type TProgramVersionWrite = {
   currentVersion: DocumentReference<TProgramWrite>;
   isConsoleLive?: boolean;
+  isLive?: boolean;
 };
 
 export type TProgram = TEuneoProgram | TClinicianProgram;

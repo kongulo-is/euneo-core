@@ -131,14 +131,17 @@ export async function getAllEuneoPrograms(
   return euneoPrograms;
 }
 
-// TODO: Breyta programs í programs þegar við erum búnir að uppfæra db
+// TODO: Breyta testPrograms í programs þegar við erum búnir að uppfæra db
 export async function getEuneoProgramWithDays(
-  euneoProgramId: TEuneoProgramId
+  euneoProgramId: TEuneoProgramId,
+  version: string = "1.0"
 ): Promise<TEuneoProgram> {
   let programRef = doc(
     db,
     "testPrograms",
-    euneoProgramId
+    euneoProgramId,
+    "versions",
+    version
   ) as DocumentReference<TProgramWrite>;
 
   const euneoProgram = await _getProgramFromRef(programRef);

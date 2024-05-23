@@ -52,9 +52,36 @@ export async function _fetchPhases(programRef: DocumentReference): Promise<{
     collection(programRef, "phases").withConverter(programPhaseConverter)
   );
 
-  return Object.fromEntries(
-    phaseSnapshots.docs.map((doc) => [doc.id, doc.data()])
+  let highestPhaseId = 0;
+  let hasMaintainancePhase = false;
+
+  const phases = Object.fromEntries(
+    phaseSnapshots.docs.map((doc) => {
+      if (doc.id.includes("m")) {
+        hasMaintainancePhase = true;
+      }
+      const phaseNumber = parseInt(doc.id.split('p')[1])
+      if (phaseNumber > highestPhaseId) {
+        highestPhaseId = phaseNumber
+      }
+      return [doc.id, doc.data()]
+    })
   );
+
+  // Add maintenance phase if there isn't one already
+  if (!hasMaintainancePhase) {
+    const lastPhase = phases[`p${highestPhaseId}`]
+    phases["m1"] = {
+      days: lastPhase.days,
+      description: "Maintainance phase",
+      mode: "continuous",
+      finalPhase: true,
+      programId: lastPhase.programId,
+      version: lastPhase.version,
+    }
+  }
+
+  return phases
 }
 
 export async function _getProgramFromRef(
@@ -65,7 +92,7 @@ export async function _getProgramFromRef(
     _fetchPhases(programRef),
     _fetchDays(programRef),
   ]);
-
+  
   const programId = programRef.parent.parent!.id;
 
   const programMode: TProgramWithSubCollections = {
