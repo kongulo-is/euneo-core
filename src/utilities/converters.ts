@@ -620,8 +620,6 @@ export const prescriptionConverter = {
   },
 
   fromFirestore(prescriptionWrite: TPrescriptionWrite): TPrescription {
-    console.log("prescriptionWrite", prescriptionWrite);
-
     let { programRef, clientProgramRef, ...rest } = prescriptionWrite;
 
     let clientProgramObj:
@@ -1183,8 +1181,6 @@ export const oldPrescriptionConverter = {
   },
 
   fromFirestore(prescriptionWrite: TPrescriptionWrite): TPrescription {
-    console.log("prescriptionWrite", prescriptionWrite);
-
     let { programRef, clientProgramRef, ...rest } = prescriptionWrite;
 
     let clientProgramObj:
