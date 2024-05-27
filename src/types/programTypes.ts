@@ -86,6 +86,7 @@ export type TProgramBase = {
   isConsoleLive?: boolean;
   variation?: string;
   version: string;
+  isSaved?: boolean;
 };
 
 export type TProgramRead = TProgramBase;

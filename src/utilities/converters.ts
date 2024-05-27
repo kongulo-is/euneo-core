@@ -224,6 +224,7 @@ export const programConverter = {
       outcomeMeasureRefs,
       conditionAssessment,
       ...(program.variation && { variation: program.variation }),
+      ...(program.isSaved && { isSaved: program.isSaved }),
     };
     return data;
   },

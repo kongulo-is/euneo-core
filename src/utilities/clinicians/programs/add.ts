@@ -20,14 +20,21 @@ export async function createClinicianProgram(
   clinicianProgramRead: TProgramRead,
   phases: Record<TProgramPhaseKey, TProgramPhaseRead>,
   days: Record<TProgramDayKey, TProgramDayRead>,
-  clinicianId: string
+  clinicianId: string,
+  clinicianProgramId?: string // used to overwrite the program (used when saving program)
 ): Promise<TClinicianProgram> {
+  console.log("clinicianProgramRead", clinicianProgramRead);
+
   try {
     const clinicianRef = doc(db, "clinicians", clinicianId);
-    // Program reference
-    const programRef = doc(
-      collection(clinicianRef, "programs")
-    ) as DocumentReference<TProgramVersionWrite>;
+
+    // Program reference (If program exists, overwrite it, else create new program)
+    const programRef = clinicianProgramId
+      ? doc(clinicianRef, "programs", clinicianProgramId)
+      : (doc(
+          collection(clinicianRef, "programs")
+        ) as DocumentReference<TProgramVersionWrite>);
+
     // Program version ref
     const currentProgramRef = doc(
       programRef,
