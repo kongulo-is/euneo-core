@@ -2,12 +2,17 @@ import {
   collection,
   CollectionReference,
   doc,
+  DocumentData,
   DocumentReference,
   getDoc,
   getDocs,
+  onSnapshot,
+  QuerySnapshot,
+  Unsubscribe,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
 import { TClinician } from "../../types/clinicianTypes";
+import { ClinicianWrite } from "../../types/converterTypes";
 
 export async function getAllClinicians(): Promise<
   (TClinician & { uid: string })[]
@@ -69,6 +74,38 @@ export async function getClinician(clinicianId: string): Promise<TClinician> {
     console.error("Error fetching clinician", error, { clinicianId });
     throw error;
   }
+}
+
+export async function clinicianVideoPoolListener(
+  clinicianId: string,
+  callback: (videos: { assetID: string; displayID: string }[]) => Promise<void>
+): Promise<Unsubscribe> {
+  const videoPoolCollectionRef = collection(
+    db,
+    "clinicians",
+    clinicianId,
+    "videoPool"
+  ) as CollectionReference<{ assetID: string; displayID: string }>;
+
+  console.log("clinicianCollectionRef", videoPoolCollectionRef);
+
+  const unsubscribe = onSnapshot(
+    videoPoolCollectionRef,
+    async (snapshot: QuerySnapshot<{ assetID: string; displayID: string }>) => {
+      console.log("snapshot", snapshot);
+
+      if (!snapshot.empty) {
+        const clinicianData = snapshot.docs.map((doc) => doc.data());
+        // Collection has documents, call the callback to handle the data
+        await callback(clinicianData);
+      } else {
+        // Collection is empty, call the callback with an empty array
+        await callback([]);
+      }
+    }
+  );
+
+  return unsubscribe;
 }
 
 export async function checkIfClinicianExists(
