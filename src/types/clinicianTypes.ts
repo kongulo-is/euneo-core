@@ -34,6 +34,10 @@ export type TOutcomeMeasureId = "faam" | "sf-36" | "visa-a" | "promis" | "pgq";
 export type TClinician = {
   email: string;
   name: string;
+  videoPool?: {
+    displayID: string;
+    assetID: string;
+  }[];
   isAdmin?: boolean;
 };
 
@@ -89,6 +93,10 @@ export type TInvitation = {
 export type TClinicianWrite = {
   email: string;
   name: string;
+  videoPool?: {
+    displayID: string;
+    assetID: string;
+  }[];
 };
 
 /**

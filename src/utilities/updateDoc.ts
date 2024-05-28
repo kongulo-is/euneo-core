@@ -50,6 +50,8 @@ export function updateDoc<T extends AllWrites>(
   ref: DocumentReference<T, any>,
   data: UpdateData<Partial<T>>
 ) {
+  console.log("DAT", data);
+
   return firestoreUpdateDoc(ref, data);
 }
 

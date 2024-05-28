@@ -54,11 +54,13 @@ export async function getExerciseById(id: string): Promise<TExercise> {
 }
 
 export async function uploadExercise(
-  exercise: TExerciseWrite
+  exercise: TExerciseWrite,
+  clinicianId: string
 ): Promise<string> {
   try {
-    const exerciseRef = doc(db, "exercises", "Atest");
-    await setDoc(exerciseRef, exercise);
+    const randomId = Math.random().toString(36).substring(7);
+    const exerciseRef = doc(db, "exercises", "AAAAA-" + randomId);
+    await setDoc(exerciseRef, { ...exercise, clinicianId });
     return exerciseRef.id;
   } catch (error) {
     console.error("Error uploading exercise:", error);
