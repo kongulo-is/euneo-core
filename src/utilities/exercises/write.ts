@@ -5,6 +5,7 @@ import {
   doc,
   DocumentReference,
   getDoc,
+  setDoc,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
 import { TExercise, TExerciseWrite } from "../../types/baseTypes";
@@ -48,6 +49,21 @@ export async function getExerciseById(id: string): Promise<TExercise> {
     return exercise;
   } catch (error) {
     console.error("Error fetching exercise:", error);
+    throw error;
+  }
+}
+
+export async function uploadExercise(
+  exercise: TExerciseWrite,
+  clinicianId: string
+): Promise<string> {
+  try {
+    const randomId = Math.random().toString(36).substring(7);
+    const exerciseRef = doc(db, "exercises", "AAAAA-" + randomId);
+    await setDoc(exerciseRef, { ...exercise, clinicianId });
+    return exerciseRef.id;
+  } catch (error) {
+    console.error("Error uploading exercise:", error);
     throw error;
   }
 }
