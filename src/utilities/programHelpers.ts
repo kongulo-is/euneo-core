@@ -45,12 +45,24 @@ export async function _fetchDays(programRef: DocumentReference) {
   );
 }
 
-export async function _fetchPhases(programRef: DocumentReference): Promise<{
+export async function _fetchPhases(
+  programRef: DocumentReference,
+  excludeMaintenancePhases: boolean = false
+): Promise<{
   [k: string]: TProgramPhase;
 }> {
   const phaseSnapshots = await getDocs(
     collection(programRef, "phases").withConverter(programPhaseConverter)
   );
+
+  // Return only non-maintenance phases if excludeMaintenancePhases is true
+  if (excludeMaintenancePhases) {
+    return Object.fromEntries(
+      phaseSnapshots.docs
+        .filter((doc) => !doc.id.includes("m"))
+        .map((doc) => [doc.id, doc.data()])
+    );
+  }
 
   let highestPhaseId = 0;
   let hasMaintainancePhase = false;
@@ -60,17 +72,17 @@ export async function _fetchPhases(programRef: DocumentReference): Promise<{
       if (doc.id.includes("m")) {
         hasMaintainancePhase = true;
       }
-      const phaseNumber = parseInt(doc.id.split('p')[1])
+      const phaseNumber = parseInt(doc.id.split("p")[1]);
       if (phaseNumber > highestPhaseId) {
-        highestPhaseId = phaseNumber
+        highestPhaseId = phaseNumber;
       }
-      return [doc.id, doc.data()]
+      return [doc.id, doc.data()];
     })
   );
 
   // Add maintenance phase if there isn't one already
   if (!hasMaintainancePhase) {
-    const lastPhase = phases[`p${highestPhaseId}`]
+    const lastPhase = phases[`p${highestPhaseId}`];
     phases["m1"] = {
       days: lastPhase.days,
       description: "Maintainance phase",
@@ -78,21 +90,22 @@ export async function _fetchPhases(programRef: DocumentReference): Promise<{
       finalPhase: true,
       programId: lastPhase.programId,
       version: lastPhase.version,
-    }
+    };
   }
 
-  return phases
+  return phases;
 }
 
 export async function _getProgramFromRef(
-  programRef: DocumentReference<TProgramWrite>
+  programRef: DocumentReference<TProgramWrite>,
+  excludeMaintenancePhases: boolean = false
 ): Promise<TProgram> {
   const [programBase, phases, days] = await Promise.all([
     _fetchProgramBase(programRef),
-    _fetchPhases(programRef),
+    _fetchPhases(programRef, excludeMaintenancePhases),
     _fetchDays(programRef),
   ]);
-  
+
   const programId = programRef.parent.parent!.id;
 
   const programMode: TProgramWithSubCollections = {

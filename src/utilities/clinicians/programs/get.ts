@@ -26,7 +26,8 @@ export async function getClinicianProgramWithDays(
   clinicianId: string,
   clinicianProgramId: string,
   version: string,
-  clinicianClientId?: string
+  clinicianClientId?: string,
+  excludeMaintenance: boolean = false
 ): Promise<TClinicianProgram> {
   let programRef = doc(
     db,
@@ -38,7 +39,10 @@ export async function getClinicianProgramWithDays(
     version
   ) as DocumentReference<TProgramWrite>;
 
-  const clinicianProgram = await _getProgramFromRef(programRef);
+  const clinicianProgram = await _getProgramFromRef(
+    programRef,
+    excludeMaintenance
+  );
 
   if (!("clinicianId" in clinicianProgram)) {
     throw new Error("Program is not a clinician program");
