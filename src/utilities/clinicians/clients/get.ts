@@ -42,7 +42,6 @@ async function _clientProgram({
     clientData.prescription?.clientId &&
     clientData.prescription?.clientProgramId
   ) {
-    console.log("clientData.prescription", clientData.prescription);
     if (clientData.prescription?.version) {
       const clientProgramWithDays = await getClientProgram(
         clientData.prescription.clientId,
