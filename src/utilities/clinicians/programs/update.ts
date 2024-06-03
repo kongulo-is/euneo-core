@@ -16,6 +16,7 @@ import {
   programPhaseConverter,
 } from "../../converters";
 import { updateDoc } from "../../updateDoc";
+import { TConditionId } from "../../../types/baseTypes";
 
 export async function createNewClinicianProgramVersion(
   clinicianProgram: TProgramRead,
@@ -176,6 +177,35 @@ export async function createModifiedClinicianProgramVersion(
     );
   }
   throw new Error("Error updating clinician program");
+}
+
+export async function renameClinicianProgram(
+  clinicianProgram: TClinicianProgram,
+  clinicianId: string,
+  conditionId: TConditionId,
+  variation: string
+) {
+  try {
+    const programRef = doc(
+      db,
+      "clinicians",
+      clinicianId,
+      "programs",
+      clinicianProgram.clinicianProgramId,
+      "versions",
+      clinicianProgram.version
+    ) as DocumentReference<TProgramWrite>;
+
+    // Update condition and variation
+    await updateDoc(programRef, {
+      conditionId,
+      variation,
+    });
+
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 // export async function addUniqueClientDayToClinicianProgram(

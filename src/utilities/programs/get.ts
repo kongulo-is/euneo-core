@@ -89,7 +89,8 @@ export async function getProgramFromCode(code: string): Promise<{
 }
 
 export async function getAllEuneoPrograms(
-  filter: "isConsoleLive" | "isLive" = "isConsoleLive"
+  filter: "isConsoleLive" | "isLive" = "isConsoleLive",
+  excludeMaintenance: boolean = false
 ): Promise<TEuneoProgram[]> {
   const euneoPrograms: TEuneoProgram[] = [];
 
@@ -113,7 +114,7 @@ export async function getAllEuneoPrograms(
         "versions",
         currentVersion
       ) as DocumentReference<TProgramWrite>;
-      return _getProgramFromRef(programRef);
+      return _getProgramFromRef(programRef, excludeMaintenance);
     } catch (error) {
       // Doing as any because the type we think it is is TProgramVersionWrite but it is in fact TProgramWrite
       return upgradeDeprecatedProgram(programSnap.ref as any);
@@ -134,7 +135,8 @@ export async function getAllEuneoPrograms(
 // TODO: Breyta testPrograms í programs þegar við erum búnir að uppfæra db
 export async function getEuneoProgramWithDays(
   euneoProgramId: TEuneoProgramId,
-  version: string = "1.0"
+  version: string = "1.0",
+  excludeMaintenance: boolean = false
 ): Promise<TEuneoProgram> {
   let programRef = doc(
     db,
@@ -143,8 +145,9 @@ export async function getEuneoProgramWithDays(
     "versions",
     version
   ) as DocumentReference<TProgramWrite>;
+  console.log("ExcludeMaintenance: ", excludeMaintenance);
 
-  const euneoProgram = await _getProgramFromRef(programRef);
+  const euneoProgram = await _getProgramFromRef(programRef, excludeMaintenance);
 
   if (!("euneoProgramId" in euneoProgram)) {
     throw new Error("Program is not an euneo program");

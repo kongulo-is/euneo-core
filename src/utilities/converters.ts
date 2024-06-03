@@ -25,6 +25,7 @@ import {
   TProgramPhaseRead,
   TProgramPhaseWrite,
   TProgramRead,
+  TProgramVersion,
   TProgramVersionRead,
   TProgramVersionWrite,
   TProgramWrite,
@@ -251,12 +252,23 @@ export const programConverter = {
 };
 
 export const programVersionConverter = {
-  toFirestore(program: TProgramVersionRead): TProgramVersionWrite {
+  toFirestore(program: TProgramVersion): TProgramVersionWrite {
+    if ("clinicianId" in program) {
+      return {
+        currentVersion: doc(
+          db,
+          "clinicians",
+          program.clinicianId,
+          "programs",
+          program.programId,
+          "versions",
+          program.currentVersion
+        ) as DocumentReference<TProgramWrite>,
+      };
+    }
     return {
       currentVersion: doc(
         db,
-        "clinicians",
-        program.clinicianId,
         "programs",
         program.programId,
         "versions",
@@ -267,7 +279,7 @@ export const programVersionConverter = {
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TProgramVersionWrite>,
     options: SnapshotOptions
-  ): TProgramVersionRead {
+  ): TProgramVersion {
     const data = snapshot.data(options);
     try {
       const currentVersionRef = data.currentVersion;
@@ -276,22 +288,15 @@ export const programVersionConverter = {
       const programId = currentVersionRef.parent.parent?.id || "";
       const currentVersion = currentVersionRef.id;
       return {
-        clinicianId,
         programId,
         currentVersion,
+        ...(clinicianId && { clinicianId }),
+        ...("isConsoleLive" in data && { isConsoleLive: data.isConsoleLive }),
+        ...("isLive" in data && { isLive: data.isLive }),
+        ...("isArchived" in data && { isArchived: data.isArchived }),
       };
     } catch (error) {
-      console.log({
-        clinicianId: snapshot.ref.parent.parent?.id || "",
-        programId: snapshot.id || "",
-        currentVersion: "",
-      });
-
-      return {
-        clinicianId: snapshot.ref.parent.parent?.id || "",
-        programId: snapshot.id || "",
-        currentVersion: "",
-      };
+      throw new Error("Could not return program version data");
     }
   },
 };

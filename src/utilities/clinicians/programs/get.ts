@@ -93,8 +93,6 @@ export async function getClinicianProgramsWithSubcollections(
       })
     );
 
-    console.log("programsCurrentVersionSnap", programsCurrentVersionSnap);
-
     // for each program, get the phases and days
     const phasesSnap = await Promise.all(
       programsCurrentVersionSnap.map((programSnap) => {
@@ -115,9 +113,12 @@ export async function getClinicianProgramsWithSubcollections(
     // map the days to the programs
     const programs: TClinicianProgram[] = programsCurrentVersionSnap.map(
       (programSnap, i) => {
+        const programBaseInfo = programsData[i];
+
         const phases = Object.fromEntries(
           phasesSnap[i].docs.map((doc) => [doc.id, doc.data()])
         );
+
         const days = Object.fromEntries(
           daysSnap[i].docs.map((doc) => [doc.id, doc.data()])
         );
@@ -129,6 +130,9 @@ export async function getClinicianProgramsWithSubcollections(
           clinicianProgramId: programSnap.ref.parent.parent?.id || "",
           clinicianId,
           version: programSnap.id || "",
+          ...("isArchived" in programBaseInfo && {
+            isArchived: programBaseInfo.isArchived,
+          }),
         };
       }
     );

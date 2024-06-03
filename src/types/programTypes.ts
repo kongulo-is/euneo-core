@@ -106,19 +106,40 @@ export type TClinicianProgram = TProgramWithSubCollections & {
   isArchived?: boolean;
 };
 
-export type TProgramVersion = TProgramVersionRead;
-
-export type TProgramVersionRead = {
-  clinicianId: string;
+// Program version types
+export type TProgramVersionBase = {
   programId: string;
   currentVersion: string; // version id
+  isConsoleLive?: boolean;
+  isLive?: boolean;
 };
 
-export type TProgramVersionWrite = {
+export type TProgramVersionRead = TProgramVersionBase;
+
+export type TClinicianProgramVersion = TProgramVersionRead & {
+  clinicianId: string;
+  isArchived?: boolean;
+};
+
+export type TEuneoProgramVersion = TProgramVersionRead;
+
+export type TProgramVersion = TClinicianProgramVersion | TEuneoProgramVersion;
+
+export type TProgramVersionBaseWrite = {
   currentVersion: DocumentReference<TProgramWrite>;
   isConsoleLive?: boolean;
   isLive?: boolean;
 };
+
+export type TClinicianProgramVersionWrite = TProgramVersionBaseWrite & {
+  isArchived?: boolean;
+};
+
+export type TEuneoProgramVersionWrite = TProgramVersionBaseWrite;
+
+export type TProgramVersionWrite =
+  | TClinicianProgramVersionWrite
+  | TEuneoProgramVersionWrite;
 
 export type TProgram = TEuneoProgram | TClinicianProgram;
 
