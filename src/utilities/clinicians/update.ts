@@ -1,17 +1,5 @@
-import {
-  addDoc,
-  arrayRemove,
-  arrayUnion,
-  collection,
-  deleteDoc,
-  doc,
-  DocumentReference,
-  getDoc,
-  setDoc,
-} from "firebase/firestore";
+import { deleteDoc, doc, setDoc } from "firebase/firestore";
 import { db } from "../../firebase/db";
-import { TClinician } from "../../types/clinicianTypes";
-import { updateDoc } from "../updateDoc";
 
 export async function addVideoToClinician(
   asset: {
