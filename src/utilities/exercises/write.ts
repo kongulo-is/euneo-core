@@ -6,6 +6,11 @@ import {
   DocumentReference,
   getDoc,
   setDoc,
+  query,
+  where,
+  endAt,
+  startAt,
+  orderBy,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
 import { TExercise, TExerciseWrite } from "../../types/baseTypes";
@@ -25,6 +30,91 @@ export async function getAllExercises(): Promise<Record<string, TExercise>> {
     // create a map of exercises
     const exercises = Object.fromEntries(
       exercisesList.map((exercise) => [exercise.id, exercise])
+    );
+
+    return exercises;
+  } catch (error) {
+    console.error("Error fetching exercises:", error);
+    throw error;
+  }
+}
+
+// export async function getAllEuneoAndClinicianExercises(
+//   clinicianId: string
+// ): Promise<Record<string, TExercise>> {
+//   try {
+//     const exercisesRef = collection(
+//       db,
+//       "exercises"
+//     ) as CollectionReference<TExerciseWrite>;
+
+//     // Create the query to filter by clinicianId
+//     const queryRef = query(
+//       exercisesRef.withConverter(exerciseConverter),
+//       where("clinicianId", "in", [null, clinicianId])
+//     );
+
+//     const exercisesSnap = await getDocs(queryRef);
+//     const exercisesList = exercisesSnap.docs.map((doc) => doc.data());
+
+//     // create a map of exercises
+//     const exercises = Object.fromEntries(
+//       exercisesList.map((exercise) => [exercise.id, exercise])
+//     );
+
+//     return exercises;
+//   } catch (error) {
+//     console.error("Error fetching exercises:", error);
+//     throw error;
+//   }
+// }
+
+export async function getAllEuneoAndClinicianExercises(
+  clinicianId: string
+): Promise<Record<string, TExercise>> {
+  try {
+    const exercisesRef = collection(
+      db,
+      "exercises"
+    ) as CollectionReference<TExerciseWrite>;
+
+    // Query for exercises with the specific clinicianId and ID starting with "EHE"
+    const clinicianQueryRef = query(
+      exercisesRef.withConverter(exerciseConverter),
+      where("clinicianId", "==", clinicianId)
+    );
+
+    // Query for exercises without a clinicianId and ID starting with "EHE"
+    const noClinicianQueryRef = query(
+      exercisesRef.withConverter(exerciseConverter),
+      orderBy("__name__"),
+      startAt("EHE"),
+      endAt("EHE\uf8ff")
+    );
+
+    // Fetch both sets of exercises
+    const [clinicianExercisesSnap, noClinicianExercisesSnap] =
+      await Promise.all([
+        getDocs(clinicianQueryRef),
+        getDocs(noClinicianQueryRef),
+      ]);
+
+    const clinicianExercisesList = clinicianExercisesSnap.docs.map((doc) =>
+      doc.data()
+    );
+    const noClinicianExercisesList = noClinicianExercisesSnap.docs.map((doc) =>
+      doc.data()
+    );
+
+    // Combine both lists
+    const combinedExercisesList = [
+      ...clinicianExercisesList,
+      ...noClinicianExercisesList,
+    ];
+
+    // Create a map of exercises
+    const exercises = Object.fromEntries(
+      combinedExercisesList.map((exercise) => [exercise.id, exercise])
     );
 
     return exercises;
