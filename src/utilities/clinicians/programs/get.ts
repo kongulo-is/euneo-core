@@ -8,6 +8,7 @@ import {
 import { db } from "../../../firebase/db";
 import {
   TClinicianProgram,
+  TClinicianProgramVersion,
   TProgramBase,
   TProgramDayKey,
   TProgramPhaseKey,
@@ -113,7 +114,9 @@ export async function getClinicianProgramsWithSubcollections(
     // map the days to the programs
     const programs: TClinicianProgram[] = programsCurrentVersionSnap.map(
       (programSnap, i) => {
-        const programBaseInfo = programsData[i];
+        const programBaseInfo = programsData[i] as TClinicianProgramVersion;
+        const { clinicianId, programId, currentVersion, ...baseProps } =
+          programBaseInfo;
 
         const phases = Object.fromEntries(
           phasesSnap[i].docs.map((doc) => [doc.id, doc.data()])
@@ -130,9 +133,7 @@ export async function getClinicianProgramsWithSubcollections(
           clinicianProgramId: programSnap.ref.parent.parent?.id || "",
           clinicianId,
           version: programSnap.id || "",
-          ...("isArchived" in programBaseInfo && {
-            isArchived: programBaseInfo.isArchived,
-          }),
+          ...baseProps,
         };
       }
     );

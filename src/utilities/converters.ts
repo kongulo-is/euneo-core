@@ -225,7 +225,6 @@ export const programConverter = {
       outcomeMeasureRefs,
       conditionAssessment,
       ...(program.variation && { variation: program.variation }),
-      ...(program.isSaved && { isSaved: program.isSaved }),
     };
     return data;
   },
@@ -253,27 +252,56 @@ export const programConverter = {
 
 export const programVersionConverter = {
   toFirestore(program: TProgramVersion): TProgramVersionWrite {
-    if ("clinicianId" in program) {
-      return {
-        currentVersion: doc(
+    const {
+      programId,
+      currentVersion,
+      createdAt,
+      lastUpdatedAt,
+      ...otherProps
+    } = program;
+
+    const programProps = {
+      ...otherProps,
+      ...(createdAt && { createdAt: Timestamp.fromDate(createdAt) }),
+      ...(lastUpdatedAt && {
+        lastUpdatedAt: Timestamp.fromDate(lastUpdatedAt),
+      }),
+    };
+
+    const getCurrentVersionDocRef = (
+      clinicianId?: string
+    ): DocumentReference<TProgramWrite> => {
+      if (clinicianId) {
+        return doc(
           db,
           "clinicians",
-          program.clinicianId,
+          clinicianId,
           "programs",
-          program.programId,
+          programId,
           "versions",
-          program.currentVersion
-        ) as DocumentReference<TProgramWrite>,
-      };
-    }
-    return {
-      currentVersion: doc(
+          currentVersion
+        ) as DocumentReference<TProgramWrite>;
+      }
+      return doc(
         db,
         "programs",
-        program.programId,
+        programId,
         "versions",
-        program.currentVersion
-      ) as DocumentReference<TProgramWrite>,
+        currentVersion
+      ) as DocumentReference<TProgramWrite>;
+    };
+
+    if ("clinicianId" in programProps) {
+      const { clinicianId, ...otherProps } = programProps;
+      return {
+        currentVersion: getCurrentVersionDocRef(clinicianId),
+        ...otherProps,
+      };
+    }
+
+    return {
+      currentVersion: getCurrentVersionDocRef(),
+      ...programProps,
     };
   },
   fromFirestore(
@@ -294,6 +322,11 @@ export const programVersionConverter = {
         ...("isConsoleLive" in data && { isConsoleLive: data.isConsoleLive }),
         ...("isLive" in data && { isLive: data.isLive }),
         ...("isArchived" in data && { isArchived: data.isArchived }),
+        ...(data.isSaved && { isSaved: data.isSaved }),
+        ...(data.createdAt && { createdAt: data.createdAt.toDate() }),
+        ...(data.lastUpdatedAt && {
+          lastUpdatedAt: data.lastUpdatedAt.toDate(),
+        }),
       };
     } catch (error) {
       throw new Error("Could not return program version data");

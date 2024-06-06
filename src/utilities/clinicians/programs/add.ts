@@ -1,4 +1,10 @@
-import { doc, collection, setDoc, DocumentReference } from "firebase/firestore";
+import {
+  doc,
+  collection,
+  setDoc,
+  DocumentReference,
+  Timestamp,
+} from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import {
   TProgramRead,
@@ -8,7 +14,8 @@ import {
   TProgramPhaseKey,
   TProgramDayKey,
   TProgramWrite,
-  TProgramVersionWrite,
+  TClinicianProgramVersionWrite,
+  TEuneoProgramVersionWrite,
 } from "../../../types/programTypes";
 import {
   programConverter,
@@ -20,20 +27,23 @@ export async function createClinicianProgram(
   clinicianProgramRead: TProgramRead,
   phases: Record<TProgramPhaseKey, TProgramPhaseRead>,
   days: Record<TProgramDayKey, TProgramDayRead>,
+  isSaved: boolean,
   clinicianId: string,
   clinicianProgramId?: string // used to overwrite the program (used when saving program)
 ): Promise<TClinicianProgram> {
-  console.log("clinicianProgramRead", clinicianProgramRead);
-
   try {
     const clinicianRef = doc(db, "clinicians", clinicianId);
 
     // Program reference (If program exists, overwrite it, else create new program)
     const programRef = clinicianProgramId
-      ? doc(clinicianRef, "programs", clinicianProgramId)
+      ? (doc(
+          clinicianRef,
+          "programs",
+          clinicianProgramId
+        ) as DocumentReference<TClinicianProgramVersionWrite>)
       : (doc(
           collection(clinicianRef, "programs")
-        ) as DocumentReference<TProgramVersionWrite>);
+        ) as DocumentReference<TEuneoProgramVersionWrite>);
 
     // Program version ref
     const currentProgramRef = doc(
@@ -43,6 +53,9 @@ export async function createClinicianProgram(
     ) as DocumentReference<TProgramWrite>;
     await setDoc(programRef, {
       currentVersion: currentProgramRef,
+      createdAt: Timestamp.fromDate(new Date()),
+      lastUpdatedAt: Timestamp.fromDate(new Date()),
+      ...(isSaved && { isSaved }),
     });
 
     await Promise.all([
@@ -86,6 +99,9 @@ export async function createClinicianProgram(
       clinicianProgramId: programRef.id,
       clinicianId,
       version: "1.0",
+      createdAt: new Date(),
+      lastUpdatedAt: new Date(),
+      ...(isSaved && { isSaved }),
     };
 
     return clinicianProgram;

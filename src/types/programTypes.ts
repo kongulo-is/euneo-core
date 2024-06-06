@@ -1,4 +1,4 @@
-import { DocumentReference } from "firebase/firestore";
+import { DocumentReference, Timestamp } from "firebase/firestore";
 import {
   TConditionId,
   TEuneoProgramId,
@@ -86,7 +86,6 @@ export type TProgramBase = {
   isConsoleLive?: boolean;
   variation?: string;
   version: string;
-  isSaved?: boolean;
 };
 
 export type TProgramRead = TProgramBase;
@@ -94,6 +93,9 @@ export type TProgramRead = TProgramBase;
 export type TProgramWithSubCollections = TProgramRead & {
   days: Record<TProgramDayKey, TProgramDay>;
   phases: Record<TProgramPhaseKey, TProgramPhase>;
+  // TODO: Make this mandatory
+  createdAt?: Date;
+  lastUpdatedAt?: Date;
 };
 
 export type TEuneoProgram = TProgramWithSubCollections & {
@@ -104,6 +106,7 @@ export type TClinicianProgram = TProgramWithSubCollections & {
   clinicianProgramId: string;
   clinicianId: string;
   isArchived?: boolean;
+  isSaved?: boolean;
 };
 
 // Program version types
@@ -112,6 +115,10 @@ export type TProgramVersionBase = {
   currentVersion: string; // version id
   isConsoleLive?: boolean;
   isLive?: boolean;
+  isSaved?: boolean;
+  // TODO: Make this mandatory
+  createdAt?: Date;
+  lastUpdatedAt?: Date;
 };
 
 export type TProgramVersionRead = TProgramVersionBase;
@@ -129,6 +136,10 @@ export type TProgramVersionBaseWrite = {
   currentVersion: DocumentReference<TProgramWrite>;
   isConsoleLive?: boolean;
   isLive?: boolean;
+  isSaved?: boolean;
+  // TODO: Make this mandatory
+  createdAt?: Timestamp;
+  lastUpdatedAt?: Timestamp;
 };
 
 export type TClinicianProgramVersionWrite = TProgramVersionBaseWrite & {

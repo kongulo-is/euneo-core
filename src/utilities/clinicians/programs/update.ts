@@ -1,4 +1,10 @@
-import { collection, doc, DocumentReference, setDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  DocumentReference,
+  setDoc,
+  Timestamp,
+} from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import {
   TProgramRead,
@@ -23,7 +29,8 @@ export async function createNewClinicianProgramVersion(
   phases: Record<TProgramPhaseKey, TProgramPhaseRead>,
   days: Record<TProgramDayKey, TProgramDayRead>,
   clinicianProgramId: string,
-  clinicianId: string
+  clinicianId: string,
+  createdAt?: Date
 ): Promise<TClinicianProgram> {
   try {
     const programRef = doc(
@@ -33,25 +40,20 @@ export async function createNewClinicianProgramVersion(
       "programs",
       clinicianProgramId
     ) as DocumentReference<TProgramVersionWrite>;
-    console.log("programRef", programRef);
-
     const newProgramVersionRef = doc(
       programRef,
       "versions",
       clinicianProgram.version
     ) as DocumentReference<TProgramWrite>;
-    console.log("newProgramVersionRef", newProgramVersionRef);
-
     // Update current version
     await updateDoc(programRef, {
       currentVersion: newProgramVersionRef,
+      lastUpdatedAt: Timestamp.fromDate(new Date()),
     });
-    console.log("new currentVersion added!");
     // convert and create new program version.
     const programVersionConverted =
       programConverter.toFirestore(clinicianProgram);
     await setDoc(newProgramVersionRef, programVersionConverted);
-    console.log("new program version created!");
     // create days and phases for new version
     const daysRef = collection(newProgramVersionRef, "days");
 
@@ -65,8 +67,6 @@ export async function createNewClinicianProgramVersion(
         );
       })
     );
-    console.log("days created!");
-
     const phasesRef = collection(newProgramVersionRef, "phases");
 
     await Promise.all(
@@ -80,13 +80,14 @@ export async function createNewClinicianProgramVersion(
         );
       })
     );
-    console.log("phases created!");
     return {
       ...clinicianProgram,
       phases,
       days,
       clinicianProgramId,
       clinicianId,
+      lastUpdatedAt: new Date(),
+      ...(createdAt && { createdAt }),
     };
   } catch (error) {
     console.error(
