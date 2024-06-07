@@ -220,7 +220,7 @@ export const programConverter = {
     }
 
     const data: TProgramWrite = {
-      ...(program.name && { name: program.name }),
+      name: program.name,
       conditionId: program.conditionId,
       outcomeMeasureRefs,
       conditionAssessment,
@@ -340,7 +340,6 @@ export const clinicianClientConverter = {
       name: client.name,
       email: client.email,
       conditionId: client.conditionId,
-      // ...(client.conditionId && { conditionId: client.conditionId }),
       date: Timestamp.fromDate(client.date),
     };
 
@@ -1004,7 +1003,7 @@ export const oldProgramConverter = {
     }
 
     const data: TProgramWrite = {
-      ...(program.name && { name: program.name }),
+      name: program.name,
       conditionId: program.conditionId,
       outcomeMeasureRefs,
       conditionAssessment,

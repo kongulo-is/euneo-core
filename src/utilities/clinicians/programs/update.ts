@@ -122,11 +122,6 @@ export async function createModifiedClinicianProgramVersion(
       "versions",
       clinicianProgram.version
     ) as DocumentReference<TProgramWrite>;
-
-    // // Update current version
-    // await updateDoc(programRef, {
-    //   currentVersion: newProgramVersionRef,
-    // });
     // convert and create new program version.
     const programVersionConverted =
       programConverter.toFirestore(clinicianProgram);
@@ -183,7 +178,8 @@ export async function createModifiedClinicianProgramVersion(
 export async function renameClinicianProgram(
   clinicianProgram: TClinicianProgram,
   clinicianId: string,
-  conditionId: TConditionId,
+  programName: string,
+  conditionId: TConditionId | null,
   variation: string
 ) {
   try {
@@ -199,6 +195,7 @@ export async function renameClinicianProgram(
 
     // Update condition and variation
     await updateDoc(programRef, {
+      name: programName,
       conditionId,
       variation,
     });

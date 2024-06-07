@@ -5,7 +5,7 @@ import {
   collection,
   doc,
 } from "firebase/firestore";
-import { TEuneoProgramId } from "../types/baseTypes";
+import { TConditionId, TEuneoProgramId } from "../types/baseTypes";
 import {
   TProgramWrite,
   TProgram,
@@ -23,6 +23,7 @@ import {
 } from "./converters";
 import { TClientProgramDay } from "../types/clientTypes";
 import { db } from "../firebase/db";
+import { conditions } from "../constants/conditions";
 
 export async function _fetchProgramBase(
   programRef: DocumentReference<TProgramWrite>
@@ -220,6 +221,15 @@ export function createModifiedVersion(version: string) {
   }
 
   return version;
+}
+
+export function getProgramCondition(programInfo: {
+  name?: string;
+  conditionId: TConditionId | null;
+}) {
+  if (programInfo.name) return programInfo.name;
+  else if (programInfo.conditionId) return conditions[programInfo.conditionId];
+  else return "";
 }
 
 // Deprecated program functions
