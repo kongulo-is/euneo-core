@@ -55,3 +55,37 @@ export const isTodayOrBefore = (date: Date | Timestamp) => {
 
   return date <= today;
 };
+
+export function firestorePathToListObject(path: string): {
+  [key: string]: string;
+} {
+  try {
+    if (typeof path !== "string" || path.trim() === "") {
+      throw new Error("Invalid path: Path must be a non-empty string");
+    }
+
+    const segments = path.split("/");
+    if (segments.length % 2 !== 0) {
+      throw new Error(
+        "Invalid path: Path must have an even number of segments"
+      );
+    }
+
+    const result: { [key: string]: string } = {};
+    for (let i = 0; i < segments.length; i += 2) {
+      const key = segments[i];
+      const value = segments[i + 1];
+
+      if (!key || !value) {
+        throw new Error(`Invalid path: Missing key or value at segment ${i}`);
+      }
+
+      result[key] = value;
+    }
+
+    return result;
+  } catch (error) {
+    console.error(error);
+    return {};
+  }
+}
