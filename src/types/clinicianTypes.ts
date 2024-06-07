@@ -3,13 +3,14 @@ import {
   TConditionId,
   TEuneoReferenceIds,
   TClinicianReferenceIds,
+  TEuneoProgramId,
 } from "./baseTypes";
 import {
   TClientProgram,
   TClientProgramWrite,
   TClientStatus,
 } from "./clientTypes";
-import { TProgramWrite } from "./programTypes";
+import { TEuneoProgram, TProgramWrite } from "./programTypes";
 
 /** @memberof TPrescription */
 export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
@@ -26,6 +27,22 @@ export type TEuneoPrescription = TPrescriptionBase & TEuneoReferenceIds;
 
 export type TClinicianPrescription = TPrescriptionBase & TClinicianReferenceIds;
 export type TPrescription = TEuneoPrescription | TClinicianPrescription;
+
+// export type TClientProgramPath = {
+//   programs: string;
+//   clients: string;
+// };
+
+// export type TProgramPath = {
+//   // Euneo Program
+//   programs: TEuneoProgramId;
+//   versions: string;
+// } | {
+//   // Clinician Program
+//   clinicians: string;
+//   programs: string;
+//   versions: string;
+// };
 
 export type TOutcomeMeasureId =
   | "faam"
