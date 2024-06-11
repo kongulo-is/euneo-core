@@ -4,6 +4,8 @@ import {
   collection,
   getDocs,
   getDoc,
+  query,
+  where,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import {
@@ -73,8 +75,9 @@ export async function getClinicianProgramsWithSubcollections(
   try {
     const clinicianRef = doc(db, "clinicians", clinicianId);
     const programsRef = collection(clinicianRef, "programs");
+    const programsQuery = query(programsRef, where("isSaved", "==", true));
     const programsSnap = await getDocs(
-      programsRef.withConverter(programVersionConverter)
+      programsQuery.withConverter(programVersionConverter)
     );
     const programsData = programsSnap.docs.map((doc) => doc.data());
     const programsCurrentVersionSnap = await Promise.all(
