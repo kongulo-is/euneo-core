@@ -1,6 +1,6 @@
 // @ts-ignore
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { initializeAuth } from "firebase/auth";
+import { connectAuthEmulator, initializeAuth } from "firebase/auth";
 import * as firebaseAuth from "firebase/auth";
 import { app } from "./init";
 
@@ -10,3 +10,10 @@ const reactNativePersistence = (firebaseAuth as any).getReactNativePersistence;
 export const auth = initializeAuth(app, {
   persistence: reactNativePersistence(AsyncStorage),
 });
+
+const env = process.env.NODE_ENV;
+
+if (env === "development") {
+  // Connect Firebase Auth to the local emulator
+  connectAuthEmulator(auth, "http://localhost:9099");
+}
