@@ -240,7 +240,6 @@ export async function getDeprecatedClinicianClients(
       console.error(err);
       return [];
     });
-    console.log("clientsData", clientsData);
     return clientsData.filter((client) => !isEmptyObject(client));
   } catch (error) {
     console.error("Error fetching clients:", error, {

@@ -126,7 +126,6 @@ export async function createModifiedClinicianProgramVersion(
     const programVersionConverted =
       programConverter.toFirestore(clinicianProgram);
     await setDoc(newProgramVersionRef, programVersionConverted);
-
     // create days and phases for new version
     const daysRef = collection(newProgramVersionRef, "days");
 
@@ -140,7 +139,6 @@ export async function createModifiedClinicianProgramVersion(
         );
       })
     );
-
     const phasesRef = collection(newProgramVersionRef, "phases");
 
     await Promise.all(
@@ -154,7 +152,6 @@ export async function createModifiedClinicianProgramVersion(
         );
       })
     );
-
     return {
       ...clinicianProgram,
       phases,
@@ -163,14 +160,14 @@ export async function createModifiedClinicianProgramVersion(
       clinicianId,
     };
   } catch (error) {
-    console.error(
-      "Error creating new version: ",
-      error,
-      clinicianProgram,
-      days,
-      clinicianProgramId,
-      clinicianId
-    );
+    // console.error(
+    //   "Error creating new version: ",
+    //   error,
+    //   clinicianProgram,
+    //   days,
+    //   clinicianProgramId,
+    //   clinicianId
+    // );
   }
   throw new Error("Error updating clinician program");
 }
