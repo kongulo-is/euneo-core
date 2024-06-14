@@ -29,11 +29,15 @@ import {
 import { isEmptyObject } from "../../basicHelpers";
 import { _getDeprecatedProgramFromRef } from "../../programHelpers";
 
-async function _clientProgram({
-  clientData,
-}: {
-  clientData: TClinicianClientBase;
-}) {
+async function _clientProgram(
+  {
+    clientData,
+  }: {
+    clientData: TClinicianClientBase;
+    maxNumberOfDays?: number;
+  },
+  maxNumberOfDays?: number
+) {
   // get clients program data.
   let clientProgram: TClientProgram | undefined;
 
@@ -45,7 +49,8 @@ async function _clientProgram({
     if (clientData.prescription?.version) {
       const clientProgramWithDays = await getClientProgram(
         clientData.prescription.clientId,
-        clientData.prescription.clientProgramId
+        clientData.prescription.clientProgramId,
+        maxNumberOfDays
       );
       clientProgram = clientProgramWithDays;
     } else {
@@ -150,7 +155,7 @@ export async function getClinicianClients(
       snapshot.docs.map(async (c) => {
         try {
           const clientData: TClinicianClientBase = c.data();
-          const clientProgram = await _clientProgram({ clientData });
+          const clientProgram = await _clientProgram({ clientData }, 7);
 
           return {
             ...clientData,
@@ -168,6 +173,8 @@ export async function getClinicianClients(
       console.error(err);
       return [];
     });
+
+    console.log("CLIENTSDATA", clientsData);
 
     return clientsData;
   } catch (error) {
