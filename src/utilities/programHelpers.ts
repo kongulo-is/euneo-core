@@ -282,8 +282,6 @@ export async function _getDeprecatedProgramFromRef(
     _fetchDeprecatedProgramDays(programRef),
   ]);
 
-  console.log("Program reference: ", programRef);
-
   const programId = programRef.id;
 
   const programMode: TProgramWithSubCollections = {

@@ -35,33 +35,23 @@ export async function createVersionForDeprecatedProgram(
         "programs",
         clinicianProgramId
       ) as DocumentReference<TProgramVersionWrite>;
-      console.log("programRef", programRef);
 
       const newProgramVersionRef = doc(
         programRef,
         "versions",
         "1.0"
       ) as DocumentReference<TProgramWrite>;
-      console.log("newProgramVersionRef", newProgramVersionRef);
-      console.log("HERE 1");
 
       // Update current version
-      await setDoc(
-        programRef,
-        {
-          currentVersion: newProgramVersionRef,
-        },
-        {
-          merge: true,
-        }
-      );
-      console.log("HERE 2");
-      console.log("new currentVersion added!");
+      await setDoc(programRef, {
+        currentVersion: newProgramVersionRef,
+        isSaved: true,
+        ...(clinicianProgram.isArchived && { isArchived: true }),
+      });
       // convert and create new program version.
       const programVersionConverted =
         programConverter.toFirestore(clinicianProgram);
       await setDoc(newProgramVersionRef, programVersionConverted);
-      console.log("new program version created!");
       // create days and phases for new version
       const daysRef = collection(newProgramVersionRef, "days");
 
@@ -75,7 +65,6 @@ export async function createVersionForDeprecatedProgram(
           );
         })
       );
-      console.log("days created!");
 
       const phasesRef = collection(newProgramVersionRef, "phases");
 
@@ -90,7 +79,6 @@ export async function createVersionForDeprecatedProgram(
           );
         })
       );
-      console.log("phases created!");
       return {
         ...clinicianProgram,
         phases,
@@ -103,29 +91,24 @@ export async function createVersionForDeprecatedProgram(
         "testPrograms",
         euneoProgram.euneoProgramId
       ) as DocumentReference<TProgramVersionWrite>;
-      console.log("programRef", programRef);
 
       const newProgramVersionRef = doc(
         programRef,
         "versions",
         "1.0"
       ) as DocumentReference<TProgramWrite>;
-      console.log("newProgramVersionRef", newProgramVersionRef);
-      console.log("HERE 1");
 
       // Update current version
       await setDoc(programRef, {
         currentVersion: newProgramVersionRef,
         isConsoleLive: program.isConsoleLive || false,
-        isLive: program.isLive || false
+        isLive: program.isLive || false,
       });
-      console.log("HERE 2");
-      console.log("new currentVersion added!");
       // convert and create new program version.
       const programVersionConverted =
         programConverter.toFirestore(euneoProgram);
+
       await setDoc(newProgramVersionRef, programVersionConverted);
-      console.log("new program version created!");
       // create days and phases for new version
       const daysRef = collection(newProgramVersionRef, "days");
 
@@ -139,14 +122,17 @@ export async function createVersionForDeprecatedProgram(
           );
         })
       );
-      console.log("days created!");
 
       const phasesRef = collection(newProgramVersionRef, "phases");
 
       await Promise.all(
         Object.keys(phases).map((id) => {
           const phaseId = id as `p${number}`;
-          const phase = { ...phases[phaseId], programId: programRef.id };
+          const phase = {
+            ...phases[phaseId],
+            version: phases[phaseId].version || "1.0",
+            programId: programRef.id,
+          };
           return setDoc(
             doc(phasesRef.withConverter(programPhaseConverter), phaseId),
             phase,
@@ -154,7 +140,6 @@ export async function createVersionForDeprecatedProgram(
           );
         })
       );
-      console.log("phases created!");
       return {
         ...euneoProgram,
         phases,
@@ -165,7 +150,7 @@ export async function createVersionForDeprecatedProgram(
     console.error(
       "Error creating new version: ",
       error,
-      program,
+      program.name,
       days,
       clinicianProgramId,
       clinicianId

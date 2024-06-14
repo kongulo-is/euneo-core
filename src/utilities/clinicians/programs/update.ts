@@ -15,6 +15,7 @@ import {
   TProgramPhaseKey,
   TProgramDayKey,
   TProgramVersionWrite,
+  TProgramPhase,
 } from "../../../types/programTypes";
 import {
   programConverter,
@@ -23,6 +24,28 @@ import {
 } from "../../converters";
 import { updateDoc } from "../../updateDoc";
 import { TConditionId } from "../../../types/baseTypes";
+
+// Function to find the highest number in the list of objects
+function _findHighestContinuousPhaseId(
+  list: [`p${number}`, TProgramPhase][]
+): `p${number}` | null {
+  let maxIdNumber = -Infinity;
+
+  if (list.length === 0) return null;
+
+  list.forEach((phaseEntry) => {
+    const idNumber = parseInt(phaseEntry[0].substring(1)); // Extract numeric part
+
+    if (!isNaN(idNumber) && phaseEntry[1].mode !== "finite") {
+      maxIdNumber = Math.max(maxIdNumber, idNumber);
+    }
+  });
+
+  const firstEntry = list[0];
+  const prefix = firstEntry[0].substring(0, 1) as "p";
+
+  return maxIdNumber === -Infinity ? null : `${prefix}${maxIdNumber}`;
+}
 
 export async function createNewClinicianProgramVersion(
   clinicianProgram: TProgramRead,
@@ -126,7 +149,6 @@ export async function createModifiedClinicianProgramVersion(
     const programVersionConverted =
       programConverter.toFirestore(clinicianProgram);
     await setDoc(newProgramVersionRef, programVersionConverted);
-
     // create days and phases for new version
     const daysRef = collection(newProgramVersionRef, "days");
 
@@ -140,13 +162,24 @@ export async function createModifiedClinicianProgramVersion(
         );
       })
     );
-
     const phasesRef = collection(newProgramVersionRef, "phases");
+
+    const phaseEntries = Object.entries(phases) as [
+      `p${number}`,
+      TProgramPhase,
+    ][];
+    const highestPhaseId = _findHighestContinuousPhaseId(phaseEntries);
 
     await Promise.all(
       Object.keys(phases).map((id) => {
         const phaseId = id as `p${number}`;
-        const phase = { ...phases[phaseId], programId: programRef.id };
+        const phase = {
+          ...phases[phaseId],
+          programId: programRef.id,
+        };
+        if (phase.mode !== "finite" && highestPhaseId !== phaseId) {
+          phase.hidden = true;
+        }
         return setDoc(
           doc(phasesRef.withConverter(programPhaseConverter), phaseId),
           phase,
@@ -154,7 +187,6 @@ export async function createModifiedClinicianProgramVersion(
         );
       })
     );
-
     return {
       ...clinicianProgram,
       phases,
@@ -163,14 +195,14 @@ export async function createModifiedClinicianProgramVersion(
       clinicianId,
     };
   } catch (error) {
-    console.error(
-      "Error creating new version: ",
-      error,
-      clinicianProgram,
-      days,
-      clinicianProgramId,
-      clinicianId
-    );
+    // console.error(
+    //   "Error creating new version: ",
+    //   error,
+    //   clinicianProgram,
+    //   days,
+    //   clinicianProgramId,
+    //   clinicianId
+    // );
   }
   throw new Error("Error updating clinician program");
 }

@@ -89,20 +89,25 @@ export async function getProgramFromCode(code: string): Promise<{
 }
 
 export async function getAllEuneoPrograms(
-  filter: "isConsoleLive" | "isLive" = "isConsoleLive",
-  excludeMaintenance: boolean = false
+  filter: "isConsoleLive" | "isLive" | "",
+  excludeMaintenance: boolean = false,
+  shouldUpgradeOnError: boolean = false
 ): Promise<TEuneoProgram[]> {
   const euneoPrograms: TEuneoProgram[] = [];
 
-  const ref = collection(
+  const programsRef = collection(
     db,
     "testPrograms"
   ) as CollectionReference<TProgramVersionWrite>;
 
-  // TODO: Change to programs
-  const querySnapshot = await getDocs(
-    query(collection(db, "testPrograms"), where(filter, "==", true))
-  );
+  let querySnapshot: QuerySnapshot<TProgramVersionWrite, DocumentData>;
+  if (filter) {
+    querySnapshot = await getDocs(
+      query(programsRef, where(filter, "==", true))
+    );
+  } else {
+    querySnapshot = await getDocs(programsRef);
+  }
 
   // map and _getProgramFromRef for each program
   const programs = querySnapshot.docs.map((programSnap) => {
@@ -117,7 +122,10 @@ export async function getAllEuneoPrograms(
       return _getProgramFromRef(programRef, excludeMaintenance);
     } catch (error) {
       // Doing as any because the type we think it is is TProgramVersionWrite but it is in fact TProgramWrite
-      return upgradeDeprecatedProgram(programSnap.ref as any);
+      if (shouldUpgradeOnError) {
+        return upgradeDeprecatedProgram(programSnap.ref as any);
+      }
+      return [];
     }
   });
 

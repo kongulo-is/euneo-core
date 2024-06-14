@@ -3,6 +3,7 @@ import { TClinicianProgram, TProgramWrite } from "../../types/programTypes";
 import { db } from "../../firebase/db";
 import { _getDeprecatedProgramFromRef } from "../programHelpers";
 import { createVersionForDeprecatedProgram } from "./add";
+import { removeOldPhasesAndDays } from "./delete";
 
 export const archiveClinicianProgram = async (program: TClinicianProgram) => {
   try {
@@ -32,12 +33,15 @@ export const upgradeDeprecatedProgram = async (
   programRef: DocumentReference<TProgramWrite>
 ) => {
   const program = await _getDeprecatedProgramFromRef(programRef);
-  await createVersionForDeprecatedProgram(
-    program,
-    program.phases,
-    program.days,
-    "clinicianId" in program ? program.clinicianId : undefined,
-    "clinicianProgramId" in program ? program.clinicianProgramId : undefined
-  );
+  removeOldPhasesAndDays(program);
+  await Promise.all([
+    createVersionForDeprecatedProgram(
+      program,
+      program.phases,
+      program.days,
+      "clinicianId" in program ? program.clinicianId : undefined,
+      "clinicianProgramId" in program ? program.clinicianProgramId : undefined
+    ),
+  ]);
   return program;
 };

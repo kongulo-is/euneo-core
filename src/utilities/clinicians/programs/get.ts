@@ -17,6 +17,7 @@ import {
   TProgramWrite,
 } from "../../../types/programTypes";
 import {
+  oldProgramVersionConverter,
   programConverter,
   programDayConverter,
   programPhaseConverter,
@@ -156,7 +157,7 @@ export async function getAndUpgradeDeprecatedClinicianPrograms(
     const clinicianRef = doc(db, "clinicians", clinicianId);
     const programsRef = collection(clinicianRef, "programs");
     const programsSnap = await getDocs(
-      programsRef.withConverter(programVersionConverter)
+      programsRef.withConverter(oldProgramVersionConverter)
     );
     const programsData = programsSnap.docs.map((doc) => doc.data());
     const programsCurrentVersionSnap = await Promise.all(
@@ -177,7 +178,6 @@ export async function getAndUpgradeDeprecatedClinicianPrograms(
               program.programId
             ) as DocumentReference<TProgramWrite>
           );
-          console.log("upgradedProgram", upgradedProgram);
           return await getDoc(
             doc(
               programsRef,
