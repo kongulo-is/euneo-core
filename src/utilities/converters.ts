@@ -111,7 +111,7 @@ export const programDayConverter = {
 export const programPhaseConverter = {
   toFirestore(phase: TProgramPhaseRead): TProgramPhaseWrite {
     if ("clinicianId" in phase && phase.clinicianId) {
-      const { clinicianId, programId, version, ...rest } = phase;
+      const { clinicianId, programId, version, nextPhase, ...rest } = phase;
       return {
         ...rest,
         days: phase.days.map((day) =>
@@ -127,14 +127,44 @@ export const programPhaseConverter = {
             day
           )
         ),
+        ...(nextPhase && {
+          nextPhase: nextPhase.map((phase) => ({
+            ...phase,
+            reference: doc(
+              db,
+              "clinicians",
+              clinicianId,
+              "programs",
+              programId,
+              "versions",
+              version,
+              "phases",
+              phase.phaseId
+            ),
+          })),
+        }),
       };
     } else {
-      const { programId, version, ...rest } = phase;
+      const { programId, version, nextPhase, ...rest } = phase;
       return {
         ...rest,
         days: phase.days.map((day) =>
           doc(db, "testPrograms", programId, "versions", version, "days", day)
         ),
+        ...(nextPhase && {
+          nextPhase: nextPhase.map((phase) => ({
+            ...phase,
+            reference: doc(
+              db,
+              "testPrograms",
+              programId,
+              "versions",
+              version,
+              "phases",
+              phase.phaseId
+            ),
+          })),
+        }),
       };
     }
   },
@@ -220,7 +250,7 @@ export const programConverter = {
     }
 
     const data: TProgramWrite = {
-      name: program.name,
+      name: program.name || "",
       conditionId: program.conditionId,
       outcomeMeasureRefs,
       conditionAssessment,
@@ -284,7 +314,7 @@ export const programVersionConverter = {
       }
       return doc(
         db,
-        "programs",
+        "testPrograms",
         programId,
         "versions",
         currentVersion
@@ -979,6 +1009,89 @@ export const oldClientProgramDayConverter = {
     };
 
     return clientProgramDay;
+  },
+};
+
+export const oldProgramVersionConverter = {
+  toFirestore(program: TProgramVersion): TProgramVersionWrite {
+    const {
+      programId,
+      currentVersion,
+      createdAt,
+      lastUpdatedAt,
+      ...otherProps
+    } = program;
+
+    const programProps = {
+      ...otherProps,
+      ...(createdAt && { createdAt: Timestamp.fromDate(createdAt) }),
+      ...(lastUpdatedAt && {
+        lastUpdatedAt: Timestamp.fromDate(lastUpdatedAt),
+      }),
+    };
+
+    const getCurrentVersionDocRef = (
+      clinicianId?: string
+    ): DocumentReference<TProgramWrite> => {
+      if (clinicianId) {
+        return doc(
+          db,
+          "clinicians",
+          clinicianId,
+          "programs",
+          programId,
+          "versions",
+          currentVersion
+        ) as DocumentReference<TProgramWrite>;
+      }
+      return doc(
+        db,
+        "testPrograms",
+        programId,
+        "versions",
+        currentVersion
+      ) as DocumentReference<TProgramWrite>;
+    };
+
+    if ("clinicianId" in programProps) {
+      const { clinicianId, ...otherProps } = programProps;
+      return {
+        currentVersion: getCurrentVersionDocRef(clinicianId),
+        ...otherProps,
+      };
+    }
+
+    return {
+      currentVersion: getCurrentVersionDocRef(),
+      ...programProps,
+    };
+  },
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<TProgramVersionWrite>,
+    options: SnapshotOptions
+  ): TProgramVersion {
+    const data = snapshot.data(options);
+    try {
+      const hasVersion = data.currentVersion !== undefined;
+      if (hasVersion) {
+        return programVersionConverter.fromFirestore(snapshot, options);
+      }
+      const clinicianId = snapshot.ref.parent.parent?.id || "";
+      const programId = snapshot.id;
+      return {
+        programId,
+        currentVersion: "",
+        isSaved: true,
+        ...(clinicianId && { clinicianId }),
+        ...("isConsoleLive" in data && { isConsoleLive: data.isConsoleLive }),
+        ...("isLive" in data && { isLive: data.isLive }),
+        ...("isArchived" in data && { isArchived: data.isArchived }),
+      };
+    } catch (error) {
+      console.log("Error bby: ", error);
+
+      throw new Error("Could not return program version data");
+    }
   },
 };
 

@@ -74,8 +74,8 @@ export async function getAllClientsToUpgrade(): Promise<TClient[]> {
     "clients"
   ) as CollectionReference<TClientRead>;
 
-  // const clientsQuery = query(clientsRef, where("name", ">", ""));
-  const clientsQuery = query(clientsRef, where("name", "==", "Developer"));
+  const clientsQuery = query(clientsRef, where("name", ">", ""));
+  // const clientsQuery = query(clientsRef, where("name", "==", "Developer"));
 
   const clientsSnap = await getDocs(
     clientsQuery.withConverter(clientConverter)

@@ -1,4 +1,6 @@
 import {
+  collection,
+  deleteDoc,
   doc,
   DocumentData,
   DocumentReference,
@@ -143,6 +145,15 @@ function _createClientProgramVersion(
       version: "1.0",
     };
   } else {
+    const programRef = doc(
+      db,
+      "clinicians",
+      selectedProgram.clinicianId,
+      "programs",
+      selectedProgram.clinicianProgramId,
+      "versions",
+      selectedProgram.version
+    );
     const newVersion = createModifiedVersion("1.0");
 
     const clientPhaseIds = Object.keys(selectedProgram.phases).filter(
@@ -159,10 +170,13 @@ function _createClientProgramVersion(
       return dayId.includes(client.clinicianClientId) || !dayId.includes("_");
     }) as TProgramDayKey[];
 
+    const phasesRef = collection(programRef, "phases");
     // change ids where _ is in from ${id}_p${number} to p${number + 1}
     const phases = clientPhaseIds.reduce(
       (acc, phaseId) => {
         if (phaseId.includes("_")) {
+          // Delete modified phase from base version
+          deleteDoc(doc(phasesRef, phaseId));
           const newPhaseId = createIdWithoutUnderscore("p", phaseId);
           const days = selectedProgram.phases[phaseId].days.map((dayId) =>
             createIdWithoutUnderscore("d", dayId)
@@ -188,10 +202,13 @@ function _createClientProgramVersion(
       {} as Record<`p${number}`, TProgramPhase>
     );
 
+    const daysRef = collection(programRef, "days");
     // change ids where _ is in ${id}_d${number} to d${number + 1}
     const days = clientDayIds.reduce(
       (acc, dayId) => {
         if (dayId.includes("_")) {
+          // Delete modified day from base version
+          deleteDoc(doc(daysRef, dayId));
           const newDayId = createIdWithoutUnderscore("d", dayId);
           return {
             ...acc,
@@ -330,14 +347,15 @@ async function upgradeClinicianClientCurrentPrescription(
     const updatedClient = _updateClient(client, updatedProgram);
 
     await Promise.all([
-      !hasEuneoProgram && createModifiedClinicianProgramVersion(
-        updatedProgram,
-        updatedProgram.phases,
-        updatedProgram.days,
-        (updatedClient.clientProgram as TClientClinicianProgram)
-          .clinicianProgramId,
-        clinicianId
-      ),
+      !hasEuneoProgram &&
+        createModifiedClinicianProgramVersion(
+          updatedProgram,
+          updatedProgram.phases,
+          updatedProgram.days,
+          (updatedClient.clientProgram as TClientClinicianProgram)
+            .clinicianProgramId,
+          clinicianId
+        ),
       setClientProgramVersion(
         updatedClient.prescription!.clientId as string,
         updatedClient.clientProgram as TClientProgram,
@@ -348,7 +366,11 @@ async function upgradeClinicianClientCurrentPrescription(
         true
       ),
     ]).catch((error) => {
-      console.error("Error on client document: ", client.clinicianClientId, error);
+      console.error(
+        "Error on client document: ",
+        client.clinicianClientId,
+        error
+      );
       throw new Error(error);
     });
   } else if (client.prescription) {
@@ -419,14 +441,14 @@ async function upgradeClientPastPrescription(
               newVersion
             );
             await Promise.all([
-              !hasEuneoProgram && createModifiedClinicianProgramVersion(
-                updatedPastProgram,
-                updatedPastProgram.phases,
-                updatedPastProgram.days,
-                (clientProgram as TClientClinicianProgram)
-                  .clinicianProgramId,
-                clinicianId
-              ),
+              !hasEuneoProgram &&
+                createModifiedClinicianProgramVersion(
+                  updatedPastProgram,
+                  updatedPastProgram.phases,
+                  updatedPastProgram.days,
+                  (clientProgram as TClientClinicianProgram).clinicianProgramId,
+                  clinicianId
+                ),
               updatePastClientProgram(
                 prescription.clientId!,
                 upgradedPastClientProgram
@@ -438,8 +460,12 @@ async function upgradeClientPastPrescription(
                 id,
                 newVersion
               ),
-            ]).catch(err => {
-              console.error("Error on client document: ", client.clinicianClientId, err);
+            ]).catch((err) => {
+              console.error(
+                "Error on client document: ",
+                client.clinicianClientId,
+                err
+              );
               throw new Error(err);
             });
 

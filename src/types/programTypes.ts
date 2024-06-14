@@ -40,11 +40,7 @@ export type TProgramPhaseBase = {
   finalPhase: boolean;
   description?: string;
   mode: "finite" | "continuous" | "maintenance";
-  // // New fields
-  // name: string;
-  // phaseNumber: number;
-  // clinicianClientId?: string;
-  // version?: number;
+  hidden?: boolean; // For compatibility (old modified programs that have more than one continuous phase after upgrade)
 };
 export type TProgramFinitePhase = TProgramPhaseBase & {
   length: number;
