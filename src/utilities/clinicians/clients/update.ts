@@ -340,6 +340,7 @@ async function upgradeClinicianClientCurrentPrescription(
         ) as TClinicianProgram);
 
     if (!selectedProgram) {
+      console.error("Client error: ", clinicianId, client.clinicianClientId);
       throw new Error("Program not found");
     }
     // Create client program version
@@ -480,8 +481,6 @@ async function upgradeClientPastPrescription(
           }
         })
     );
-
-    console.log("updatedPastPrograms", updatedPastPrograms);
   }
 }
 

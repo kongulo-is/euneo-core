@@ -33,7 +33,10 @@ export const upgradeDeprecatedProgram = async (
   programRef: DocumentReference<TProgramWrite>
 ) => {
   const program = await _getDeprecatedProgramFromRef(programRef);
-  removeOldPhasesAndDays(program);
+  if ("clinicianProgramId" in program) {
+    // Only delete old phases and days from clinician programs
+    removeOldPhasesAndDays(program);
+  }
   await Promise.all([
     createVersionForDeprecatedProgram(
       program,
