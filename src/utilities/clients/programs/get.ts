@@ -8,6 +8,9 @@ import {
   orderBy,
   CollectionReference,
   where,
+  limit,
+  QueryConstraint,
+  limitToLast,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import {
@@ -63,7 +66,8 @@ export async function getClientProgramsForUpdate(
 
 export async function getClientProgram(
   clientId: string,
-  clientProgramId: string
+  clientProgramId: string,
+  maxNumberOfDays?: number
 ): Promise<TClientProgram> {
   try {
     const clientProgramRef = (
@@ -85,10 +89,16 @@ export async function getClientProgram(
     }
 
     // add days to clientProgram
+    const queryConstraints: QueryConstraint[] = [orderBy("date")];
+
+    if (maxNumberOfDays) {
+      queryConstraints.push(limitToLast(maxNumberOfDays));
+    }
+
     const daysSnap = await getDocs(
       query(
         collection(clientProgramRef, "days"),
-        orderBy("date")
+        ...queryConstraints
       ).withConverter(clientProgramDayConverter)
     );
 
