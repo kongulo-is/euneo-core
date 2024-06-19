@@ -93,7 +93,7 @@ export async function getClinicianProgramsWithSubcollections(
             ).withConverter(programConverter)
           );
         } else {
-          throw new Error("Deprecated program!");
+          throw new Error("Deprecated program");
         }
       })
     );
