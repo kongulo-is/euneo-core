@@ -223,12 +223,20 @@ export function createModifiedVersion(version: string) {
   return version;
 }
 
-export function getProgramCondition(programInfo: {
+export function getProgramName(programInfo: {
   name?: string;
   conditionId: TConditionId | null;
 }) {
   if (programInfo.name) return programInfo.name;
   else if (programInfo.conditionId) return conditions[programInfo.conditionId];
+  else return "";
+}
+
+export function getProgramCondition(programInfo: {
+  name?: string;
+  conditionId: TConditionId | null;
+}) {
+  if (programInfo.conditionId && programInfo.name) return programInfo.name;
   else return "";
 }
 
