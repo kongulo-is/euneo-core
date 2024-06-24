@@ -11,6 +11,7 @@ import {
   limit,
   QueryConstraint,
   limitToLast,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
 import {
@@ -94,6 +95,13 @@ export async function getClientProgram(
     if (maxNumberOfDays) {
       queryConstraints.push(limitToLast(maxNumberOfDays));
     }
+
+    // Get today's date and time at the end of the day
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    // Add a where condition to only get documents with a date before or equal to today
+    queryConstraints.push(where("date", "<=", Timestamp.fromDate(today)));
 
     const daysSnap = await getDocs(
       query(
