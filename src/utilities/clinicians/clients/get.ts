@@ -157,6 +157,8 @@ export async function getClinicianClients(
           const clientData: TClinicianClientBase = c.data();
           const clientProgram = await _clientProgram({ clientData }, 7);
 
+          console.log("CLIENTDATA", clientData);
+
           return {
             ...clientData,
             clinicianClientId: c.id,
