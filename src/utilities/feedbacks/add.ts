@@ -2,7 +2,6 @@ import { addDoc, collection, doc } from "firebase/firestore";
 import { db } from "../../firebase/db";
 import { TFeedbackAnswer } from "../../types/baseTypes";
 
-//TODO: fix feedback type any.
 export async function createFeedback(
   feedbackAnswers: TFeedbackAnswer[],
   clientId: string,

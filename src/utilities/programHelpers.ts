@@ -223,6 +223,7 @@ export function createModifiedVersion(version: string) {
   return version;
 }
 
+// TODO: change to getProgramName
 export function getProgramCondition(programInfo: {
   name?: string;
   conditionId: TConditionId | null;
@@ -236,7 +237,9 @@ export function getProgramConditionForApp(programInfo: {
   name?: string;
   conditionId: TConditionId | null;
 }) {
+  // Only show the name of Euneo programs
   if (programInfo.conditionId && programInfo.name) return programInfo.name;
+  else if (programInfo.conditionId) return conditions[programInfo.conditionId];
   else return "";
 }
 
