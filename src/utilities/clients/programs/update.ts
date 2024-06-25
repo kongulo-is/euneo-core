@@ -287,7 +287,7 @@ export async function setClientProgramVersion<
       "euneoProgramId" in program
         ? doc(
             db,
-            "testPrograms",
+            "programs",
             program.euneoProgramId,
             "versions",
             program.version

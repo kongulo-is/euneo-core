@@ -149,14 +149,14 @@ export const programPhaseConverter = {
       return {
         ...rest,
         days: phase.days.map((day) =>
-          doc(db, "testPrograms", programId, "versions", version, "days", day)
+          doc(db, "programs", programId, "versions", version, "days", day)
         ),
         ...(nextPhase && {
           nextPhase: nextPhase.map((phase) => ({
             ...phase,
             reference: doc(
               db,
-              "testPrograms",
+              "programs",
               programId,
               "versions",
               version,
@@ -314,7 +314,7 @@ export const programVersionConverter = {
       }
       return doc(
         db,
-        "testPrograms",
+        "programs",
         programId,
         "versions",
         currentVersion
@@ -436,7 +436,7 @@ export const clientProgramConverter = {
     if ("euneoProgramId" in program && program.euneoProgramId) {
       programRef = doc(
         db,
-        "testPrograms",
+        "programs",
         program.euneoProgramId,
         "versions",
         program.programVersion
@@ -659,7 +659,7 @@ export const prescriptionConverter = {
       return {
         programRef: doc(
           db,
-          "testPrograms",
+          "programs",
           prescription.euneoProgramId,
           "versions",
           prescription.version
@@ -834,7 +834,7 @@ export const oldClientProgramConverter = {
       program;
       programRef = doc(
         db,
-        "testPrograms",
+        "programs",
         program.euneoProgramId
       ) as DocumentReference<TProgramWrite>;
     } else if ("clinicianProgramId" in program) {
@@ -1046,7 +1046,7 @@ export const oldProgramVersionConverter = {
       }
       return doc(
         db,
-        "testPrograms",
+        "programs",
         programId,
         "versions",
         currentVersion
@@ -1171,7 +1171,7 @@ export const oldProgramPhaseConverter = {
       return {
         ...rest,
         days: phase.days.map((day) =>
-          doc(db, "testPrograms", programId, "versions", "1.0", "days", day)
+          doc(db, "programs", programId, "versions", "1.0", "days", day)
         ),
       };
     }
@@ -1303,7 +1303,7 @@ export const oldPrescriptionConverter = {
       return {
         programRef: doc(
           db,
-          "testPrograms",
+          "programs",
           prescription.euneoProgramId,
           "versions",
           prescription.version || "1.0"

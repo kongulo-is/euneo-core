@@ -28,7 +28,7 @@ export async function removeOldPhasesAndDays(
       const euneoProgram = program as TEuneoProgram;
       programRef = doc(
         db,
-        "testPrograms",
+        "programs",
         euneoProgram.euneoProgramId
       ) as DocumentReference<TProgramVersionWrite>;
     }

@@ -88,7 +88,7 @@ export async function createVersionForDeprecatedProgram(
       const euneoProgram = program as TEuneoProgram;
       const programRef = doc(
         db,
-        "testPrograms",
+        "programs",
         euneoProgram.euneoProgramId
       ) as DocumentReference<TProgramVersionWrite>;
 
