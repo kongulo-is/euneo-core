@@ -96,7 +96,7 @@ export async function getAllEuneoPrograms(
 
   const programsRef = collection(
     db,
-    "testPrograms"
+    "programs"
   ) as CollectionReference<TProgramVersionWrite>;
 
   let querySnapshot: QuerySnapshot<TProgramVersionWrite, DocumentData>;
@@ -139,7 +139,6 @@ export async function getAllEuneoPrograms(
   return euneoPrograms;
 }
 
-// TODO: Breyta testPrograms í programs þegar við erum búnir að uppfæra db
 export async function getEuneoProgramWithDays(
   euneoProgramId: TEuneoProgramId,
   version: string = "1.0",
@@ -147,13 +146,11 @@ export async function getEuneoProgramWithDays(
 ): Promise<TEuneoProgram> {
   let programRef = doc(
     db,
-    "testPrograms",
+    "programs",
     euneoProgramId,
     "versions",
     version
   ) as DocumentReference<TProgramWrite>;
-  console.log("ExcludeMaintenance: ", excludeMaintenance);
-
   const euneoProgram = await _getProgramFromRef(programRef, excludeMaintenance);
 
   if (!("euneoProgramId" in euneoProgram)) {
