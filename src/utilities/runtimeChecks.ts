@@ -170,7 +170,6 @@ const runtimeChecks = {
     assertTypeString(obj.name, "name");
     assertTypeString(obj.clinicianProgramId, "clinicianProgramId");
     assertTypeString(obj.clinicianId, "clinicianId");
-    // TODO: Skoða þetta seinna
     // assertTypeString(obj.mode, "mode");
 
     obj.conditionId && assertTConditionId(obj.conditionId);
