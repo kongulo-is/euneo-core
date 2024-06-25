@@ -70,7 +70,6 @@ export async function updateProgramDayDate(
   clientId: string,
   clientProgramId: string,
   dayId: string,
-  //TODO: fix type..
   newDate: Date
 ) {
   try {

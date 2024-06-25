@@ -223,8 +223,7 @@ export function createModifiedVersion(version: string) {
   return version;
 }
 
-// TODO: change to getProgramName
-export function getProgramCondition(programInfo: {
+export function getProgramName(programInfo: {
   name?: string;
   conditionId: TConditionId | null;
 }) {
@@ -233,7 +232,7 @@ export function getProgramCondition(programInfo: {
   else return "";
 }
 
-export function getProgramConditionForApp(programInfo: {
+export function getProgramNameForApp(programInfo: {
   name?: string;
   conditionId: TConditionId | null;
 }) {

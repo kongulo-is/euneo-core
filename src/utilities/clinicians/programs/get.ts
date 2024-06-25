@@ -52,7 +52,6 @@ export async function getClinicianProgramWithDays(
     throw new Error("Program is not a clinician program");
   }
 
-  // TODO: Review á filteringu hér
   if (clinicianClientId) {
     Object.keys(clinicianProgram.phases).forEach((key) => {
       if (key.includes("_") && !key.includes(clinicianClientId)) {
