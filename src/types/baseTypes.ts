@@ -74,7 +74,7 @@ export type TExercise = {
 
 export type TSectionGroup = {
   title: string;
-  options: { option: string; value: number | null }[]; // TODO: Skoða týpu
+  options: { option: string; value: number | null }[];
   questions: string[];
 };
 

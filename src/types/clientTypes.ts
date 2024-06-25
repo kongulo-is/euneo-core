@@ -184,7 +184,7 @@ export type TClientWrite = {
   gender: "male" | "female" | "other";
   platform: "android" | "ios";
   birthDate: string;
-  email?: string; // TODO: Erum við með ehv email?
+  email?: string;
   preferences: TClientPreferences;
   currentProgramRef?: DocumentReference;
 };

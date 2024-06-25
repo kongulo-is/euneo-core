@@ -89,7 +89,7 @@ export type TProgramRead = TProgramBase;
 export type TProgramWithSubCollections = TProgramRead & {
   days: Record<TProgramDayKey, TProgramDay>;
   phases: Record<TProgramPhaseKey, TProgramPhase>;
-  // TODO: Make this mandatory
+  // TODO: Make this mandatory?
   createdAt?: Date;
   lastUpdatedAt?: Date;
 };
@@ -112,7 +112,7 @@ export type TProgramVersionBase = {
   isConsoleLive?: boolean;
   isLive?: boolean;
   isSaved?: boolean;
-  // TODO: Make this mandatory
+  // TODO: Make this mandatory?
   createdAt?: Date;
   lastUpdatedAt?: Date;
 };
@@ -133,7 +133,7 @@ export type TProgramVersionBaseWrite = {
   isConsoleLive?: boolean;
   isLive?: boolean;
   isSaved?: boolean;
-  // TODO: Make this mandatory
+  // TODO: Make this mandatory?
   createdAt?: Timestamp;
   lastUpdatedAt?: Timestamp;
 };

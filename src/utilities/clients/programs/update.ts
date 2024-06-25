@@ -34,7 +34,6 @@ export async function updateProgramDay(
   clientId: string,
   clientProgramId: string,
   dayId: string,
-  //TODO: fix type..
   exercises: { iteration: number }[],
   adherence: number
 ) {
@@ -51,7 +50,6 @@ export async function updateProgramDay(
 
     updateDoc(day, {
       adherence: adherence,
-      // TODO: create a converter
       exercises: exercises.map((e) => e.iteration),
     });
   } catch (error) {
@@ -70,7 +68,6 @@ export async function updateProgramDayDate(
   clientId: string,
   clientProgramId: string,
   dayId: string,
-  //TODO: fix type..
   newDate: Date
 ) {
   try {

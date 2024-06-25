@@ -59,7 +59,6 @@ export async function getProgramFromCode(code: string): Promise<{
   const { programRef } = clinicianClientData.prescription;
   const program = await _getProgramFromRef(programRef);
 
-  // TODO: Review með Kjarrman
   Object.keys(program.phases).forEach((key) => {
     if (key.includes("_") && !key.includes(clinicianClientRef.id)) {
       delete program.phases[key as TProgramPhaseKey];
