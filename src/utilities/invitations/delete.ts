@@ -34,16 +34,11 @@ export async function clearInvitations(clinicians: string[]) {
         return path.includes(c);
       })
     ) {
-      console.log(doc.data().clinicianClientRef.path);
       invitations.push(doc.ref);
     } else {
       invitationsToDelete.push(doc.ref);
     }
   });
-
-  console.log("To delete", invitationsToDelete);
-  console.log("To keep", invitations);
-
   // Delete
   invitationsToDelete.forEach(async (i) => {
     await deleteDoc(i);

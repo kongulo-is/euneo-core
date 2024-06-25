@@ -472,7 +472,6 @@ async function upgradeClientPastPrescription(
 
             return updatedPastProgram;
           } else {
-            console.log("Remove past prescription somehow...");
             await removeClinicianClientPastPrescription(
               clinicianId,
               client.clinicianClientId,

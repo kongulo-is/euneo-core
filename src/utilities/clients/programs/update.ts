@@ -193,8 +193,6 @@ export async function updateClientProgramVersion(
       phaseLength,
       0 // on start of new phase, start at day 0
     );
-    console.log("newDays", newDays);
-
     addContinuousDaysToClientProgram(
       clientId,
       clientProgram.clientProgramId,
@@ -360,11 +358,7 @@ export async function changeClientPhase(
       day.date.getTime() < today.getTime() && day.phaseId === currentPhaseId
   );
 
-  console.log("today", today);
-
   // const numDaysFiltered = days.length - daysBeforeCurrent.length;
-  console.log("days length", days.length);
-  console.log("daysBeforeCurrent length", daysBeforeCurrent.length);
 
   // find the current day index in the client program if it does not exist, set it to 0
   const currDay = days.findIndex(
@@ -373,12 +367,7 @@ export async function changeClientPhase(
 
   const startDayIndex = currDay === -1 ? 0 : currDay;
   const startDocIndex = currDay === -1 ? days.length : currDay;
-
-  console.log("startDayIndex", startDayIndex);
-  console.log("startDocIndex", startDocIndex);
-
   const phaseLength = days.length - startDayIndex;
-  console.log("phaseLength", phaseLength);
 
   // call the function  that adds a continuous phase to client
   const newDays = createPhase(
@@ -389,8 +378,6 @@ export async function changeClientPhase(
     phaseLength,
     0 // on start of new phase, start at day 0
   );
-  console.log("newDays", newDays);
-
   addContinuousDaysToClientProgram(
     clientId,
     clientProgram.clientProgramId,
@@ -401,8 +388,6 @@ export async function changeClientPhase(
   // then update the phases map property of the client's program so that it is correct
 
   const updatedPhases = [...clientProgram.phases];
-  console.log("updatedPhases", updatedPhases);
-
   const currentPhase = updatedPhases[updatedPhases.length - 1];
 
   if (daysBeforeCurrent.length === 0) {
@@ -417,16 +402,6 @@ export async function changeClientPhase(
   updatedPhases.push({
     key: newPhase,
     value: newDays.length,
-  });
-
-  console.log("updatedPhases after push:", updatedPhases, {
-    clinicianClientRef: doc(
-      db,
-      "clinicians",
-      clinicianId,
-      "clients",
-      clinicianClientId
-    ) as DocumentReference<TClinicianClientWrite>,
   });
 
   updateProgramFields(clientId, clientProgram.clientProgramId, {

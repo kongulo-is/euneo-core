@@ -87,13 +87,9 @@ export async function clinicianVideoPoolListener(
     "videoPool"
   ) as CollectionReference<{ assetID: string; displayID: string }>;
 
-  console.log("clinicianCollectionRef", videoPoolCollectionRef);
-
   const unsubscribe = onSnapshot(
     videoPoolCollectionRef,
     async (snapshot: QuerySnapshot<{ assetID: string; displayID: string }>) => {
-      console.log("snapshot", snapshot);
-
       if (!snapshot.empty) {
         const clinicianData = snapshot.docs.map((doc) => doc.data());
         // Collection has documents, call the callback to handle the data
