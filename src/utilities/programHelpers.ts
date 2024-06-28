@@ -232,6 +232,11 @@ export function getProgramName(programInfo: {
   else return "";
 }
 
+export function getProgramCondition(conditionId: TConditionId | null) {
+  if (conditionId) return conditions[conditionId];
+  else return "";
+}
+
 export function getProgramNameForApp(programInfo: {
   name?: string;
   conditionId: TConditionId | null;
