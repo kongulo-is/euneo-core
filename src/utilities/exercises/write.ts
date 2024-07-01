@@ -92,22 +92,22 @@ export async function getAllEuneoAndClinicianExercises(
       endAt("EHE\uf8ff")
     );
 
-    const developmentQueryRef = query(
-      exercisesRef.withConverter(exerciseConverter),
-      orderBy("__name__"),
-      startAt("AA"),
-      endAt("AA\uf8ff")
-    );
+    // const developmentQueryRef = query(
+    //   exercisesRef.withConverter(exerciseConverter),
+    //   orderBy("__name__"),
+    //   startAt("AA"),
+    //   endAt("AA\uf8ff")
+    // );
 
     // Fetch both sets of exercises
     const [
       clinicianExercisesSnap,
       noClinicianExercisesSnap,
-      developmentExercisesSnap,
+      // developmentExercisesSnap,
     ] = await Promise.all([
       getDocs(clinicianQueryRef),
       getDocs(noClinicianQueryRef),
-      getDocs(developmentQueryRef),
+      // getDocs(developmentQueryRef),
     ]);
 
     const clinicianExercisesList = clinicianExercisesSnap.docs.map((doc) =>
@@ -117,15 +117,15 @@ export async function getAllEuneoAndClinicianExercises(
       doc.data()
     );
 
-    const developmentExercisesList = developmentExercisesSnap.docs.map((doc) =>
-      doc.data()
-    );
+    // const developmentExercisesList = developmentExercisesSnap.docs.map((doc) =>
+    //   doc.data()
+    // );
 
     // Combine both lists
     const combinedExercisesList = [
       ...clinicianExercisesList,
       ...noClinicianExercisesList,
-      ...developmentExercisesList,
+      // ...developmentExercisesList,
     ];
 
     // Create a map of exercises
