@@ -26,6 +26,7 @@ import {
   oldClientProgramDayConverter,
 } from "../../converters";
 import runtimeChecks from "../../runtimeChecks";
+import { TOutcomeMeasureId } from "../../../types/clinicianTypes";
 
 export async function getClientProgramsForUpdate(
   clientId: string
@@ -68,7 +69,8 @@ export async function getClientProgramsForUpdate(
 export async function getClientProgram(
   clientId: string,
   clientProgramId: string,
-  maxNumberOfDays?: number
+  maxNumberOfDays?: number,
+  skipMaintenanceData?: boolean
 ): Promise<TClientProgram> {
   try {
     const clientProgramRef = (
@@ -111,10 +113,39 @@ export async function getClientProgram(
 
     const days = daysSnap.docs.map((doc) => doc.data());
 
+    const firstMaintenancePhaseDay = days.find((d) => d.phaseId.includes("m"));
+
+    const { painLevels, outcomeMeasuresAnswers } = clientProgram;
+
+    let filteredDays = [...days];
+    let filteredPainLevels = [...painLevels];
+    let filteredOutcomeMeasureAnswers = outcomeMeasuresAnswers
+      ? { ...outcomeMeasuresAnswers }
+      : null;
+
+    // Filter out maintenance phase data if skipMaintenanceData is true and there is any maintenance phase data
+    if (skipMaintenanceData && firstMaintenancePhaseDay) {
+      filteredDays = days.filter((d) => d.date < firstMaintenancePhaseDay.date);
+      filteredPainLevels = painLevels.filter(
+        (p) => p.date < firstMaintenancePhaseDay.date
+      );
+      if (filteredOutcomeMeasureAnswers) {
+        for (const key in outcomeMeasuresAnswers) {
+          const outcomeMeasureId = key as TOutcomeMeasureId;
+          filteredOutcomeMeasureAnswers[outcomeMeasureId] =
+            outcomeMeasuresAnswers[outcomeMeasureId].filter(
+              (a) => a.date < firstMaintenancePhaseDay.date
+            );
+        }
+      }
+    }
+
     const clientProgramWithDays: TClientProgram = {
       ...clientProgram,
       clientProgramId: clientProgramId,
-      days,
+      days: filteredDays,
+      painLevels: filteredPainLevels,
+      outcomeMeasuresAnswers: filteredOutcomeMeasureAnswers,
     };
 
     runtimeChecks.assertTClientProgram(clientProgramWithDays);
