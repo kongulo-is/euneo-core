@@ -15,6 +15,7 @@ import {
 import { db } from "../../firebase/db";
 import { TExercise, TExerciseWrite } from "../../types/baseTypes";
 import { exerciseConverter } from "../converters";
+import { updateDoc } from "../updateDoc";
 
 export async function getAllExercises(): Promise<Record<string, TExercise>> {
   try {
@@ -92,22 +93,22 @@ export async function getAllEuneoAndClinicianExercises(
       endAt("EHE\uf8ff")
     );
 
-    // const developmentQueryRef = query(
-    //   exercisesRef.withConverter(exerciseConverter),
-    //   orderBy("__name__"),
-    //   startAt("AA"),
-    //   endAt("AA\uf8ff")
-    // );
+    const developmentQueryRef = query(
+      exercisesRef.withConverter(exerciseConverter),
+      orderBy("__name__"),
+      startAt("AA"),
+      endAt("AA\uf8ff")
+    );
 
     // Fetch both sets of exercises
     const [
       clinicianExercisesSnap,
       noClinicianExercisesSnap,
-      // developmentExercisesSnap,
+      developmentExercisesSnap,
     ] = await Promise.all([
       getDocs(clinicianQueryRef),
       getDocs(noClinicianQueryRef),
-      // getDocs(developmentQueryRef),
+      getDocs(developmentQueryRef),
     ]);
 
     const clinicianExercisesList = clinicianExercisesSnap.docs.map((doc) =>
@@ -117,15 +118,15 @@ export async function getAllEuneoAndClinicianExercises(
       doc.data()
     );
 
-    // const developmentExercisesList = developmentExercisesSnap.docs.map((doc) =>
-    //   doc.data()
-    // );
+    const developmentExercisesList = developmentExercisesSnap.docs.map((doc) =>
+      doc.data()
+    );
 
     // Combine both lists
     const combinedExercisesList = [
       ...clinicianExercisesList,
       ...noClinicianExercisesList,
-      // ...developmentExercisesList,
+      ...developmentExercisesList,
     ];
 
     // Create a map of exercises
@@ -167,6 +168,27 @@ export async function uploadExercise(
     const randomId = Math.random().toString(36).substring(7);
     const exerciseRef = doc(db, "exercises", "AAAAA-" + randomId);
     await setDoc(exerciseRef, { ...exercise, clinicianId });
+    return exerciseRef.id;
+  } catch (error) {
+    console.error("Error uploading exercise:", error);
+    throw error;
+  }
+}
+
+export async function updateExerciseTimestampAndPreview(
+  exerciseId: string,
+  time: number
+): Promise<string> {
+  try {
+    const exerciseRef = doc(
+      db,
+      "exercises",
+      exerciseId
+    ) as DocumentReference<TExerciseWrite>;
+    await updateDoc(exerciseRef, {
+      thumbnailTimestamp: time,
+      startPreview: time,
+    });
     return exerciseRef.id;
   } catch (error) {
     console.error("Error uploading exercise:", error);
