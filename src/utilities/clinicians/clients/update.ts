@@ -16,7 +16,6 @@ import {
   TPrescriptionWrite,
 } from "../../../types/clinicianTypes";
 import {
-  clientProgramConverter,
   clinicianClientConverter,
   prescriptionConverter,
 } from "../../converters";
@@ -37,20 +36,13 @@ import {
 } from "../../../types/programTypes";
 import { createModifiedClinicianProgramVersion } from "../programs/update";
 import { createModifiedVersion } from "../../programHelpers";
-import {
-  getClinicianClientPastPrescriptions,
-  getDeprecatedClinicianClientPastPrescriptions,
-} from "./get";
+import { getDeprecatedClinicianClientPastPrescriptions } from "./get";
 import { getDeprecatedClientProgram } from "../../clients/programs/get";
 import {
   setClientProgramVersion,
-  updateClientProgramVersion,
   updatePastClientProgram,
 } from "../../clients/programs/update";
-import {
-  removeClinicianClientPastPrescription,
-  removeClinicianClientPrescription,
-} from "./remove";
+import { removeClinicianClientPastPrescription } from "./remove";
 
 export async function updateClinicianClient(
   clinicianId: string,
@@ -79,6 +71,38 @@ export async function updateClinicianClient(
       clinicianClient,
     });
     throw error;
+  }
+}
+
+export async function changeClinicianClientPrescription(
+  clinicianId: string,
+  clinicianClientId: string,
+  newPrescription: TPrescription
+): Promise<boolean> {
+  try {
+    const clinicianClientRef = doc(
+      db,
+      "clinicians",
+      clinicianId,
+      "clients",
+      clinicianClientId
+    ) as DocumentReference<TClinicianClientWrite>;
+
+    const prescriptionConverted =
+      prescriptionConverter.toFirestore(newPrescription);
+
+    await updateDoc(clinicianClientRef, {
+      prescription: prescriptionConverted,
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error updating clinician client prescription: ", error, {
+      clinicianClientId,
+      clinicianId,
+      newPrescription,
+    });
+    return false;
   }
 }
 
