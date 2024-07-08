@@ -88,6 +88,7 @@ export async function getAllEuneoAndClinicianExercises(
     // Query for exercises without a clinicianId and ID starting with "EHE"
     const noClinicianQueryRef = query(
       exercisesRef.withConverter(exerciseConverter),
+      where("isConsoleLive", "==", true),
       orderBy("__name__"),
       startAt("EHE"),
       endAt("EHE\uf8ff")

@@ -70,6 +70,7 @@ export type TExercise = {
   defaultTime: number | null;
   type: TExerciseType;
   editableFields: TExerciseField[];
+  isConsoleLive: boolean;
 };
 
 export type TSectionGroup = {
@@ -198,6 +199,7 @@ export type TExerciseWrite = {
   defaultTime: number | null;
   type: TExerciseType;
   editableFields: TExerciseField[];
+  isConsoleLive: boolean;
 };
 
 export type TGender = "male" | "female" | "other";
