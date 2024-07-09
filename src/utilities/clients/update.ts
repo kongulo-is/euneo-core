@@ -88,3 +88,29 @@ export const _createDateString = (date: Date) => {
   const year = date.getFullYear();
   return `${dayString}-${monthString}-${year}`;
 };
+
+export const changeCurrentProgram = async (
+  clientId: string,
+  programId: string
+) => {
+  try {
+    const clientRef = doc(
+      db,
+      "clients",
+      clientId
+    ) as DocumentReference<TClientWrite>;
+
+    const programRef = doc(db, "clients", clientId, "programs", programId);
+
+    await updateDoc(clientRef, {
+      currentProgramRef: programRef,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error changing current program: ", error, {
+      clientId,
+      programId,
+    });
+    throw error;
+  }
+};
