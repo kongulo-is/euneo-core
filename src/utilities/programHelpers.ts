@@ -56,10 +56,16 @@ export async function _fetchPhases(
     collection(programRef, "phases").withConverter(programPhaseConverter)
   );
 
+  const sortedPhaseDocs = phaseSnapshots.docs.sort((a, b) => {
+    const aId = parseInt(a.id.split("p")[1]);
+    const bId = parseInt(b.id.split("p")[1]);
+    return aId - bId;
+  });
+
   // Return only non-maintenance phases if excludeMaintenancePhases is true
   if (excludeMaintenancePhases) {
     return Object.fromEntries(
-      phaseSnapshots.docs
+      sortedPhaseDocs
         .filter((doc) => !doc.id.includes("m"))
         .map((doc) => [doc.id, doc.data()])
     );
@@ -69,7 +75,7 @@ export async function _fetchPhases(
   let hasMaintainancePhase = false;
 
   const phases = Object.fromEntries(
-    phaseSnapshots.docs.map((doc) => {
+    sortedPhaseDocs.map((doc) => {
       if (doc.id.includes("m")) {
         hasMaintainancePhase = true;
       }
