@@ -6,7 +6,7 @@ export async function removeDaysFromClientProgram(
   clientId: string,
   clientProgramId: string,
   firstDocIndex: number,
-  length: number
+  numberOfDays: number
 ) {
   const programRef = doc(
     db,
@@ -16,7 +16,10 @@ export async function removeDaysFromClientProgram(
     clientProgramId
   ) as DocumentReference<TClientProgramWrite>;
   // Update days documents
-  const tempArr = Array.from({ length }, (_, i) => i + firstDocIndex);
+  const tempArr = Array.from(
+    { length: numberOfDays },
+    (_, i) => i + firstDocIndex
+  );
   console.log("tempArr", tempArr);
 
   await Promise.all(

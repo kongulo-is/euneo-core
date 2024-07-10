@@ -60,6 +60,7 @@ export type TExercise = {
   thumbnailTimestamp: number;
   name: string;
   steps: string[];
+  instructions?: string;
   tips: string[];
   videoLink: {
     displayID: string;
@@ -190,6 +191,7 @@ export type TExerciseWrite = {
   thumbnailTimestamp: number;
   name: string;
   steps: string[];
+  instructions?: string;
   tips: string[];
   videoLink: {
     displayID: string;

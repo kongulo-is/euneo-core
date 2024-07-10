@@ -32,9 +32,11 @@ import { _getDeprecatedProgramFromRef } from "../../programHelpers";
 async function _clientProgram(
   {
     clientData,
+    skipMaintenanceData = false,
   }: {
     clientData: TClinicianClientBase;
     maxNumberOfDays?: number;
+    skipMaintenanceData?: boolean;
   },
   maxNumberOfDays?: number
 ) {
@@ -50,7 +52,8 @@ async function _clientProgram(
       const clientProgramWithDays = await getClientProgram(
         clientData.prescription.clientId,
         clientData.prescription.clientProgramId,
-        maxNumberOfDays
+        maxNumberOfDays,
+        skipMaintenanceData
       );
       clientProgram = clientProgramWithDays;
     } else {
@@ -98,7 +101,8 @@ export async function getClinicianClientPastPrescriptions(
 // get single clinician client
 export async function getClinicianClient(
   clinicianId: string,
-  clinicianClientId: string
+  clinicianClientId: string,
+  skipMaintenanceData: boolean = false
 ): Promise<TClinicianClient> {
   try {
     const clinicianClientRef = doc(
@@ -116,7 +120,10 @@ export async function getClinicianClient(
     const clientData = clientSnap.data();
     if (!clientData) throw new Error("Client not found");
 
-    const clientProgram = await _clientProgram({ clientData });
+    const clientProgram = await _clientProgram({
+      clientData,
+      skipMaintenanceData,
+    });
 
     return {
       ...clientData,
