@@ -208,7 +208,14 @@ export async function updateClientProgramVersion(
       (day) => day.date.getTime() === today.getTime()
     );
 
-    const startDayIndex = currDay === -1 ? 0 : currDay;
+    // Index of the current phase day
+    const currDayIndex = currDay === -1 ? 0 : currDay;
+    // Index of the exercise day the client is currently on
+    const startPhaseDayIndex = currDay
+      ? oldCurrentPhase.days.indexOf(days[currDay].dayId)
+      : 0;
+
+    // Index of were we should start adding / modifying / removing
     const startDocIndex = currDay === -1 ? days.length : currDay;
 
     // Get number of days we need to remove and modify from the client program (in the current phase)
@@ -217,7 +224,7 @@ export async function updateClientProgramVersion(
         days,
         oldCurrentPhase,
         currentPhase,
-        startDayIndex
+        currDayIndex
       );
     // We only need to remove days from client program if we are decreasing number of days in current phase
     if (numberOfDaysToRemove > numberOfDaysToModify) {
@@ -235,7 +242,7 @@ export async function updateClientProgramVersion(
       currentPhaseId,
       new Date(),
       numberOfDaysToModify,
-      0 // on start of new phase, start at day 0
+      currentPhase.days[startPhaseDayIndex] ? startPhaseDayIndex : 0
     );
     addContinuousDaysToClientProgram(
       clientId,
