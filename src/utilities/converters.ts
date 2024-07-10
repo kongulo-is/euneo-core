@@ -595,9 +595,13 @@ export const clientProgramDayConverter = {
 
 export const exerciseConverter = {
   toFirestore(exercise: TExercise): TExerciseWrite {
-    const { id, ...rest } = exercise;
+    const { id, createdAt, ...rest } = exercise;
+
+    const date = createdAt && { createdAt: Timestamp.fromDate(createdAt) };
+
     const data: TExerciseWrite = {
       ...rest,
+      ...date,
     };
 
     return data;
@@ -608,9 +612,12 @@ export const exerciseConverter = {
   ): TExercise {
     const data = snapshot.data(options);
 
+    const date = data.createdAt && data.createdAt.toDate();
+
     const exercise: TExercise = {
       ...data,
       id: snapshot.id,
+      createdAt: date,
     };
 
     return exercise;

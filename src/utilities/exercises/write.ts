@@ -168,7 +168,11 @@ export async function uploadExercise(
   try {
     const randomId = Math.random().toString(36).substring(7);
     const exerciseRef = doc(db, "exercises", "AAAAA-" + randomId);
-    await setDoc(exerciseRef, { ...exercise, clinicianId });
+    await setDoc(exerciseRef, {
+      ...exercise,
+      clinicianId,
+      createdAt: new Date(),
+    });
     return exerciseRef.id;
   } catch (error) {
     console.error("Error uploading exercise:", error);
