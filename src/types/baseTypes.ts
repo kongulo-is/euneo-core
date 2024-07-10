@@ -71,6 +71,7 @@ export type TExercise = {
   type: TExerciseType;
   editableFields: TExerciseField[];
   isConsoleLive: boolean;
+  clinicianId?: string;
 };
 
 export type TSectionGroup = {
