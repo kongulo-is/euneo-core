@@ -45,34 +45,70 @@ export type TExerciseType =
   | "Jumps"
   | "Taping";
 
-/**
- * @description Exercise in exercise collection
- * @param steps Instructions for the exercise
- * @param tips Tips for the exercise
- * @param displayID url video
- * @param assetID id of video in mux
- */
+// TODO: Add more types
+export type TExerciseSubType = "Static stretch" | "AROM" | "Isometric";
+
+// TODO: Add more types
+export type TMuscleGroup = "Forearms" | "Back" | "Deltoids" | "Arms";
+
+// Muscles involved
+// TODO: Add more types
+export type TMuscle = "Rectus femoris" | "Extensor digitorum longus";
+
+// TODO: Add more types
+export type TExerciseArea = "Pelvic floor" | "Shoulder" | "Hip";
+
+// Equipment needed
+// TODO: Add more types
+export type TEquipment = "Box" | "Weights";
+
 export type TExercise = {
   id: string;
-  variation: string;
-  description: string;
-  startPreview: number;
-  thumbnailTimestamp: number;
   name: string;
-  steps: string[];
-  instructions?: string;
-  tips: string[];
+  otherNames: string[] | null; //? Breyta í synonyms?
+  primaryTypes: TExerciseType[] | null;
+  secondaryTypes: TExerciseType[] | null;
+  subTypes: TExerciseSubType[] | null;
+  variation: string | null;
+  //TODO: Fara yfir með Dan
+  //primaryMuscleGroups: TMuscleGroup[]; // Primary muscle groups //? Not the same types in muscle groups and primary muscle groups??
+  //muscleGroups: TMuscleGroup[]; // All muscle groups
+  isolatedMuscles: TMuscle[] | null; // Isolated muscles
+  muscles: TMuscle[] | null; // All muscles involved
+  primaryAreas: TExerciseArea[] | null;
+  secondaryAreas: TExerciseArea[] | null;
+  equipmentNeeded: TEquipment[] | null;
+  keyWords: string[] | null;
+  instructions?: string | null;
+  defaultSets: number | null;
+  defaultReps: number | null;
+  defaultTime: number | null;
+  editableFields: TExerciseField[];
+  isConsoleLive: boolean;
+  clinicianId?: string;
+  isArchived?: boolean;
+  //* Video related types
+  startPreview: number | null;
+  thumbnailTimestamp: number | null;
   videoLink: {
     displayID: string;
     assetID: string;
   };
-  defaultSets: number | null;
-  defaultReps: number | null;
-  defaultTime: number | null;
-  type: TExerciseType;
-  editableFields: TExerciseField[];
-  isConsoleLive: boolean;
-  clinicianId?: string;
+
+  tips: string[] | null; //? Maybe deprecated
+
+  /**
+   * @deprecated use `instructions` instead
+   */
+  description: string; //? OLD field
+  /**
+   * @deprecated use `instructions` instead
+   */
+  steps: string[]; //? OLD Field
+  /**
+   * @deprecated use `primaryTypes` instead
+   */
+  type: TExerciseType; //? OLD Field
 };
 
 export type TSectionGroup = {
