@@ -13,7 +13,7 @@ export const auth = initializeAuth(app, {
 
 const env = process.env.NODE_ENV;
 
-// if (env === "development") {
-//   // Connect Firebase Auth to the local emulator
-//   connectAuthEmulator(auth, "http://localhost:9099");
-// }
+if (env === "development") {
+  // Connect Firebase Auth to the local emulator
+  connectAuthEmulator(auth, "http://localhost:9099");
+}
