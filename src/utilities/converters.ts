@@ -15,7 +15,6 @@ import {
 } from "@firebase/firestore";
 import {
   TConditionAssessmentQuestion,
-  TProgramBase,
   TProgramContinuousPhase,
   TProgramDayKey,
   TProgramDayRead,
@@ -26,7 +25,6 @@ import {
   TProgramPhaseWrite,
   TProgramRead,
   TProgramVersion,
-  TProgramVersionRead,
   TProgramVersionWrite,
   TProgramWrite,
 } from "../types/programTypes";
@@ -49,7 +47,6 @@ import {
   TClinicianClientWrite,
   TPrescription,
   TPrescriptionWrite,
-  TPrescriptionBase,
 } from "../types/clinicianTypes";
 import { db } from "../firebase/db";
 import { isEmptyObject } from "./basicHelpers";
