@@ -1,3 +1,4 @@
+import { Timestamp } from "firebase/firestore";
 import { TOutcomeMeasureId } from "./clinicianTypes";
 
 export type TEuneoReferenceIds = {
@@ -71,6 +72,10 @@ export type TExercise = {
   defaultTime: number | null;
   type: TExerciseType;
   editableFields: TExerciseField[];
+  isConsoleLive: boolean;
+  clinicianId?: string;
+  createdAt?: Date;
+  isArchived?: boolean;
 };
 
 export type TSectionGroup = {
@@ -200,6 +205,10 @@ export type TExerciseWrite = {
   defaultTime: number | null;
   type: TExerciseType;
   editableFields: TExerciseField[];
+  isConsoleLive: boolean;
+  clinicianId?: string;
+  createdAt?: Timestamp;
+  isArchived?: boolean;
 };
 
 export type TGender = "male" | "female" | "other";

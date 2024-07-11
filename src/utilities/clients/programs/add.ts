@@ -74,7 +74,7 @@ export async function addClinicianProgramToClient(
     program,
     startPhase,
     new Date(),
-    14
+    program.phases[startPhase].length || 14
   );
 
   await Promise.all(
@@ -104,8 +104,7 @@ export async function addClinicianProgramToClient(
       "clients",
       clientId,
       "programs",
-      clientProgramRef.id,
-      
+      clientProgramRef.id
     ),
   });
 

@@ -26,7 +26,7 @@ import {
   TProgramPhaseWrite,
   TProgramVersionWrite,
 } from "../types/programTypes";
-import { TExercise } from "../types/baseTypes";
+import { TExercise, TExerciseWrite } from "../types/baseTypes";
 
 type AllWrites =
   | TClientProgramWrite
@@ -39,7 +39,8 @@ type AllWrites =
   | TProgramDayWrite
   | TExerciseDayWrite
   | TInvitationWrite
-  | TProgramPhaseWrite;
+  | TProgramPhaseWrite
+  | TExerciseWrite;
 
 type AllReads =
   | TClientProgramRead

@@ -15,6 +15,7 @@ import {
 import { db } from "../../firebase/db";
 import { TExercise, TExerciseWrite } from "../../types/baseTypes";
 import { exerciseConverter } from "../converters";
+import { updateDoc } from "../updateDoc";
 
 export async function getAllExercises(): Promise<Record<string, TExercise>> {
   try {
@@ -87,6 +88,7 @@ export async function getAllEuneoAndClinicianExercises(
     // Query for exercises without a clinicianId and ID starting with "EHE"
     const noClinicianQueryRef = query(
       exercisesRef.withConverter(exerciseConverter),
+      where("isConsoleLive", "==", true),
       orderBy("__name__"),
       startAt("EHE"),
       endAt("EHE\uf8ff")
@@ -166,7 +168,32 @@ export async function uploadExercise(
   try {
     const randomId = Math.random().toString(36).substring(7);
     const exerciseRef = doc(db, "exercises", "AAAAA-" + randomId);
-    await setDoc(exerciseRef, { ...exercise, clinicianId });
+    await setDoc(exerciseRef, {
+      ...exercise,
+      clinicianId,
+      createdAt: new Date(),
+    });
+    return exerciseRef.id;
+  } catch (error) {
+    console.error("Error uploading exercise:", error);
+    throw error;
+  }
+}
+
+export async function updateExerciseTimestampAndPreview(
+  exerciseId: string,
+  time: number
+): Promise<string> {
+  try {
+    const exerciseRef = doc(
+      db,
+      "exercises",
+      exerciseId
+    ) as DocumentReference<TExerciseWrite>;
+    await updateDoc(exerciseRef, {
+      thumbnailTimestamp: time,
+      startPreview: time,
+    });
     return exerciseRef.id;
   } catch (error) {
     console.error("Error uploading exercise:", error);
