@@ -238,7 +238,7 @@ export async function updateClientProgramVersion(
   clientId: string,
   clientProgram: TClientProgram,
   program: TClinicianProgram,
-  oldProgram: TClinicianProgram,
+  oldProgram: TProgram,
   clinicianClientId: string,
   version: string
 ) {
