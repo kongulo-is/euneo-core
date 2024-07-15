@@ -201,6 +201,7 @@ function _createClientProgramVersion(
         if (phaseId.includes("_")) {
           // Delete modified phase from base version
           deleteDoc(doc(phasesRef, phaseId));
+          // TODO: remove or check how this  works
           const newPhaseId = createIdWithoutUnderscore("p", phaseId);
           const days = selectedProgram.phases[phaseId].days.map((dayId) =>
             createIdWithoutUnderscore("d", dayId)
