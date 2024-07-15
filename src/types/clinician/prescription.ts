@@ -43,7 +43,7 @@ type TPrescription = {
   prescriptionDate: Date;
   status: TPrescriptionStatus;
   programRef: DocumentReference<TProgramWrite>;
-  programObject: TEuneoProgram | TClinicianProgram;
+  programObject: TEuneoProgram | TClinicianProgram; // TODO: new name for programObject
   clientProgramRef?: DocumentReference<TClientProgramWrite>;
   clientProgramObject?: TClientProgramObject;
 };
