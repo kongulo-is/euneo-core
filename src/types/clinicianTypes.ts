@@ -3,14 +3,13 @@ import {
   TConditionId,
   TEuneoReferenceIds,
   TClinicianReferenceIds,
-  TEuneoProgramId,
 } from "./baseTypes";
 import {
   TClientProgram,
   TClientProgramWrite,
   TClientStatus,
 } from "./clientTypes";
-import { TEuneoProgram, TProgramWrite } from "./programTypes";
+import { TProgramWrite } from "./programTypes";
 
 /** @memberof TPrescription */
 export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";

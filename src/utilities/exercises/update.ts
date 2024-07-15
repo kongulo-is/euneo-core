@@ -4,14 +4,14 @@ import { db } from "../../firebase/db";
 import { updateDoc } from "../updateDoc";
 
 export async function makeExercisesConsoleLive(
-  exercises: Record<string, TExercise>
+  exercises: Record<string, TExercise>,
 ): Promise<boolean> {
   try {
     Object.keys(exercises).forEach(async (id) => {
       const exerciseRef = doc(
         db,
         "exercises",
-        id
+        id,
       ) as DocumentReference<TExerciseWrite>;
       await updateDoc(exerciseRef, {
         isConsoleLive: true,
@@ -30,7 +30,7 @@ export async function archiveExercise(exercise: TExercise) {
     const exerciseRef = doc(
       db,
       "exercises",
-      exercise.id
+      exercise.id,
     ) as DocumentReference<TExerciseWrite>;
     await updateDoc(exerciseRef, {
       isArchived: true,

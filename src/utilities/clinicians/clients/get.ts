@@ -20,7 +20,6 @@ import {
   clinicianClientConverter,
   oldClinicianClientConverter,
   oldPrescriptionConverter,
-  prescriptionConverter,
 } from "../../converters";
 import {
   getClientProgram,
@@ -28,6 +27,7 @@ import {
 } from "../../clients/programs/get";
 import { isEmptyObject } from "../../basicHelpers";
 import { _getDeprecatedProgramFromRef } from "../../programHelpers";
+import { prescriptionConverter } from "../../../types/clinician/prescription";
 
 async function _clientProgram(
   {
@@ -38,7 +38,7 @@ async function _clientProgram(
     maxNumberOfDays?: number;
     skipMaintenanceData?: boolean;
   },
-  maxNumberOfDays?: number
+  maxNumberOfDays?: number,
 ) {
   // get clients program data.
   let clientProgram: TClientProgram | undefined;
@@ -53,7 +53,7 @@ async function _clientProgram(
         clientData.prescription.clientId,
         clientData.prescription.clientProgramId,
         maxNumberOfDays,
-        skipMaintenanceData
+        skipMaintenanceData,
       );
       clientProgram = clientProgramWithDays;
     } else {
@@ -66,17 +66,17 @@ async function _clientProgram(
 
 export async function getClinicianClientPastPrescriptions(
   clinicianId: string,
-  clinicianClientId: string
+  clinicianClientId: string,
 ) {
   try {
     // get all past prescriptions in pastPrescription subcollection under /clinicians/{clinicianId}/clients/{clinicianClientId}/pastPrescriptions
     const clinicianClientPastPrescriptionsRef = collection(
       doc(db, "clinicians", clinicianId, "clients", clinicianClientId),
-      "pastPrescriptions"
+      "pastPrescriptions",
     ) as CollectionReference<TPrescriptionWrite>;
     const q = query(
       clinicianClientPastPrescriptionsRef,
-      orderBy("prescriptionDate", "desc")
+      orderBy("prescriptionDate", "desc"),
     );
     const snapshot = await getDocs(q);
 
@@ -84,6 +84,8 @@ export async function getClinicianClientPastPrescriptions(
     const pastPrescriptions = snapshot.docs.map((c) => {
       return prescriptionConverter.fromFirestore(c.data());
     });
+
+    console.log(pastPrescriptions);
 
     return pastPrescriptions;
   } catch (error) {
@@ -93,7 +95,7 @@ export async function getClinicianClientPastPrescriptions(
       {
         clinicianId,
         clinicianClientId,
-      }
+      },
     );
   }
 }
@@ -102,7 +104,7 @@ export async function getClinicianClientPastPrescriptions(
 export async function getClinicianClient(
   clinicianId: string,
   clinicianClientId: string,
-  skipMaintenanceData: boolean = false
+  skipMaintenanceData: boolean = false,
 ): Promise<TClinicianClient> {
   try {
     const clinicianClientRef = doc(
@@ -110,11 +112,11 @@ export async function getClinicianClient(
       "clinicians",
       clinicianId,
       "clients",
-      clinicianClientId
+      clinicianClientId,
     ) as DocumentReference<TClinicianClientWrite>;
 
     const clientSnap = await getDoc(
-      clinicianClientRef.withConverter(clinicianClientConverter)
+      clinicianClientRef.withConverter(clinicianClientConverter),
     );
 
     const clientData = clientSnap.data();
@@ -143,18 +145,18 @@ export async function getClinicianClient(
 // Get all clinician clients
 export async function getClinicianClients(
   clinicianId: string,
-  includeClinicianId: boolean = false
+  includeClinicianId: boolean = false,
 ): Promise<TClinicianClient[]> {
   try {
     // Get clients data form clinician collection
     const clinicianRef = doc(db, "clinicians", clinicianId);
     const clientsRef = collection(clinicianRef, "clients");
     const q = query(clientsRef, orderBy("date", "desc")).withConverter(
-      clinicianClientConverter
+      clinicianClientConverter,
     );
     const snapshot = await getDocs(
       // clientsRef.withConverter(clinicianClientConverter)
-      q
+      q,
     );
 
     // get clients program data from programs subcollection to client.
@@ -175,7 +177,7 @@ export async function getClinicianClients(
           console.error("Error getting clients data:", error, c);
           throw new Error(error as any);
         }
-      })
+      }),
     ).catch((err) => {
       console.error(err);
       return [];
@@ -206,7 +208,7 @@ async function _deprecatedClientProgram({
   ) {
     const clientProgramWithDays = await getDeprecatedClientProgram(
       clientData.prescription.clientId,
-      clientData.prescription.clientProgramId
+      clientData.prescription.clientProgramId,
     );
     clientProgram = clientProgramWithDays;
   }
@@ -215,14 +217,14 @@ async function _deprecatedClientProgram({
 }
 // Get all clinician clients
 export async function getDeprecatedClinicianClients(
-  clinicianId: string
+  clinicianId: string,
 ): Promise<TClinicianClient[]> {
   try {
     // Get clients data form clinician collection
     const clinicianRef = doc(db, "clinicians", clinicianId);
     const clientsRef = collection(clinicianRef, "clients");
     const q = query(clientsRef, orderBy("date", "desc")).withConverter(
-      oldClinicianClientConverter
+      oldClinicianClientConverter,
     );
     const snapshot = await getDocs(q);
 
@@ -247,7 +249,7 @@ export async function getDeprecatedClinicianClients(
           console.error("Error getting clients data:", error, c);
           throw new Error(error as any);
         }
-      })
+      }),
     ).catch((err) => {
       console.error(err);
       return [];
@@ -263,17 +265,17 @@ export async function getDeprecatedClinicianClients(
 
 export async function getDeprecatedClinicianClientPastPrescriptions(
   clinicianId: string,
-  clinicianClientId: string
+  clinicianClientId: string,
 ) {
   try {
     // get all past prescriptions in pastPrescription subcollection under /clinicians/{clinicianId}/clients/{clinicianClientId}/pastPrescriptions
     const clinicianClientPastPrescriptionsRef = collection(
       doc(db, "clinicians", clinicianId, "clients", clinicianClientId),
-      "pastPrescriptions"
+      "pastPrescriptions",
     ) as CollectionReference<TPrescriptionWrite>;
     const q = query(
       clinicianClientPastPrescriptionsRef,
-      orderBy("prescriptionDate", "desc")
+      orderBy("prescriptionDate", "desc"),
     );
     const snapshot = await getDocs(q);
 
@@ -290,7 +292,7 @@ export async function getDeprecatedClinicianClientPastPrescriptions(
       {
         clinicianId,
         clinicianClientId,
-      }
+      },
     );
   }
 }
