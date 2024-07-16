@@ -51,8 +51,6 @@ import {
 import { db } from "../firebase/db";
 import { isEmptyObject } from "./basicHelpers";
 
-// sdkofjdsalkfjsa
-
 // Program Day converter
 export const programDayConverter = {
   toFirestore(day: TProgramDayRead): TProgramDayWrite {

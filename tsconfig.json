@@ -2,10 +2,9 @@
   "compilerOptions": {
     "strict": true,
     "target": "es6",
-    "module": "CommonJS",
-    "sourceMap": true,
-  
+    "module": "commonjs",
+    "sourceMap": true
   },
   "exclude": ["node_modules"],
-  "include": ["./**/*"]
+  "include": ["src/**/*.ts"] // Adjust include to look inside src
 }

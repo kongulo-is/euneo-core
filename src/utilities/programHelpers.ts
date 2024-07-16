@@ -17,43 +17,46 @@ import {
   oldProgramConverter,
   oldProgramDayConverter,
   oldProgramPhaseConverter,
-  programConverter,
   programDayConverter,
   programPhaseConverter,
 } from "./converters";
 import { TClientProgramDay } from "../types/clientTypes";
 import { db } from "../firebase/db";
 import { conditions } from "../constants/conditions";
+import { programConverter } from "../entities/program/program";
 
 export async function _fetchProgramBase(
-  programRef: DocumentReference<TProgramWrite>
+  programRef: DocumentReference<TProgramWrite>,
 ) {
   const programSnap = await getDoc(programRef.withConverter(programConverter));
+
   if (!programSnap.exists()) {
     throw new Error("Program does not exist.");
   }
   const programData = programSnap.data();
+  console.log("DATA", programData);
+
   return programData;
 }
 
 export async function _fetchDays(programRef: DocumentReference) {
   const daySnapshots = await getDocs(
-    collection(programRef, "days").withConverter(programDayConverter)
+    collection(programRef, "days").withConverter(programDayConverter),
   );
 
   return Object.fromEntries(
-    daySnapshots.docs.map((doc) => [doc.id, doc.data()])
+    daySnapshots.docs.map((doc) => [doc.id, doc.data()]),
   );
 }
 
 export async function _fetchPhases(
   programRef: DocumentReference,
-  excludeMaintenancePhases: boolean = false
+  excludeMaintenancePhases: boolean = false,
 ): Promise<{
   [k: string]: TProgramPhase;
 }> {
   const phaseSnapshots = await getDocs(
-    collection(programRef, "phases").withConverter(programPhaseConverter)
+    collection(programRef, "phases").withConverter(programPhaseConverter),
   );
 
   const sortedPhaseDocs = phaseSnapshots.docs.sort((a, b) => {
@@ -67,7 +70,7 @@ export async function _fetchPhases(
     return Object.fromEntries(
       sortedPhaseDocs
         .filter((doc) => !doc.id.includes("m"))
-        .map((doc) => [doc.id, doc.data()])
+        .map((doc) => [doc.id, doc.data()]),
     );
   }
 
@@ -84,7 +87,7 @@ export async function _fetchPhases(
         highestPhaseId = phaseNumber;
       }
       return [doc.id, doc.data()];
-    })
+    }),
   );
 
   // Add maintenance phase if there isn't one already
@@ -105,7 +108,7 @@ export async function _fetchPhases(
 
 export async function _getProgramFromRef(
   programRef: DocumentReference<TProgramWrite>,
-  excludeMaintenancePhases: boolean = false
+  excludeMaintenancePhases: boolean = false,
 ): Promise<TProgram> {
   const [programBase, phases, days] = await Promise.all([
     _fetchProgramBase(programRef),
@@ -152,7 +155,7 @@ export function createPhase(
   phaseId: TProgramPhaseKey,
   date?: Date,
   length?: number,
-  startDayIndex?: number
+  startDayIndex?: number,
 ): TClientProgramDay[] {
   // Get the phase from the program using the phaseId
   const phase = program.phases[phaseId];
@@ -256,10 +259,10 @@ export function getProgramNameForApp(programInfo: {
 // Deprecated program functions
 // TODO: Remove when all clients are stable
 export async function _fetchDeprecatedProgramBase(
-  programRef: DocumentReference<TProgramWrite>
+  programRef: DocumentReference<TProgramWrite>,
 ) {
   const programSnap = await getDoc(
-    programRef.withConverter(oldProgramConverter)
+    programRef.withConverter(oldProgramConverter),
   );
   if (!programSnap.exists()) {
     throw new Error("Program does not exist.");
@@ -269,33 +272,33 @@ export async function _fetchDeprecatedProgramBase(
 }
 
 export async function _fetchDeprecatedProgramDays(
-  programRef: DocumentReference
+  programRef: DocumentReference,
 ) {
   const daySnapshots = await getDocs(
-    collection(programRef, "days").withConverter(oldProgramDayConverter)
+    collection(programRef, "days").withConverter(oldProgramDayConverter),
   );
 
   return Object.fromEntries(
-    daySnapshots.docs.map((doc) => [doc.id, doc.data()])
+    daySnapshots.docs.map((doc) => [doc.id, doc.data()]),
   );
 }
 
 export async function _fetchDeprecatedProgramPhases(
-  programRef: DocumentReference
+  programRef: DocumentReference,
 ): Promise<{
   [k: string]: TProgramPhase;
 }> {
   const phaseSnapshots = await getDocs(
-    collection(programRef, "phases").withConverter(oldProgramPhaseConverter)
+    collection(programRef, "phases").withConverter(oldProgramPhaseConverter),
   );
 
   return Object.fromEntries(
-    phaseSnapshots.docs.map((doc) => [doc.id, doc.data()])
+    phaseSnapshots.docs.map((doc) => [doc.id, doc.data()]),
   );
 }
 
 export async function _getDeprecatedProgramFromRef(
-  programRef: DocumentReference<TProgramWrite>
+  programRef: DocumentReference<TProgramWrite>,
 ): Promise<TProgram> {
   const [programBase, phases, days] = await Promise.all([
     _fetchDeprecatedProgramBase(programRef),

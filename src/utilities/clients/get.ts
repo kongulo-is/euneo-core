@@ -37,7 +37,7 @@ export async function getAllClients(): Promise<
 > {
   const clientsRef = collection(
     db,
-    "clients"
+    "clients",
   ) as CollectionReference<TClientRead>;
 
   const clientsSnap = await getDocs(clientsRef.withConverter(clientConverter));
@@ -56,7 +56,7 @@ export async function getAllClients(): Promise<
         clientId: client.id,
         ...(clientProgram && { clientProgram }),
       };
-    })
+    }),
   );
 
   if (!clientData) {
@@ -71,14 +71,14 @@ export async function getAllClients(): Promise<
 export async function getAllClientsToUpgrade(): Promise<TClient[]> {
   const clientsRef = collection(
     db,
-    "clients"
+    "clients",
   ) as CollectionReference<TClientRead>;
 
   const clientsQuery = query(clientsRef, where("name", ">", ""));
   // const clientsQuery = query(clientsRef, where("name", "==", "Developer"));
 
   const clientsSnap = await getDocs(
-    clientsQuery.withConverter(clientConverter)
+    clientsQuery.withConverter(clientConverter),
   );
 
   const clientData = await Promise.all(
@@ -87,7 +87,7 @@ export async function getAllClientsToUpgrade(): Promise<TClient[]> {
         ...client.data(),
         clientId: client.id,
       };
-    })
+    }),
   );
 
   if (!clientData) {
@@ -103,7 +103,7 @@ export async function getClient(clientId: string): Promise<TClient> {
   const clientRef = doc(
     db,
     "clients",
-    clientId
+    clientId,
   ) as DocumentReference<TClientRead>;
 
   const clientDoc = await getDoc(clientRef.withConverter(clientConverter));
@@ -176,7 +176,7 @@ export async function convertUser(userId: string): Promise<boolean> {
                     ...section,
                     sectionName: index === 0 ? "Activites" : "Sports",
                   };
-                }
+                },
               ),
             };
           }),
@@ -217,43 +217,3 @@ export async function convertUser(userId: string): Promise<boolean> {
     return true;
   });
 }
-// ! Deprecated
-export async function clientDocumentListener(
-  clientId: string,
-  callback: () => Promise<void>
-): Promise<Unsubscribe> {
-  const clientRef = doc(db, "clients", clientId);
-
-  const unsubscribe = onSnapshot(clientRef, async (doc) => {
-    if (doc.exists()) {
-      // Document exists, call the callback to handle the data
-      await callback();
-    } else {
-      // Document does not exist
-      const did = await convertUser(clientId);
-      did && (await callback());
-    }
-  });
-
-  return unsubscribe;
-}
-
-// export function clientDocumentListener(
-//   clientId: string
-//   // callBack: () => void
-// ): Promise<{ clientExists: boolean | null; unsubscribe: () => void }> {
-//   return new Promise((resolve) => {
-//     const clientRef = doc(db, "clients", clientId);
-
-//     const unsubscribe = onSnapshot(clientRef, (doc) => {
-//       if (doc.exists()) {
-//         // callBack();
-//         // Document exists, you can handle the data here
-//         resolve({ clientExists: true, unsubscribe });
-//       } else {
-//         // Document does not exist
-//         resolve({ clientExists: false, unsubscribe });
-//       }
-//     });
-//   });
-// }

@@ -20,6 +20,7 @@ import {
   clinicianClientConverter,
   oldClinicianClientConverter,
   oldPrescriptionConverter,
+  prescriptionConverter,
 } from "../../converters";
 import {
   getClientProgram,
@@ -27,7 +28,6 @@ import {
 } from "../../clients/programs/get";
 import { isEmptyObject } from "../../basicHelpers";
 import { _getDeprecatedProgramFromRef } from "../../programHelpers";
-import { prescriptionConverter } from "../../../types/clinician/prescription";
 
 async function _clientProgram(
   {
@@ -154,10 +154,8 @@ export async function getClinicianClients(
     const q = query(clientsRef, orderBy("date", "desc")).withConverter(
       clinicianClientConverter,
     );
-    const snapshot = await getDocs(
-      // clientsRef.withConverter(clinicianClientConverter)
-      q,
-    );
+
+    const snapshot = await getDocs(q);
 
     // get clients program data from programs subcollection to client.
     const clientsData: TClinicianClient[] = await Promise.all(
@@ -169,7 +167,7 @@ export async function getClinicianClients(
           return {
             ...clientData,
             clinicianClientId: c.id,
-            ...(includeClinicianId && { clinicianId }),
+            ...(includeClinicianId && { clinicianId }), // TODO: What is this for?
             ...(clientProgram &&
               !isEmptyObject(clientProgram) && { clientProgram }),
           };

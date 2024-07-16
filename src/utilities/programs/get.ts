@@ -24,7 +24,6 @@ import {
   TProgramWrite,
 } from "../../types/programTypes";
 import { _getProgramFromRef } from "../programHelpers";
-import runtimeChecks from "../runtimeChecks";
 import { TEuneoProgramId } from "../../types/baseTypes";
 import { updateDoc } from "../updateDoc";
 import { upgradeDeprecatedProgram } from "./update";
@@ -90,19 +89,19 @@ export async function getProgramFromCode(code: string): Promise<{
 export async function getAllEuneoPrograms(
   filter: "isConsoleLive" | "isLive" | "",
   excludeMaintenance: boolean = false,
-  shouldUpgradeOnError: boolean = false
+  shouldUpgradeOnError: boolean = false,
 ): Promise<TEuneoProgram[]> {
   const euneoPrograms: TEuneoProgram[] = [];
 
   const programsRef = collection(
     db,
-    "programs"
+    "programs",
   ) as CollectionReference<TProgramVersionWrite>;
 
   let querySnapshot: QuerySnapshot<TProgramVersionWrite, DocumentData>;
   if (filter) {
     querySnapshot = await getDocs(
-      query(programsRef, where(filter, "==", true))
+      query(programsRef, where(filter, "==", true)),
     );
   } else {
     querySnapshot = await getDocs(programsRef);
@@ -116,7 +115,7 @@ export async function getAllEuneoPrograms(
       const programRef = doc(
         programSnap.ref,
         "versions",
-        currentVersion
+        currentVersion,
       ) as DocumentReference<TProgramWrite>;
       return _getProgramFromRef(programRef, excludeMaintenance);
     } catch (error) {
@@ -142,14 +141,14 @@ export async function getAllEuneoPrograms(
 export async function getEuneoProgramWithDays(
   euneoProgramId: TEuneoProgramId,
   version: string = "1.0",
-  excludeMaintenance: boolean = false
+  excludeMaintenance: boolean = false,
 ): Promise<TEuneoProgram> {
   let programRef = doc(
     db,
     "programs",
     euneoProgramId,
     "versions",
-    version
+    version,
   ) as DocumentReference<TProgramWrite>;
   const euneoProgram = await _getProgramFromRef(programRef, excludeMaintenance);
 
