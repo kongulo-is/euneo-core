@@ -9,6 +9,18 @@ export type TOutcomeMeasureAnswerWrite = {
 };
 
 /**
+ * @memberof TClientProgram
+ * @description Assessment of client during program.
+ * @param name (FAAM, SF-36, VISA-A, PROMIS,...)
+ */
+export type TOutcomeMeasureAnswers = {
+  date: Date;
+  outcomeMeasureId: TOutcomeMeasureId;
+  // type: string | "foot&ankle";
+  sections: TOutcomeMeasureAnswerSection[];
+};
+
+/**
  * @memberof TOutcomeMeasureAnswers
  * @description Assessment result and answers.
  * @param score 0-100%

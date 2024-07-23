@@ -6,40 +6,78 @@ import {
   doc,
 } from "firebase/firestore";
 import { TConditionId, TEuneoProgramId } from "../types/baseTypes";
-import {
-  TProgramWrite,
-  TProgram,
-  TProgramWithSubCollections,
-  TProgramPhase,
-  TProgramPhaseKey,
-} from "../types/programTypes";
+
 import {
   oldProgramConverter,
   oldProgramDayConverter,
   oldProgramPhaseConverter,
-  programDayConverter,
-  programPhaseConverter,
 } from "./converters";
 import { TClientProgramDay } from "../types/clientTypes";
 import { db } from "../firebase/db";
 import { conditions } from "../constants/conditions";
-import { programConverter } from "../entities/program/program";
+import {
+  TProgram,
+  TProgramInfo,
+  TProgramRead,
+  TProgramWrite,
+  isClinicianProgram,
+  isEuneoProgram,
+  programConverter,
+} from "../entities/program/program";
+import {
+  TProgramVersion,
+  TProgramVersionRead,
+  TProgramVersionWrite,
+  deserializeProgramVersionPath,
+  isClinicianProgramVersionIdentifiers,
+  programVersionConverter,
+} from "../entities/program/version";
+import {
+  TProgramDay,
+  TProgramDayKey,
+  programDayConverter,
+} from "../entities/program/programDay";
+import {
+  TProgramPhase,
+  TProgramPhaseKey,
+  TProgramPhaseRead,
+  programPhaseConverter,
+} from "../entities/program/programPhase";
+
+export async function _fetchProgramVersion(
+  programVersionRef: DocumentReference<
+    TProgramVersionRead,
+    TProgramVersionWrite
+  >,
+): Promise<TProgramVersion> {
+  const programSnap = await getDoc(
+    programVersionRef.withConverter(programVersionConverter),
+  );
+
+  if (!programSnap.exists()) {
+    throw new Error("Program does not exist.");
+  }
+  const programVersion = programSnap.data();
+
+  return { ...programVersion, programVersionRef: programVersionRef };
+}
 
 export async function _fetchProgramBase(
-  programRef: DocumentReference<TProgramWrite>,
-) {
+  programRef: DocumentReference<TProgramRead, TProgramWrite>,
+): Promise<TProgramInfo> {
   const programSnap = await getDoc(programRef.withConverter(programConverter));
 
   if (!programSnap.exists()) {
     throw new Error("Program does not exist.");
   }
   const programData = programSnap.data();
-  console.log("DATA", programData);
 
-  return programData;
+  return { ...programData, programRef: programRef };
 }
 
-export async function _fetchDays(programRef: DocumentReference) {
+export async function _fetchDays(
+  programRef: DocumentReference<TProgramVersionRead, TProgramVersionWrite>,
+): Promise<Record<TProgramDayKey, TProgramDay>> {
   const daySnapshots = await getDocs(
     collection(programRef, "days").withConverter(programDayConverter),
   );
@@ -50,11 +88,9 @@ export async function _fetchDays(programRef: DocumentReference) {
 }
 
 export async function _fetchPhases(
-  programRef: DocumentReference,
+  programRef: DocumentReference<TProgramVersionRead, TProgramVersionWrite>,
   excludeMaintenancePhases: boolean = false,
-): Promise<{
-  [k: string]: TProgramPhase;
-}> {
+): Promise<Record<TProgramPhaseKey, TProgramPhaseRead>> {
   const phaseSnapshots = await getDocs(
     collection(programRef, "phases").withConverter(programPhaseConverter),
   );
@@ -67,11 +103,13 @@ export async function _fetchPhases(
 
   // Return only non-maintenance phases if excludeMaintenancePhases is true
   if (excludeMaintenancePhases) {
-    return Object.fromEntries(
+    const phases = Object.fromEntries(
       sortedPhaseDocs
         .filter((doc) => !doc.id.includes("m"))
         .map((doc) => [doc.id, doc.data()]),
     );
+
+    return phases;
   }
 
   let highestPhaseId = 0;
@@ -94,51 +132,87 @@ export async function _fetchPhases(
   if (!hasMaintainancePhase) {
     const lastPhase = phases[`p${highestPhaseId}`];
     phases["m1"] = {
+      daysDeprecated: lastPhase.daysDeprecated,
       days: lastPhase.days,
-      description: "Maintainance phase",
       mode: "continuous",
       finalPhase: true,
-      programId: lastPhase.programId,
-      version: lastPhase.version,
     };
   }
+  console.log("_PHASES", phases);
 
   return phases;
 }
 
 export async function _getProgramFromRef(
-  programRef: DocumentReference<TProgramWrite>,
+  programVersionRef: DocumentReference<
+    TProgramVersionRead,
+    TProgramVersionWrite
+  >,
   excludeMaintenancePhases: boolean = false,
 ): Promise<TProgram> {
-  const [programBase, phases, days] = await Promise.all([
+  const programVersionIdentifiers = deserializeProgramVersionPath(
+    programVersionRef.path,
+  );
+
+  console.log("PROGRAM VERSION IDENTIFIERS", programVersionIdentifiers);
+
+  let programRef: DocumentReference<TProgramRead, TProgramWrite> =
+    programVersionRef.parent.parent!.withConverter(programConverter);
+
+  // if (isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
+  //   programRef = doc(
+  //     db,
+  //     "clinicians",
+  //     programVersionIdentifiers.clinicians,
+  //     "programs",
+  //     programVersionIdentifiers.programs,
+  //   ) as DocumentReference<TProgramRead, TProgramWrite>;
+  // } else {
+  //   programRef = doc(
+  //     db,
+  //     "programs",
+  //     programVersionIdentifiers.programs,
+  //   ) as DocumentReference<TProgramRead, TProgramWrite>;
+  // }
+
+  const [programInfo, versionInfo, phases, days] = await Promise.all([
     _fetchProgramBase(programRef),
-    _fetchPhases(programRef, excludeMaintenancePhases),
-    _fetchDays(programRef),
+    _fetchProgramVersion(programVersionRef),
+    _fetchPhases(programVersionRef, excludeMaintenancePhases),
+    _fetchDays(programVersionRef),
   ]);
 
-  const programId = programRef.parent.parent!.id;
+  console.log("PHASES", phases);
 
-  const programMode: TProgramWithSubCollections = {
-    ...programBase,
-    days,
-    phases,
-  };
-
-  let program: TProgram;
-
-  if (programRef.parent.parent?.parent?.parent) {
-    program = {
-      ...programMode,
-      clinicianId: programRef.parent.parent.parent.parent.id,
-      clinicianProgramId: programId,
-      version: programRef.id,
+  // Adjust the returned type based on the program type
+  if (isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
+    if (!isClinicianProgram(programInfo)) {
+      throw new Error(
+        "Program is not a clinician program, invalid program info",
+      );
+    }
+    return {
+      programVersionIdentifiers,
+      days,
+      phases,
+      programInfo,
+      versionInfo,
+      creator: "clinician",
     };
-    return program;
   } else {
-    return { ...programMode, euneoProgramId: programId as TEuneoProgramId };
+    if (!isEuneoProgram(programInfo)) {
+      throw new Error("Program is not a euneo program, invalid program info");
+    }
+    return {
+      programVersionIdentifiers,
+      days,
+      phases,
+      programInfo,
+      versionInfo,
+      creator: "euneo",
+    };
   }
 }
-
 /**
  *
  * @param trainingDays
@@ -181,14 +255,14 @@ export function createPhase(
     const dayId = phase.days[restIndex % phase.days.length];
 
     // Get the infoDay from the program days object using the dayId
-    const infoDay = program.days[dayId];
+    const infoDay = program.days[dayId.id as TProgramDayKey];
 
     // Determine if it's a rest day by checking if the day of the week (adjusted to start on Monday) is a training day
     const isRestDay = !trainingDays[(d.getDay() + 6) % 7];
 
     // Push a new day object to the dayList array
     dayList.push({
-      dayId: dayId,
+      dayId: dayId.id as TProgramDayKey,
       date: new Date(d),
       phaseId: phaseId,
       finished: false,
@@ -219,13 +293,24 @@ export function incrementBaseVersion(version: string): `${number}.${number}` {
   return `${incremented}.0`;
 }
 
+/**
+ *
+ * @param version
+ * @description This function is used when creating a new version of a program.
+ * It takes a version string and returns a new version string with the format "1.0 or 1.uid"
+ * where 1 is the current version number and uid is a unique identifier from the programs collection.
+ * @returns a new version string with the format "1.0 or 1.uid"
+ */
 export function createModifiedVersion(version: string) {
   // Split the string at the period
   const parts = version.split(".");
+
   // Convert the first part to a number
   const base = parseInt(parts[0]);
+
   if (parseInt(parts[1]) === 0) {
-    const docRef = doc(collection(db, "newPrograms"));
+    const docRef = doc(collection(db, "programs"));
+
     return `${base}.${docRef.id}`;
   }
 
@@ -259,7 +344,7 @@ export function getProgramNameForApp(programInfo: {
 // Deprecated program functions
 // TODO: Remove when all clients are stable
 export async function _fetchDeprecatedProgramBase(
-  programRef: DocumentReference<TProgramWrite>,
+  programVersionRef: DocumentReference<TProgramWrite>,
 ) {
   const programSnap = await getDoc(
     programRef.withConverter(oldProgramConverter),

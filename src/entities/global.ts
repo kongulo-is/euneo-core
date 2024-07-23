@@ -3,6 +3,8 @@ export enum Collection {
   Programs = "programs",
   Clinicians = "clinicians",
   Versions = "versions",
+  Days = "days",
+  Phases = "phases",
 }
 
 export type TConditionId =
@@ -70,3 +72,15 @@ export type TConditionId =
   | "tarsal-tunnel-syndrome"
   | "turf-toe"
   | "knee-replacement";
+
+export type TEuneoProgramId =
+  | "achilles-tendinopathy"
+  | "hip-replacement"
+  | "knee-replacement"
+  | "lateral-ankle-sprain"
+  | "meniscus-tear"
+  | "osgood-schlatter-disease"
+  | "patellofemoral-pain-syndrome"
+  | "plantar-fasciitis"
+  | "plantar-heel-pain"
+  | "severs-disease";

@@ -8,82 +8,35 @@ import {
   orderBy,
   CollectionReference,
   where,
-  limit,
   QueryConstraint,
   limitToLast,
   Timestamp,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
+
 import {
-  TClientProgram,
-  TClientProgramBase,
-  TClientProgramWrite,
-} from "../../../types/clientTypes";
-import {
-  clientProgramConverter,
-  clientProgramDayConverter,
   oldClientProgramConverter,
   oldClientProgramDayConverter,
 } from "../../converters";
 import runtimeChecks from "../../runtimeChecks";
-import { TOutcomeMeasureId } from "../../../types/clinicianTypes";
-
-export async function getClientProgramsForUpdate(
-  clientId: string
-): Promise<
-  (TClientProgramWrite & { clientProgramId: string; clientId: string })[]
-> {
-  try {
-    const clientProgramsRef = collection(
-      db,
-      "clients",
-      clientId,
-      "programs"
-    ) as CollectionReference<TClientProgramWrite>;
-
-    const clientProgramsSnap = await getDocs(clientProgramsRef);
-
-    const clientPrograms = clientProgramsSnap.docs.map((doc) => {
-      const clientProgramWrite = doc.data();
-      return {
-        ...clientProgramWrite,
-        clientProgramId: doc.id,
-        clientId: clientId,
-      };
-    });
-
-    const filteredClientPrograms = clientPrograms.filter(
-      (program) => !program.clinicianClientRef
-    );
-
-    return filteredClientPrograms;
-  } catch (error) {
-    console.error("Error fetching client programs:", error, { clientId });
-  }
-  return [] as (TClientProgramWrite & {
-    clientProgramId: string;
-    clientId: string;
-  })[];
-}
+import {
+  clientProgramConverter,
+  TClientProgram,
+  TClientProgramRead,
+  TClientProgramWrite,
+} from "../../../entities/client/clientProgram";
+import { clientProgramDayConverter } from "../../../entities/client/day";
+import { TOutcomeMeasureId } from "../../../entities/outcomeMeasure/outcomeMeasure";
 
 export async function getClientProgram(
-  clientId: string,
-  clientProgramId: string,
+  clientProgramRef: DocumentReference<TClientProgramRead, TClientProgramWrite>,
   maxNumberOfDays?: number,
-  skipMaintenanceData?: boolean
+  skipMaintenanceData?: boolean,
 ): Promise<TClientProgram> {
   try {
-    const clientProgramRef = (
-      doc(
-        db,
-        "clients",
-        clientId,
-        "programs",
-        clientProgramId
-      ) as DocumentReference<TClientProgramWrite>
-    ).withConverter(clientProgramConverter);
-
-    const clientProgramSnap = await getDoc(clientProgramRef);
+    const clientProgramSnap = await getDoc(
+      clientProgramRef.withConverter(clientProgramConverter),
+    );
 
     const clientProgram = clientProgramSnap.data();
 
@@ -94,6 +47,7 @@ export async function getClientProgram(
     // add days to clientProgram
     const queryConstraints: QueryConstraint[] = [orderBy("date")];
 
+    // if maxNumberOfDays is defined, limit the number of days to maxNumberOfDays
     if (maxNumberOfDays) {
       queryConstraints.push(limitToLast(maxNumberOfDays));
       // Get today's date and time at the end of the day
@@ -107,8 +61,8 @@ export async function getClientProgram(
     const daysSnap = await getDocs(
       query(
         collection(clientProgramRef, "days"),
-        ...queryConstraints
-      ).withConverter(clientProgramDayConverter)
+        ...queryConstraints,
+      ).withConverter(clientProgramDayConverter),
     );
 
     const days = daysSnap.docs.map((doc) => doc.data());
@@ -127,14 +81,14 @@ export async function getClientProgram(
     if (skipMaintenanceData && firstMaintenancePhaseDay) {
       filteredDays = days.filter((d) => d.date < firstMaintenancePhaseDay.date);
       filteredPainLevels = painLevels.filter(
-        (p) => p.date < firstMaintenancePhaseDay.date
+        (p) => p.date < firstMaintenancePhaseDay.date,
       );
       if (filteredOutcomeMeasureAnswers) {
         for (const key in outcomeMeasuresAnswers) {
           const outcomeMeasureId = key as TOutcomeMeasureId;
           filteredOutcomeMeasureAnswers[outcomeMeasureId] =
             outcomeMeasuresAnswers[outcomeMeasureId].filter(
-              (a) => a.date < firstMaintenancePhaseDay.date
+              (a) => a.date < firstMaintenancePhaseDay.date,
             );
         }
       }
@@ -142,20 +96,16 @@ export async function getClientProgram(
 
     const clientProgramWithDays: TClientProgram = {
       ...clientProgram,
-      clientProgramId: clientProgramId,
       days: filteredDays,
       painLevels: filteredPainLevels,
       outcomeMeasuresAnswers: filteredOutcomeMeasureAnswers,
     };
 
-    runtimeChecks.assertTClientProgram(clientProgramWithDays);
+    console.log("clientProgramWithDays", clientProgramWithDays);
 
     return clientProgramWithDays;
   } catch (error) {
-    console.error("Error fetching client program:", error, {
-      clientId,
-      clientProgramId,
-    });
+    console.error("Error fetching client program:", error, clientProgramRef);
   }
   return {} as TClientProgram;
 }
@@ -163,7 +113,7 @@ export async function getClientProgram(
 // TODO: Functions for deprecated programs
 export async function getDeprecatedClientProgram(
   clientId: string,
-  clientProgramId: string
+  clientProgramId: string,
 ): Promise<TClientProgram> {
   try {
     const clientProgramRef = (
@@ -172,7 +122,7 @@ export async function getDeprecatedClientProgram(
         "clients",
         clientId,
         "programs",
-        clientProgramId
+        clientProgramId,
       ) as DocumentReference<TClientProgramWrite>
     ).withConverter(oldClientProgramConverter);
 
@@ -188,8 +138,8 @@ export async function getDeprecatedClientProgram(
     const daysSnap = await getDocs(
       query(
         collection(clientProgramRef, "days"),
-        orderBy("date")
-      ).withConverter(oldClientProgramDayConverter)
+        orderBy("date"),
+      ).withConverter(oldClientProgramDayConverter),
     );
 
     const days = daysSnap.docs.map((doc) => doc.data());
@@ -210,4 +160,42 @@ export async function getDeprecatedClientProgram(
     });
   }
   return {} as TClientProgram;
+}
+
+export async function getClientProgramsForUpdate(
+  clientId: string,
+): Promise<
+  (TClientProgramWrite & { clientProgramId: string; clientId: string })[]
+> {
+  try {
+    const clientProgramsRef = collection(
+      db,
+      "clients",
+      clientId,
+      "programs",
+    ) as CollectionReference<TClientProgramWrite>;
+
+    const clientProgramsSnap = await getDocs(clientProgramsRef);
+
+    const clientPrograms = clientProgramsSnap.docs.map((doc) => {
+      const clientProgramWrite = doc.data();
+      return {
+        ...clientProgramWrite,
+        clientProgramId: doc.id,
+        clientId: clientId,
+      };
+    });
+
+    const filteredClientPrograms = clientPrograms.filter(
+      (program) => !program.clinicianClientRef,
+    );
+
+    return filteredClientPrograms;
+  } catch (error) {
+    console.error("Error fetching client programs:", error, { clientId });
+  }
+  return [] as (TClientProgramWrite & {
+    clientProgramId: string;
+    clientId: string;
+  })[];
 }

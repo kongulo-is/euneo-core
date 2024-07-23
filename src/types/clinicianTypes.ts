@@ -9,39 +9,26 @@ import {
   TClientProgramWrite,
   TClientStatus,
 } from "./clientTypes";
-import { TProgramWrite } from "./programTypes";
+import {
+  TPrescription,
+  TPrescriptionWrite,
+} from "../entities/clinician/prescription";
 
-/** @memberof TPrescription */
-export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
+// /** @memberof TPrescription */
+// export type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
 
-export type TPrescriptionBase = {
-  prescriptionDate: Date;
-  status: TPrescriptionStatus;
-  clientProgramId?: string;
-  clientId?: string;
-  version: string;
-};
-
-export type TEuneoPrescription = TPrescriptionBase & TEuneoReferenceIds;
-
-export type TClinicianPrescription = TPrescriptionBase & TClinicianReferenceIds;
-export type TPrescription = TEuneoPrescription | TClinicianPrescription;
-
-// export type TClientProgramPath = {
-//   programs: string;
-//   clients: string;
+// export type TPrescriptionBase = {
+//   prescriptionDate: Date;
+//   status: TPrescriptionStatus;
+//   clientProgramId?: string;
+//   clientId?: string;
+//   version: string;
 // };
 
-// export type TProgramPath = {
-//   // Euneo Program
-//   programs: TEuneoProgramId;
-//   versions: string;
-// } | {
-//   // Clinician Program
-//   clinicians: string;
-//   programs: string;
-//   versions: string;
-// };
+// export type TEuneoPrescription = TPrescriptionBase & TEuneoReferenceIds;
+
+// export type TClinicianPrescription = TPrescriptionBase & TClinicianReferenceIds;
+// export type TPrescription = TEuneoPrescription | TClinicianPrescription;
 
 export type TOutcomeMeasureId =
   | "faam"
@@ -141,9 +128,9 @@ export type TClinicianClientWrite = {
  * @description prescription data as it is stored in client subcollection in clinician collection
  * @path /clinicians/{clinicianId}/clients/{clinicianClientId}
  */
-export type TPrescriptionWrite = {
-  clientProgramRef?: DocumentReference<TClientProgramWrite>;
-  programRef: DocumentReference<TProgramWrite>;
-  prescriptionDate: Timestamp;
-  status: TPrescriptionStatus;
-};
+// export type TPrescriptionWrite = {
+//   clientProgramRef?: DocumentReference<TClientProgramWrite>;
+//   programRef: DocumentReference<TProgramWrite>;
+//   prescriptionDate: Timestamp;
+//   status: TPrescriptionStatus;
+// };

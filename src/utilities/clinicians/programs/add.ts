@@ -1,116 +1,87 @@
 import {
-  doc,
-  collection,
-  setDoc,
-  DocumentReference,
-  Timestamp,
-} from "firebase/firestore";
-import { db } from "../../../firebase/db";
-import {
-  TProgramRead,
-  TProgramDayRead,
   TClinicianProgram,
-  TProgramPhaseRead,
-  TProgramPhaseKey,
-  TProgramDayKey,
+  TProgramRead,
   TProgramWrite,
-  TClinicianProgramVersionWrite,
-  TEuneoProgramVersionWrite,
-} from "../../../types/programTypes";
-import {
   programConverter,
-  programDayConverter,
-  programPhaseConverter,
-} from "../../converters";
+} from "../../../entities/program/program";
+import {
+  TProgramPhaseForm,
+  TProgramPhaseKey,
+} from "../../../entities/program/programPhase";
+import {
+  TProgramDayKey,
+  TProgramDayRead,
+} from "../../../entities/program/programDay";
+import {
+  TProgramVersionRead,
+  createProgramVersionRef,
+  deserializeProgramVersionPath,
+  isClinicianProgramVersionIdentifiers,
+} from "../../../entities/program/version";
+import {
+  _saveProgramInfo,
+  _saveDays,
+  _savePhases,
+  _saveVersionInfo,
+} from "./_helpers";
+import { DocumentReference } from "firebase/firestore";
 
 export async function createClinicianProgram(
-  clinicianProgramRead: TProgramRead,
-  phases: Record<TProgramPhaseKey, TProgramPhaseRead>,
+  programVersionRead: TProgramVersionRead,
+  clinicianId: string,
+  version: string,
+  phases: Record<TProgramPhaseKey, TProgramPhaseForm>,
   days: Record<TProgramDayKey, TProgramDayRead>,
   isSaved: boolean,
-  clinicianId: string,
-  clinicianProgramId?: string // used to overwrite the program (used when saving program)
+  clinicianProgramId?: string, // used to overwrite the program (used when saving program)
 ): Promise<TClinicianProgram> {
   try {
-    const clinicianRef = doc(db, "clinicians", clinicianId);
-
-    // Program reference (If program exists, overwrite it, else create new program)
-    const programRef = clinicianProgramId
-      ? (doc(
-          clinicianRef,
-          "programs",
-          clinicianProgramId
-        ) as DocumentReference<TClinicianProgramVersionWrite>)
-      : (doc(
-          collection(clinicianRef, "programs")
-        ) as DocumentReference<TEuneoProgramVersionWrite>);
-
-    // Program version ref
-    const currentProgramRef = doc(
-      programRef,
-      "versions",
-      "1.0"
-    ) as DocumentReference<TProgramWrite>;
-    await setDoc(programRef, {
-      currentVersion: currentProgramRef,
-      createdAt: Timestamp.fromDate(new Date()),
-      lastUpdatedAt: Timestamp.fromDate(new Date()),
-      ...(isSaved && { isSaved }),
+    const programVersionRef = createProgramVersionRef({
+      clinicians: clinicianId,
+      programs: clinicianProgramId,
+      versions: version,
     });
 
-    await Promise.all([
-      setDoc(
-        currentProgramRef.withConverter(programConverter),
-        clinicianProgramRead
-      ),
-    ]);
+    // We can guarentee that the parent of programVersionRef is a program ref
+    const programRef: DocumentReference<TProgramRead, TProgramWrite> =
+      programVersionRef.parent.parent!.withConverter(programConverter);
 
-    const daysRef = collection(currentProgramRef, "days");
-
-    await Promise.all(
-      Object.keys(days).map((id) => {
-        const dayId = id as `d${number}`;
-        return setDoc(
-          doc(daysRef.withConverter(programDayConverter), dayId),
-          days[dayId],
-          { merge: true }
-        );
-      })
+    const programVersionIdentifiers = deserializeProgramVersionPath(
+      programVersionRef.path,
     );
 
-    const phasesRef = collection(currentProgramRef, "phases");
+    if (!isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
+      throw new Error("Invalid program version identifiers");
+    }
 
-    await Promise.all(
-      Object.keys(phases).map((id) => {
-        const phaseId = id as `p${number}`;
-        const phase = { ...phases[phaseId], programId: programRef.id };
-        return setDoc(
-          doc(phasesRef.withConverter(programPhaseConverter), phaseId),
-          phase,
-          { merge: true }
-        );
-      })
+    const programInfo = await _saveProgramInfo(
+      programRef,
+      programVersionRef,
+      isSaved,
     );
+    const versionInfo = await _saveVersionInfo(
+      programVersionRef,
+      programVersionRead,
+    );
+    await _saveDays(programVersionRef, days);
+    const phasesRead = await _savePhases(programVersionRef, phases);
 
     const clinicianProgram: TClinicianProgram = {
-      ...clinicianProgramRead,
-      phases,
+      programInfo: programInfo,
+      versionInfo: versionInfo,
       days,
-      clinicianProgramId: programRef.id,
-      clinicianId,
-      version: "1.0",
-      createdAt: new Date(),
-      lastUpdatedAt: new Date(),
-      ...(isSaved && { isSaved }),
+      phases: phasesRead,
+      creator: "clinician",
+      programVersionIdentifiers,
     };
 
     return clinicianProgram;
   } catch (error) {
     console.error("Error creating clinician program:", error, {
-      clinicianProgramRead,
+      programVersionRead,
       days,
       clinicianId,
     });
+    throw new Error("Error creating clinician program");
   }
-  throw new Error("Error creating clinician program");
 }

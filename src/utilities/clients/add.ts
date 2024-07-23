@@ -1,36 +1,43 @@
-import { DocumentReference, Timestamp, doc, setDoc } from "firebase/firestore";
+import { DocumentReference, doc, setDoc } from "firebase/firestore";
 import { db } from "../../firebase/db";
-import {
-  TClient,
-  TClientPreferences,
-  TClientProgram,
-  TClientWrite,
-} from "../../types/clientTypes";
+
 import { updateDoc } from "../updateDoc";
 import {
-  clientProgramConverter,
-  clientProgramDayConverter,
-} from "../converters";
+  clientConverter,
+  TClient,
+  TClientPreferences,
+  TClientRead,
+  TClientWrite,
+} from "../../entities/client/client";
+import { TClientProgram } from "../../entities/client/clientProgram";
 
+/**
+ * @description This function adds client preferences to the client document.
+ * Used in app
+ */
 export const addClientPreferences = async (
   clientId: string,
-  preferences: TClientPreferences
+  preferences: TClientPreferences,
 ) => {
-  const clientRef = doc(
+  // TODO: move this out of here and take it as a parameter (also create a ref creator function for client)
+  const clientRef: DocumentReference<TClientRead, TClientWrite> = doc(
     db,
     "clients",
-    clientId
-  ) as DocumentReference<TClientWrite>;
+    clientId,
+  ).withConverter(clientConverter);
 
   await updateDoc(clientRef, {
     preferences,
   });
 };
 
+/**
+ * @description Used in app //TODO: add description
+ */
 export async function createClientDocument(
   clientId: string,
   name: string,
-  platform: string
+  platform: string,
 ) {
   try {
     const clientRef = doc(db, "clients", clientId);
@@ -47,10 +54,13 @@ export async function createClientDocument(
   }
 }
 
+/**
+ * @description Used in app //TODO: add description
+ */
 export async function createDuplicateDocument(
   newClientId: string,
   client: TClient,
-  clientProgram: TClientProgram
+  clientProgram: TClientProgram,
 ) {
   try {
     const clientRef = doc(db, "clients", newClientId);
@@ -59,7 +69,7 @@ export async function createDuplicateDocument(
       "clients",
       newClientId,
       "programs",
-      clientProgram.clientProgramId
+      clientProgram.clientProgramId,
     );
     // Update client document
     await setDoc(clientRef, {
@@ -73,7 +83,7 @@ export async function createDuplicateDocument(
 
     await setDoc(
       clientProgramRef.withConverter(clientProgramConverter),
-      clientProgram
+      clientProgram,
     );
 
     await Promise.all(
@@ -85,10 +95,10 @@ export async function createDuplicateDocument(
           "programs",
           clientProgramRef.id,
           "days",
-          i.toString()
+          i.toString(),
         );
         return setDoc(dayCol.withConverter(clientProgramDayConverter), day);
-      })
+      }),
     );
     // Add program subcollection to client document
   } catch (error) {

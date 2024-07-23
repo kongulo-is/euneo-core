@@ -1,52 +1,54 @@
 import {
   doc,
-  DocumentReference,
   getDoc,
   collection,
   CollectionReference,
   addDoc,
   updateDoc,
   getDocs,
+  setDoc,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
+
+import { createInvitation } from "../../invitations/add";
 import {
-  TClinicianClient,
-  TClinicianClientRead,
-  TClinicianClientWrite,
   TPrescription,
+  TPrescriptionRead,
   TPrescriptionWrite,
-} from "../../../types/clinicianTypes";
+  prescriptionConverter,
+} from "../../../entities/clinician/prescription";
 import {
   clinicianClientConverter,
-  prescriptionConverter,
-} from "../../converters";
-import { createInvitation } from "../../invitations/add";
+  createClinicianClientRef,
+  deserializeClinicianClientPath,
+  TClinicianClient,
+  TClinicianClientRead,
+  TClinicianClientRef,
+} from "../../../entities/clinician/clinicianClient";
 
 export async function addPrescriptionToClinicianClient(
-  clinicianId: string,
-  clinicianClientId: string,
+  clinicianClientRef: TClinicianClientRef,
   prescription: TPrescription,
-  code: string
+  code: string,
 ) {
   try {
-    const clinicianClientRef = doc(
-      db,
-      "clinicians",
-      clinicianId,
-      "clients",
-      clinicianClientId
-    ) as DocumentReference<TClinicianClientWrite>;
+    console.log("clinicianClientRef", clinicianClientRef);
+
     // check if user has a current prescription
-    const clinicianClientSnapshot = await getDoc(clinicianClientRef);
+    const clinicianClientSnapshot = await getDoc(
+      clinicianClientRef.withConverter(clinicianClientConverter),
+    );
+
     const currentPrescription = clinicianClientSnapshot.data()?.prescription;
     if (currentPrescription && currentPrescription.status === "Started") {
       // store current prescription in past prescription sub collection if it was already started
       const pastPrescriptionRef = collection(
         clinicianClientRef,
-        "pastPrescriptions"
-      ) as CollectionReference<TPrescriptionWrite>;
+        "pastPrescriptions",
+      ) as CollectionReference<TPrescriptionRead, TPrescriptionWrite>;
       await addDoc(pastPrescriptionRef, currentPrescription);
     }
+
     // change the clinician client's prescription
     const prescriptionConverted =
       prescriptionConverter.toFirestore(prescription);
@@ -56,11 +58,7 @@ export async function addPrescriptionToClinicianClient(
     });
 
     // send invitation to client and return the invitation id
-    const invitationId = await createInvitation(
-      clinicianId,
-      clinicianClientId,
-      code
-    );
+    const invitationId = await createInvitation(clinicianClientRef, code);
 
     return invitationId;
   } catch (error) {
@@ -68,8 +66,7 @@ export async function addPrescriptionToClinicianClient(
       "Error adding prescription to clinician client",
       error,
       prescription,
-      clinicianId,
-      clinicianClientId
+      clinicianClientRef.path,
     );
 
     return false;
@@ -77,19 +74,22 @@ export async function addPrescriptionToClinicianClient(
 }
 
 export async function createClinicianClient(
+  clinicianId: string,
   data: TClinicianClientRead,
-  clinicianId: string
 ): Promise<TClinicianClient> {
   try {
-    const clinicianRef = doc(db, "clinicians", clinicianId);
-    const clientsRef = collection(clinicianRef, "clients");
-    const clientRef = await addDoc(
-      clientsRef.withConverter(clinicianClientConverter),
-      data
-    );
+    const clinicianClientRef = createClinicianClientRef({
+      clinicians: clinicianId,
+    });
+
+    await setDoc(clinicianClientRef, data);
+
     return {
       ...data,
-      clinicianClientId: clientRef.id,
+      clinicianClientRef,
+      clinicianClientIdentifiers: deserializeClinicianClientPath(
+        clinicianClientRef.path,
+      ),
     };
   } catch (error) {
     console.error("Error adding clinician client:", error, {
@@ -101,14 +101,14 @@ export async function createClinicianClient(
 
 //TODO: TEMOPORARY FUNCTION
 export async function moveClinicianClientsToNewClinician(
-  clinicianId: string
+  clinicianId: string,
 ): Promise<void> {
   try {
     // 1. get all clients from phsyios/clinicianId/clients
     const physioRef = doc(db, "clinicians", clinicianId);
     const clientsRef = collection(physioRef, "clients");
     const clientsSnapshot = await getDocs(
-      clientsRef.withConverter(clinicianClientConverter)
+      clientsRef.withConverter(clinicianClientConverter),
     );
     const clients = clientsSnapshot.docs.map((client) => client.data());
     // 2. add all clients to clinicians/clinicianId/clients
@@ -118,7 +118,7 @@ export async function moveClinicianClientsToNewClinician(
       delete client.prescription;
       await addDoc(
         clinicianClientsRef.withConverter(clinicianClientConverter),
-        client
+        client,
       );
     });
   } catch (error) {

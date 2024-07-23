@@ -5,18 +5,19 @@ import {
   DocumentReference,
   getDoc,
   getDocs,
-  onSnapshot,
   query,
   runTransaction,
   where,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
 import { TClient, TClientProgram, TClientRead } from "../../types/clientTypes";
-import { clientConverter } from "../converters";
-import { Unsubscribe } from "firebase/auth";
 import { createClientDocument } from "./add";
 import { getClientProgram } from "./programs/get";
+import { clientConverter } from "../../entities/client/client";
 
+/**
+ * @description Used in app? //TODO: add description
+ */
 export async function checkIfClientExists(clientId: string): Promise<boolean> {
   try {
     const clientRef = doc(db, "clients", clientId);
@@ -32,6 +33,9 @@ export async function checkIfClientExists(clientId: string): Promise<boolean> {
   }
 }
 
+/**
+ * @description Used in console? //TODO: add description
+ */
 export async function getAllClients(): Promise<
   (TClient & { clientProgram?: TClientProgram })[]
 > {
@@ -99,6 +103,9 @@ export async function getAllClientsToUpgrade(): Promise<TClient[]> {
   return clientData;
 }
 
+/**
+ * @description Used in app? //TODO: add description
+ */
 export async function getClient(clientId: string): Promise<TClient> {
   const clientRef = doc(
     db,
@@ -125,6 +132,10 @@ export async function getClient(clientId: string): Promise<TClient> {
   return client;
 }
 
+/**
+ * @description Used in app?
+ * @deprecated
+ */
 export async function convertUser(userId: string): Promise<boolean> {
   return await runTransaction(db, async (transaction) => {
     const userRef = doc(db, "users", userId);

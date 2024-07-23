@@ -15,10 +15,11 @@ import {
   TClinicianClientWrite,
   TPrescriptionWrite,
 } from "../../../types/clinicianTypes";
+import { TClinicianClientRef } from "../../../entities/clinician/clinicianClient";
 
 export async function removeClinicianClientPrescription(
   clinicianClientId: string,
-  clinicianId: string
+  clinicianId: string,
 ): Promise<boolean> {
   try {
     const clinicianClientRef = doc(
@@ -26,13 +27,13 @@ export async function removeClinicianClientPrescription(
       "clinicians",
       clinicianId,
       "clients",
-      clinicianClientId
+      clinicianClientId,
     ) as DocumentReference<TClinicianClientWrite>;
 
     // past prescription sub collection
     const pastPrescriptionRef = collection(
       clinicianClientRef,
-      "pastPrescriptions"
+      "pastPrescriptions",
     ) as CollectionReference<TPrescriptionWrite>;
 
     // get current prescription
@@ -60,22 +61,13 @@ export async function removeClinicianClientPrescription(
 }
 
 export async function removeClinicianClient(
-  clinicianId: string,
-  clinicianClientId: string
+  clinicianClientRef: TClinicianClientRef,
 ): Promise<boolean> {
   try {
-    const clinicianClientRef = doc(
-      db,
-      "clinicians",
-      clinicianId,
-      "clients",
-      clinicianClientId
-    ) as DocumentReference<TClinicianClientWrite>;
-
     // client can have sub collection of past prescriptions, delete the collection first
     const pastPrescriptionRef = collection(
       clinicianClientRef,
-      "pastPrescriptions"
+      "pastPrescriptions",
     ) as CollectionReference<TPrescriptionWrite>;
 
     const pastPrescriptionsSnapshot = await getDocs(pastPrescriptionRef);
@@ -88,10 +80,11 @@ export async function removeClinicianClient(
     await deleteDoc(clinicianClientRef);
     return true;
   } catch (error) {
-    console.error("Error removing client from clinician", error, {
-      clinicianId,
-      clinicianClientId,
-    });
+    console.error(
+      "Error removing client from clinician",
+      error,
+      clinicianClientRef.path,
+    );
     return false;
   }
 }
@@ -99,7 +92,7 @@ export async function removeClinicianClient(
 export async function removeClinicianClientPastPrescription(
   clinicianClientId: string,
   clinicianId: string,
-  prescriptionId: string
+  prescriptionId: string,
 ): Promise<boolean> {
   try {
     const clinicianClientRef = doc(
@@ -107,14 +100,14 @@ export async function removeClinicianClientPastPrescription(
       "clinicians",
       clinicianId,
       "clients",
-      clinicianClientId
+      clinicianClientId,
     ) as DocumentReference<TClinicianClientWrite>;
 
     // past prescription sub collection
     const pastPrescriptionRef = doc(
       clinicianClientRef,
       "pastPrescriptions",
-      prescriptionId
+      prescriptionId,
     ) as DocumentReference<TPrescriptionWrite>;
 
     // delete past prescription
@@ -128,7 +121,7 @@ export async function removeClinicianClientPastPrescription(
       {
         clinicianClientId,
         clinicianId,
-      }
+      },
     );
     return false;
   }

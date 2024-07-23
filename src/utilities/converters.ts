@@ -45,11 +45,13 @@ import {
   TOutcomeMeasureId,
   TClinicianClientRead,
   TClinicianClientWrite,
-  TPrescription,
-  TPrescriptionWrite,
 } from "../types/clinicianTypes";
 import { db } from "../firebase/db";
 import { isEmptyObject } from "./basicHelpers";
+import {
+  prescriptionConverter,
+  TPrescription,
+} from "../entities/clinician/prescription";
 
 // Program Day converter
 export const programDayConverter = {
@@ -643,91 +645,91 @@ export const outcomeMeasureConverter = {
   },
 };
 
-export const prescriptionConverter = {
-  toFirestore(prescription: TPrescription): TPrescriptionWrite {
-    let clientProgramRef: DocumentReference<TClientProgramWrite> | undefined;
+// export const prescriptionConverter = {
+//   toFirestore(prescription: TPrescription): TPrescriptionWrite {
+//     let clientProgramRef: DocumentReference<TClientProgramWrite> | undefined;
 
-    if (prescription.clientId && prescription.clientProgramId) {
-      clientProgramRef = doc(
-        db,
-        "clients",
-        prescription.clientId,
-        "programs",
-        prescription.clientProgramId,
-      ) as DocumentReference<TClientProgramWrite>;
-    }
+//     if (prescription.clientId && prescription.clientProgramId) {
+//       clientProgramRef = doc(
+//         db,
+//         "clients",
+//         prescription.clientId,
+//         "programs",
+//         prescription.clientProgramId,
+//       ) as DocumentReference<TClientProgramWrite>;
+//     }
 
-    if ("euneoProgramId" in prescription) {
-      return {
-        programRef: doc(
-          db,
-          "programs",
-          prescription.euneoProgramId,
-          "versions",
-          prescription.version,
-        ) as DocumentReference<TProgramWrite>,
-        prescriptionDate: Timestamp.fromDate(prescription.prescriptionDate),
-        status: prescription.status,
-        ...(clientProgramRef && { clientProgramRef }),
-      };
-    } else {
-      return {
-        programRef: doc(
-          db,
-          "clinicians",
-          prescription.clinicianId,
-          "programs",
-          prescription.clinicianProgramId,
-          "versions",
-          prescription.version,
-        ) as DocumentReference<TProgramWrite>,
-        prescriptionDate: Timestamp.fromDate(prescription.prescriptionDate),
-        status: prescription.status,
-        ...(clientProgramRef && { clientProgramRef }),
-      };
-    }
-  },
+//     if ("euneoProgramId" in prescription) {
+//       return {
+//         programRef: doc(
+//           db,
+//           "programs",
+//           prescription.euneoProgramId,
+//           "versions",
+//           prescription.version,
+//         ) as DocumentReference<TProgramWrite>,
+//         prescriptionDate: Timestamp.fromDate(prescription.prescriptionDate),
+//         status: prescription.status,
+//         ...(clientProgramRef && { clientProgramRef }),
+//       };
+//     } else {
+//       return {
+//         programRef: doc(
+//           db,
+//           "clinicians",
+//           prescription.clinicianId,
+//           "programs",
+//           prescription.clinicianProgramId,
+//           "versions",
+//           prescription.version,
+//         ) as DocumentReference<TProgramWrite>,
+//         prescriptionDate: Timestamp.fromDate(prescription.prescriptionDate),
+//         status: prescription.status,
+//         ...(clientProgramRef && { clientProgramRef }),
+//       };
+//     }
+//   },
 
-  fromFirestore(prescriptionWrite: TPrescriptionWrite): TPrescription {
-    let { programRef, clientProgramRef, ...rest } = prescriptionWrite;
+//   fromFirestore(prescriptionWrite: TPrescriptionWrite): TPrescription {
+//     let { programRef, clientProgramRef, ...rest } = prescriptionWrite;
 
-    let clientProgramObj:
-      | {
-          clientId: string;
-          clientProgramId: string;
-        }
-      | undefined;
+//     let clientProgramObj:
+//       | {
+//           clientId: string;
+//           clientProgramId: string;
+//         }
+//       | undefined;
 
-    if (clientProgramRef && clientProgramRef.parent.parent) {
-      clientProgramObj = {
-        clientId: clientProgramRef.parent.parent.id,
-        clientProgramId: clientProgramRef.id,
-      };
-    }
-    let prescription: TPrescription;
+//     if (clientProgramRef && clientProgramRef.parent.parent) {
+//       clientProgramObj = {
+//         clientId: clientProgramRef.parent.parent.id,
+//         clientProgramId: clientProgramRef.id,
+//       };
+//     }
+//     let prescription: TPrescription;
 
-    if (programRef.parent.parent?.parent?.parent) {
-      prescription = {
-        ...rest,
-        prescriptionDate: rest.prescriptionDate.toDate(),
-        clinicianId: programRef.parent.parent.parent.parent.id,
-        clinicianProgramId: programRef.parent.parent.id,
-        version: programRef.id,
-        ...(clientProgramObj && { ...clientProgramObj }),
-      };
-    } else {
-      prescription = {
-        ...rest,
-        prescriptionDate: rest.prescriptionDate.toDate(),
-        euneoProgramId: programRef.parent.parent!.id as TEuneoProgramId,
-        version: programRef.id,
-        ...(clientProgramObj && { ...clientProgramObj }),
-      };
-    }
+//     if (programRef.parent.parent?.parent?.parent) {
+//       prescription = {
+//         ...rest,
+//         prescriptionDate: rest.prescriptionDate.toDate(),
+//         clinicianId: programRef.parent.parent.parent.parent.id,
+//         clinicianProgramId: programRef.parent.parent.id,
+//         version: programRef.id,
+//         ...(clientProgramObj && { ...clientProgramObj }),
+//       };
+//     } else {
+//       prescription = {
+//         ...rest,
+//         prescriptionDate: rest.prescriptionDate.toDate(),
+//         euneoProgramId: programRef.parent.parent!.id as TEuneoProgramId,
+//         version: programRef.id,
+//         ...(clientProgramObj && { ...clientProgramObj }),
+//       };
+//     }
 
-    return prescription;
-  },
-};
+//     return prescription;
+//   },
+// };
 
 export const clientConverter = {
   // only needs to convert clientProgramRef to id

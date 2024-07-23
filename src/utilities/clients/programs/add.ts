@@ -7,43 +7,36 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
-import {
-  TClientClinicianProgramRead,
-  TClientClinicianProgram,
-  TClientWrite,
-  TClientEuneoProgramRead,
-  TClientEuneoProgram,
-  TClientProgramDay,
-  TOutcomeMeasureAnswers,
-  TClientProgramWrite,
-  TPainLevel,
-  TPhase,
-} from "../../../types/clientTypes";
-import {
-  TEuneoProgram,
-  TClinicianProgram,
-  TProgramFinitePhase,
-  TProgramPhaseKey,
-} from "../../../types/programTypes";
-import {
-  clientProgramConverter,
-  clientProgramDayConverter,
-} from "../../converters";
-import { TOutcomeMeasureId } from "../../../types/clinicianTypes";
-import { createPhase } from "../../programHelpers";
 
+import { createPhase } from "../../programHelpers";
+import {
+  TClinicianProgram,
+  TEuneoProgram,
+} from "../../../entities/program/program";
+import { TProgramPhaseKey } from "../../../entities/program/programPhase";
+import { TClientProgramDay } from "../../../entities/client/day";
+import { TClientProgramWrite } from "../../../entities/client/clientProgram";
+import { clientProgramDayConverter } from "../../converters";
+
+/**
+ * This whole file is used in app
+ */
+
+/**
+ * @description used in app? //TODO: add description here what does this mean? how do I use it?
+ */
 async function _addDaysToFirestore(
   clientId: string,
   clientProgramId: string,
   days: TClientProgramDay[],
-  firstDocIndex: number
+  firstDocIndex: number,
 ) {
   const programRef = doc(
     db,
     "clients",
     clientId,
     "programs",
-    clientProgramId
+    clientProgramId,
   ) as DocumentReference<TClientProgramWrite>;
   // Update days documents
   await Promise.all(
@@ -51,22 +44,26 @@ async function _addDaysToFirestore(
       const dayNumber = i + firstDocIndex;
       const dayCol = doc(programRef, "days", dayNumber.toString());
       return setDoc(dayCol.withConverter(clientProgramDayConverter), day);
-    })
+    }),
   );
 }
 
+/**
+ * @description TODO: add description here what does this mean? how do I use it?
+ * This function is used in app
+ */
 export async function addClinicianProgramToClient(
   clientId: string,
   clientClinicianProgram: TClientClinicianProgramRead,
   program: TClinicianProgram,
-  startPhase: TProgramPhaseKey = "p1"
+  startPhase: TProgramPhaseKey = "p1",
 ): Promise<TClientClinicianProgram> {
   // Store the program in the Firestore database
   const userProgramDoc = collection(db, "clients", clientId, "programs");
 
   const clientProgramRef = await addDoc(
     userProgramDoc.withConverter(clientProgramConverter),
-    clientClinicianProgram
+    clientClinicianProgram,
   );
   const { trainingDays } = clientClinicianProgram;
   const clientProgramDays = createPhase(
@@ -74,7 +71,7 @@ export async function addClinicianProgramToClient(
     program,
     startPhase,
     new Date(),
-    program.phases[startPhase].length || 14
+    program.phases[startPhase].length || 14,
   );
 
   await Promise.all(
@@ -86,16 +83,16 @@ export async function addClinicianProgramToClient(
         "programs",
         clientProgramRef.id,
         "days",
-        i.toString()
+        i.toString(),
       );
       return setDoc(dayCol.withConverter(clientProgramDayConverter), day);
-    })
+    }),
   );
 
   const clientRef = doc(
     db,
     "clients",
-    clientId
+    clientId,
   ) as DocumentReference<TClientWrite>;
 
   updateDoc(clientRef, {
@@ -104,7 +101,7 @@ export async function addClinicianProgramToClient(
       "clients",
       clientId,
       "programs",
-      clientProgramRef.id
+      clientProgramRef.id,
     ),
   });
 
@@ -117,11 +114,15 @@ export async function addClinicianProgramToClient(
   return clientProgram;
 }
 
+/**
+ * @description TODO: add description here what does this mean? how do I use it? Who uses it?
+ * @returns
+ */
 export async function addEuneoProgramToClient(
   clientId: string,
   clientProgramRead: TClientEuneoProgramRead,
   program: TEuneoProgram,
-  phaseId: TProgramPhaseKey
+  phaseId: TProgramPhaseKey,
 ): Promise<{ clientProgram: TClientEuneoProgram }> {
   const { trainingDays, phases } = clientProgramRead;
 
@@ -134,7 +135,7 @@ export async function addEuneoProgramToClient(
     program,
     phaseId,
     new Date(),
-    length
+    length,
   );
 
   // Store the program in the Firestore database
@@ -142,7 +143,7 @@ export async function addEuneoProgramToClient(
 
   const clientProgramRef = await addDoc(
     userProgramDoc.withConverter(clientProgramConverter),
-    clientProgramRead
+    clientProgramRead,
   );
 
   let d = new Date();
@@ -163,16 +164,16 @@ export async function addEuneoProgramToClient(
         "programs",
         clientProgram.clientProgramId,
         "days",
-        i.toString()
+        i.toString(),
       );
       return setDoc(dayCol.withConverter(clientProgramDayConverter), day);
-    })
+    }),
   );
 
   const clientRef = doc(
     db,
     "clients",
-    clientId
+    clientId,
   ) as DocumentReference<TClientWrite>;
 
   updateDoc(clientRef, { currentProgramRef: clientProgramRef });
@@ -185,7 +186,7 @@ export async function addOutcomeMeasureToClientProgram(
   clientId: string,
   clientProgramId: string,
   outcomeMeasuresAnswers: Record<TOutcomeMeasureId, TOutcomeMeasureAnswers[]>,
-  newData: Record<Partial<TOutcomeMeasureId>, TOutcomeMeasureAnswers>
+  newData: Record<Partial<TOutcomeMeasureId>, TOutcomeMeasureAnswers>,
 ) {
   try {
     const programRef = doc(
@@ -193,7 +194,7 @@ export async function addOutcomeMeasureToClientProgram(
       "clients",
       clientId,
       "programs",
-      clientProgramId
+      clientProgramId,
     ) as DocumentReference<TClientProgramWrite>;
 
     const newOutcomeMeasuresAnswers = { ...outcomeMeasuresAnswers };
@@ -224,7 +225,7 @@ export async function addPainLevelToClientProgram(
   clientId: string,
   clientProgramId: string,
   oldPainLevels: TPainLevel[],
-  newPainLevel: TPainLevel
+  newPainLevel: TPainLevel,
 ) {
   try {
     const programRef = doc(
@@ -232,7 +233,7 @@ export async function addPainLevelToClientProgram(
       "clients",
       clientId,
       "programs",
-      clientProgramId
+      clientProgramId,
     ) as DocumentReference<TClientProgramWrite>;
 
     const newPainLevels = [...oldPainLevels, newPainLevel];
@@ -257,7 +258,7 @@ export async function addPhaseToClientProgram(
   clientProgramId: string,
   newPhase: TClientProgramDay[],
   programPhases: TPhase[],
-  firstDocIndex: number
+  firstDocIndex: number,
 ) {
   await _addDaysToFirestore(clientId, clientProgramId, newPhase, firstDocIndex);
 
@@ -266,7 +267,7 @@ export async function addPhaseToClientProgram(
     "clients",
     clientId,
     "programs",
-    clientProgramId
+    clientProgramId,
   ) as DocumentReference<TClientProgramWrite>;
 
   await updateDoc(programRef, {
@@ -278,7 +279,7 @@ export async function addContinuousDaysToClientProgram(
   clientId: string,
   clientProgramId: string,
   newDays: TClientProgramDay[],
-  firstDocIndex: number
+  firstDocIndex: number,
 ) {
   await _addDaysToFirestore(clientId, clientProgramId, newDays, firstDocIndex);
 }
@@ -288,14 +289,14 @@ export async function updateTrainingDays(
   clientProgramId: string,
   newDays: TClientProgramDay[],
   trainingDays: boolean[],
-  firstDocIndex: number
+  firstDocIndex: number,
 ) {
   const programRef = doc(
     db,
     "clients",
     clientId,
     "programs",
-    clientProgramId
+    clientProgramId,
   ) as DocumentReference<TClientProgramWrite>;
   // Update training days
   await updateDoc(programRef, {

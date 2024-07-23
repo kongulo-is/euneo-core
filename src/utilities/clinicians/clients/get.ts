@@ -9,18 +9,10 @@ import {
   query,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
-import { TClientProgram } from "../../../types/clientTypes";
+
 import {
-  TClinicianClient,
-  TClinicianClientBase,
-  TClinicianClientWrite,
-  TPrescriptionWrite,
-} from "../../../types/clinicianTypes";
-import {
-  clinicianClientConverter,
   oldClinicianClientConverter,
   oldPrescriptionConverter,
-  prescriptionConverter,
 } from "../../converters";
 import {
   getClientProgram,
@@ -28,40 +20,58 @@ import {
 } from "../../clients/programs/get";
 import { isEmptyObject } from "../../basicHelpers";
 import { _getDeprecatedProgramFromRef } from "../../programHelpers";
+import {
+  prescriptionConverter,
+  TPrescriptionWrite,
+} from "../../../entities/clinician/prescription";
+import { TClientProgram } from "../../../entities/client/clientProgram";
+import {
+  clinicianClientConverter,
+  createClinicianClientRef,
+  deserializeClinicianClientPath,
+  TClinicianClient,
+  TClinicianClientBase,
+  TClinicianClientRead,
+  TClinicianClientWrite,
+} from "../../../entities/clinician/clinicianClient";
 
-async function _clientProgram(
-  {
-    clientData,
-    skipMaintenanceData = false,
-  }: {
-    clientData: TClinicianClientBase;
-    maxNumberOfDays?: number;
-    skipMaintenanceData?: boolean;
-  },
-  maxNumberOfDays?: number,
-) {
-  // get clients program data.
-  let clientProgram: TClientProgram | undefined;
-
-  // Get client program data if client has accepted a prescription
+async function _fetchClientProgram({
+  clientData,
+  skipMaintenanceData = false,
+  maxNumberOfDays,
+}: {
+  clientData: TClinicianClientBase;
+  maxNumberOfDays?: number;
+  skipMaintenanceData?: boolean;
+}): Promise<TClientProgram | undefined> {
+  // Check if clientData.prescription exists and has a clientProgramRef
+  const prescription = clientData.prescription;
   if (
-    clientData.prescription?.clientId &&
-    clientData.prescription?.clientProgramId
+    !prescription ||
+    !("clientProgramRef" in prescription) ||
+    !prescription.clientProgramRef
   ) {
-    if (clientData.prescription?.version) {
-      const clientProgramWithDays = await getClientProgram(
-        clientData.prescription.clientId,
-        clientData.prescription.clientProgramId,
-        maxNumberOfDays,
-        skipMaintenanceData,
-      );
-      clientProgram = clientProgramWithDays;
-    } else {
-      console.error("No version! need to upgrade program...");
-    }
+    console.log("There is no client program", clientData);
+    return;
   }
 
-  return clientProgram;
+  try {
+    const clientProgram = await getClientProgram(
+      prescription.clientProgramRef,
+      maxNumberOfDays,
+      skipMaintenanceData,
+    );
+
+    if (!clientProgram) {
+      throw new Error("Client program data is undefined");
+    }
+
+    console.log("Fetched client program:", clientProgram);
+    return clientProgram;
+  } catch (error) {
+    console.error("Error fetching client program:", error);
+    throw error;
+  }
 }
 
 export async function getClinicianClientPastPrescriptions(
@@ -85,8 +95,6 @@ export async function getClinicianClientPastPrescriptions(
       return prescriptionConverter.fromFirestore(c.data());
     });
 
-    console.log(pastPrescriptions);
-
     return pastPrescriptions;
   } catch (error) {
     console.error(
@@ -102,19 +110,13 @@ export async function getClinicianClientPastPrescriptions(
 
 // get single clinician client
 export async function getClinicianClient(
-  clinicianId: string,
-  clinicianClientId: string,
+  clinicianClientRef: DocumentReference<
+    TClinicianClientRead,
+    TClinicianClientWrite
+  >,
   skipMaintenanceData: boolean = false,
 ): Promise<TClinicianClient> {
   try {
-    const clinicianClientRef = doc(
-      db,
-      "clinicians",
-      clinicianId,
-      "clients",
-      clinicianClientId,
-    ) as DocumentReference<TClinicianClientWrite>;
-
     const clientSnap = await getDoc(
       clinicianClientRef.withConverter(clinicianClientConverter),
     );
@@ -122,20 +124,22 @@ export async function getClinicianClient(
     const clientData = clientSnap.data();
     if (!clientData) throw new Error("Client not found");
 
-    const clientProgram = await _clientProgram({
+    const clientProgram = await _fetchClientProgram({
       clientData,
       skipMaintenanceData,
     });
 
     return {
       ...clientData,
-      clinicianClientId: clientSnap.id,
+      clinicianClientRef,
+      clinicianClientIdentifiers: deserializeClinicianClientPath(
+        clinicianClientRef.path,
+      ),
       ...(clientProgram && !isEmptyObject(clientProgram) && { clientProgram }),
     };
   } catch (error) {
     console.error("Error fetching client:", error, {
-      clinicianId,
-      clinicianClientId,
+      clinicianClientRef,
     });
   }
 
@@ -145,7 +149,6 @@ export async function getClinicianClient(
 // Get all clinician clients
 export async function getClinicianClients(
   clinicianId: string,
-  includeClinicianId: boolean = false,
 ): Promise<TClinicianClient[]> {
   try {
     // Get clients data form clinician collection
@@ -162,24 +165,41 @@ export async function getClinicianClients(
       snapshot.docs.map(async (c) => {
         try {
           const clientData: TClinicianClientBase = c.data();
-          const clientProgram = await _clientProgram({ clientData }, 7);
+          const clientProgram = await _fetchClientProgram({
+            clientData,
+            maxNumberOfDays: 7,
+            skipMaintenanceData: true,
+          });
 
-          return {
+          const clinicianClientRef = createClinicianClientRef({
+            clinicians: clinicianId,
+            clients: c.id,
+          });
+
+          const clinicianClient: TClinicianClient = {
             ...clientData,
-            clinicianClientId: c.id,
-            ...(includeClinicianId && { clinicianId }), // TODO: What is this for?
+            clinicianClientRef,
+            clinicianClientIdentifiers: deserializeClinicianClientPath(
+              c.ref.path,
+            ),
             ...(clientProgram &&
               !isEmptyObject(clientProgram) && { clientProgram }),
           };
+
+          return clinicianClient;
         } catch (error) {
           console.error("Error getting clients data:", error, c);
           throw new Error(error as any);
         }
       }),
     ).catch((err) => {
+      console.log("Error getting clients");
+
       console.error(err);
       return [];
     });
+
+    console.log("clientsData in getAllCliniciansClients", clientsData);
 
     return clientsData;
   } catch (error) {

@@ -17,29 +17,30 @@ import {
   programDayConverter,
   programPhaseConverter,
 } from "../converters";
+import { Collection } from "../../entities/global";
 
 export async function createVersionForDeprecatedProgram(
   program: TProgramRead,
   phases: Record<TProgramPhaseKey, TProgramPhaseRead>,
   days: Record<TProgramDayKey, TProgramDayRead>,
   clinicianId?: string,
-  clinicianProgramId?: string
+  clinicianProgramId?: string,
 ): Promise<TProgram> {
   try {
     if (clinicianId && clinicianProgramId) {
       const clinicianProgram = program as TClinicianProgram;
       const programRef = doc(
         db,
-        "clinicians",
+        Collection.Clinicians,
         clinicianId,
-        "programs",
-        clinicianProgramId
+        Collection.Programs, // TODO: use new collection
+        clinicianProgramId,
       ) as DocumentReference<TProgramVersionWrite>;
 
       const newProgramVersionRef = doc(
         programRef,
         "versions",
-        "1.0"
+        "1.0",
       ) as DocumentReference<TProgramWrite>;
 
       // Update current version
@@ -61,9 +62,9 @@ export async function createVersionForDeprecatedProgram(
           return setDoc(
             doc(daysRef.withConverter(programDayConverter), dayId),
             days[dayId],
-            { merge: true }
+            { merge: true },
           );
-        })
+        }),
       );
 
       const phasesRef = collection(newProgramVersionRef, "phases");
@@ -75,9 +76,9 @@ export async function createVersionForDeprecatedProgram(
           return setDoc(
             doc(phasesRef.withConverter(programPhaseConverter), phaseId),
             phase,
-            { merge: true }
+            { merge: true },
           );
-        })
+        }),
       );
       return {
         ...clinicianProgram,
@@ -89,13 +90,13 @@ export async function createVersionForDeprecatedProgram(
       const programRef = doc(
         db,
         "programs",
-        euneoProgram.euneoProgramId
+        euneoProgram.euneoProgramId,
       ) as DocumentReference<TProgramVersionWrite>;
 
       const newProgramVersionRef = doc(
         programRef,
         "versions",
-        "1.0"
+        "1.0",
       ) as DocumentReference<TProgramWrite>;
 
       // Update current version
@@ -118,9 +119,9 @@ export async function createVersionForDeprecatedProgram(
           return setDoc(
             doc(daysRef.withConverter(programDayConverter), dayId),
             days[dayId],
-            { merge: true }
+            { merge: true },
           );
-        })
+        }),
       );
 
       const phasesRef = collection(newProgramVersionRef, "phases");
@@ -136,9 +137,9 @@ export async function createVersionForDeprecatedProgram(
           return setDoc(
             doc(phasesRef.withConverter(programPhaseConverter), phaseId),
             phase,
-            { merge: true }
+            { merge: true },
           );
-        })
+        }),
       );
       return {
         ...euneoProgram,
@@ -153,7 +154,7 @@ export async function createVersionForDeprecatedProgram(
       program.name,
       days,
       clinicianProgramId,
-      clinicianId
+      clinicianId,
     );
   }
   throw new Error("Error updating clinician program");

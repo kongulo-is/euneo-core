@@ -1,18 +1,11 @@
 import { addDoc, collection, doc } from "firebase/firestore";
 import { db } from "../../firebase/db";
+import { TClinicianClientRef } from "../../entities/clinician/clinicianClient";
 
 export async function createInvitation(
-  clinicianId: string,
-  clinicianClientId: string,
-  code: string
+  clinicianClientRef: TClinicianClientRef,
+  code: string,
 ) {
-  const clinicianClientRef = doc(
-    db,
-    "clinicians",
-    clinicianId,
-    "clients",
-    clinicianClientId
-  );
   // Create invitation for client
   const invitationsRef = collection(db, "invitations");
 

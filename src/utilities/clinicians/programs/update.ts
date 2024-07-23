@@ -1,34 +1,30 @@
+import { doc, DocumentReference, setDoc, Timestamp } from "firebase/firestore";
+
 import {
-  collection,
-  doc,
-  DocumentReference,
-  setDoc,
-  Timestamp,
-} from "firebase/firestore";
-import { db } from "../../../firebase/db";
-import {
-  TProgramRead,
-  TProgramDayRead,
-  TClinicianProgram,
-  TProgramWrite,
-  TProgramPhaseRead,
-  TProgramPhaseKey,
-  TProgramDayKey,
+  deserializeProgramVersionPath,
+  isClinicianProgramVersionIdentifiers,
+  programVersionConverter,
+  TProgramVersionRead,
   TProgramVersionWrite,
-  TProgramPhase,
-} from "../../../types/programTypes";
+} from "../../../entities/program/version";
+import { TClinicianProgram } from "../../../entities/program/program";
 import {
-  programConverter,
-  programDayConverter,
-  programPhaseConverter,
-} from "../../converters";
+  TProgramPhaseForm,
+  TProgramPhaseKey,
+} from "../../../entities/program/programPhase";
+import { Collection, TConditionId } from "../../../entities/global";
+
 import { updateDoc } from "../../updateDoc";
-import { TConditionId } from "../../../types/baseTypes";
+import { _saveDays, _savePhases } from "./_helpers";
+import {
+  TProgramDayKey,
+  TProgramDayRead,
+} from "../../../entities/program/programDay";
 
 // Function to find the highest number in the list of objects
 function _findHighestContinuousPhaseId(
-  list: [`p${number}`, TProgramPhase][]
-): `p${number}` | null {
+  list: [TProgramPhaseKey, TProgramPhaseForm][],
+): TProgramPhaseKey | null {
   let maxIdNumber = -Infinity;
 
   if (list.length === 0) return null;
@@ -48,185 +44,146 @@ function _findHighestContinuousPhaseId(
 }
 
 export async function createNewClinicianProgramVersion(
-  clinicianProgram: TProgramRead,
-  phases: Record<TProgramPhaseKey, TProgramPhaseRead>,
+  currentClinicianProgram: TClinicianProgram,
+  programVersionRead: TProgramVersionRead,
+  newVersion: string,
+  phases: Record<TProgramPhaseKey, TProgramPhaseForm>,
   days: Record<TProgramDayKey, TProgramDayRead>,
   clinicianProgramId: string,
-  clinicianId: string,
-  createdAt?: Date
 ): Promise<TClinicianProgram> {
   try {
-    const programRef = doc(
-      db,
-      "clinicians",
-      clinicianId,
-      "programs",
-      clinicianProgramId
-    ) as DocumentReference<TProgramVersionWrite>;
-    const newProgramVersionRef = doc(
-      programRef,
-      "versions",
-      clinicianProgram.version
-    ) as DocumentReference<TProgramWrite>;
+    const { programRef } = currentClinicianProgram.programInfo;
+
+    const newProgramVersionRef: DocumentReference<
+      TProgramVersionRead,
+      TProgramVersionWrite
+    > = doc(programRef, Collection.Versions, newVersion).withConverter(
+      programVersionConverter,
+    );
+
+    const programVersionIdentifiers = deserializeProgramVersionPath(
+      newProgramVersionRef.path,
+    );
+    if (!isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
+      throw new Error("Invalid program identifiers");
+    }
+
+    const lastUpdatedAt = new Date();
+
     // Update current version
     await updateDoc(programRef, {
-      currentVersion: newProgramVersionRef,
-      lastUpdatedAt: Timestamp.fromDate(new Date()),
+      currentVersionRef: newProgramVersionRef,
+      lastUpdatedAt: Timestamp.fromDate(lastUpdatedAt),
     });
+
     // convert and create new program version.
-    const programVersionConverted =
-      programConverter.toFirestore(clinicianProgram);
-    await setDoc(newProgramVersionRef, programVersionConverted);
-    // create days and phases for new version
-    const daysRef = collection(newProgramVersionRef, "days");
+    await setDoc(newProgramVersionRef, programVersionRead);
 
-    await Promise.all(
-      Object.keys(days).map((id) => {
-        const dayId = id as `d${number}`;
-        return setDoc(
-          doc(daysRef.withConverter(programDayConverter), dayId),
-          days[dayId],
-          { merge: true }
-        );
-      })
-    );
-    const phasesRef = collection(newProgramVersionRef, "phases");
+    await _saveDays(newProgramVersionRef, days);
 
-    await Promise.all(
-      Object.keys(phases).map((id) => {
-        const phaseId = id as `p${number}`;
-        const phase = { ...phases[phaseId], programId: programRef.id };
-        return setDoc(
-          doc(phasesRef.withConverter(programPhaseConverter), phaseId),
-          phase,
-          { merge: true }
-        );
-      })
-    );
-    return {
-      ...clinicianProgram,
-      phases,
+    const phasesRead = await _savePhases(newProgramVersionRef, phases);
+
+    const clinicianProgram: TClinicianProgram = {
+      ...currentClinicianProgram,
+      programInfo: {
+        ...currentClinicianProgram.programInfo,
+        lastUpdatedAt: lastUpdatedAt,
+        currentVersionRef: newProgramVersionRef,
+      },
+      versionInfo: {
+        ...programVersionRead,
+        programVersionRef: newProgramVersionRef,
+      },
       days,
-      clinicianProgramId,
-      clinicianId,
-      lastUpdatedAt: new Date(),
-      ...(createdAt && { createdAt }),
+      phases: phasesRead,
+      creator: "clinician",
+      programVersionIdentifiers,
     };
+
+    return clinicianProgram;
   } catch (error) {
     console.error(
       "Error creating new version: ",
       error,
-      clinicianProgram,
+      currentClinicianProgram,
       days,
       clinicianProgramId,
-      clinicianId
     );
   }
   throw new Error("Error updating clinician program");
 }
 
 export async function createModifiedClinicianProgramVersion(
-  clinicianProgram: TProgramRead,
-  phases: Record<TProgramPhaseKey, TProgramPhaseRead>,
+  currentProgram: TClinicianProgram,
+  newProgramVersion: TProgramVersionRead,
+  phases: Record<TProgramPhaseKey, TProgramPhaseForm>,
   days: Record<TProgramDayKey, TProgramDayRead>,
-  clinicianProgramId: string,
-  clinicianId: string
+  version: string,
 ): Promise<TClinicianProgram> {
   try {
-    const programRef = doc(
-      db,
-      "clinicians",
-      clinicianId,
-      "programs",
-      clinicianProgramId
-    ) as DocumentReference<TProgramVersionWrite>;
-    const newProgramVersionRef = doc(
-      programRef,
-      "versions",
-      clinicianProgram.version
-    ) as DocumentReference<TProgramWrite>;
-    // convert and create new program version.
-    const programVersionConverted =
-      programConverter.toFirestore(clinicianProgram);
-    await setDoc(newProgramVersionRef, programVersionConverted);
-    // create days and phases for new version
-    const daysRef = collection(newProgramVersionRef, "days");
-
-    await Promise.all(
-      Object.keys(days).map((id) => {
-        const dayId = id as `d${number}`;
-        return setDoc(
-          doc(daysRef.withConverter(programDayConverter), dayId),
-          days[dayId],
-          { merge: true }
-        );
-      })
+    const { programRef } = currentProgram.programInfo;
+    const newProgramVersionRef: DocumentReference<
+      TProgramVersionRead,
+      TProgramVersionWrite
+    > = doc(programRef, Collection.Versions, version).withConverter(
+      programVersionConverter,
     );
-    const phasesRef = collection(newProgramVersionRef, "phases");
+    // convert and create new program version.
+    await setDoc(newProgramVersionRef, newProgramVersion);
+
+    await _saveDays(newProgramVersionRef, days);
 
     const phaseEntries = Object.entries(phases) as [
-      `p${number}`,
-      TProgramPhase,
+      TProgramPhaseKey,
+      TProgramPhaseForm,
     ][];
     const highestPhaseId = _findHighestContinuousPhaseId(phaseEntries);
 
-    await Promise.all(
-      Object.keys(phases).map((id) => {
-        const phaseId = id as `p${number}`;
-        const phase = {
-          ...phases[phaseId],
-          programId: programRef.id,
-        };
-        if (phase.mode !== "finite" && highestPhaseId !== phaseId) {
-          phase.hidden = true;
-        }
-        return setDoc(
-          doc(phasesRef.withConverter(programPhaseConverter), phaseId),
-          phase,
-          { merge: true }
-        );
-      })
-    );
-    return {
-      ...clinicianProgram,
+    const phasesRead = await _savePhases(
+      newProgramVersionRef,
       phases,
+      highestPhaseId,
+    );
+
+    const clinicianProgram: TClinicianProgram = {
+      programInfo: {
+        ...currentProgram.programInfo,
+      },
+      versionInfo: newProgramVersion,
       days,
-      clinicianProgramId,
-      clinicianId,
+      phases: phasesRead,
+      creator: "clinician",
+      programIdentifiers: {
+        ...currentprogram.programVersionIdentifiers,
+        versions: version,
+      },
     };
+
+    return clinicianProgram;
   } catch (error) {
-    // console.error(
-    //   "Error creating new version: ",
-    //   error,
-    //   clinicianProgram,
-    //   days,
-    //   clinicianProgramId,
-    //   clinicianId
-    // );
+    console.error(
+      "Error creating new version: ",
+      error,
+      currentProgram,
+      days,
+      days,
+    );
   }
   throw new Error("Error updating clinician program");
 }
 
 export async function renameClinicianProgram(
-  clinicianProgram: TClinicianProgram,
-  clinicianId: string,
+  programVersionRef: DocumentReference<
+    TProgramVersionRead,
+    TProgramVersionWrite
+  >,
   programName: string,
   conditionId: TConditionId | null,
-  variation: string
+  variation: string,
 ) {
   try {
-    const programRef = doc(
-      db,
-      "clinicians",
-      clinicianId,
-      "programs",
-      clinicianProgram.clinicianProgramId,
-      "versions",
-      clinicianProgram.version
-    ) as DocumentReference<TProgramWrite>;
-
     // Update condition and variation
-    await updateDoc(programRef, {
+    await updateDoc(programVersionRef, {
       name: programName,
       conditionId,
       variation,

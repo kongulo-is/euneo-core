@@ -3,30 +3,19 @@ import {
   UpdateData,
   updateDoc as firestoreUpdateDoc,
 } from "firebase/firestore";
-import {
-  TClient,
-  TClientProgramDay,
-  TClientProgramDayWrite,
-  TClientProgramRead,
-  TClientProgramWrite,
-  TClientWrite,
-} from "../types/clientTypes";
-import {
-  TClinicianWrite,
-  TClinicianClientWrite,
-  TClinicianClientRead,
-  TInvitationWrite,
-} from "../types/clinicianTypes";
-import {
-  TProgramWrite,
-  TProgramDayWrite,
-  TExerciseDayWrite,
-  TProgramRead,
-  TProgramDayRead,
-  TProgramPhaseWrite,
-  TProgramVersionWrite,
-} from "../types/programTypes";
-import { TExercise, TExerciseWrite } from "../types/baseTypes";
+
+import { TExerciseWrite } from "../types/baseTypes";
+import { TExerciseDayWrite } from "../types/programTypes";
+import { TProgramVersionWrite } from "../entities/program/version";
+import { TProgramWrite } from "../entities/program/program";
+import { TClientProgramWrite } from "../entities/client/clientProgram";
+import { TClientWrite } from "../entities/client/client";
+import { TClientProgramDayWrite } from "../entities/client/day";
+import { TProgramDayWrite } from "../entities/program/programDay";
+import { TInvitationWrite } from "../types/clinicianTypes";
+import { TProgramPhaseWrite } from "../entities/program/programPhase";
+import { TClinicianClientWrite } from "../entities/clinician/clinicianClient";
+import { TClinicianWrite } from "../entities/clinician/clinician";
 
 type AllWrites =
   | TClientProgramWrite
@@ -42,18 +31,9 @@ type AllWrites =
   | TProgramPhaseWrite
   | TExerciseWrite;
 
-type AllReads =
-  | TClientProgramRead
-  | TClient
-  | TClientProgramDay
-  | TClinicianClientRead
-  | TProgramRead
-  | TProgramDayRead
-  | TExercise;
-
 export function updateDoc<T extends AllWrites>(
-  ref: DocumentReference<T, any>,
-  data: UpdateData<Partial<T>>
+  ref: DocumentReference<any, T>,
+  data: UpdateData<Partial<T>>,
 ) {
   return firestoreUpdateDoc(ref, data);
 }

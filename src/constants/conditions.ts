@@ -1,4 +1,4 @@
-import { TConditionId } from "../types/baseTypes";
+import { TConditionId } from "../entities/global";
 
 type Conditions = Record<TConditionId, string>;
 
@@ -73,7 +73,7 @@ export const conditionOptions = Object.entries(conditions).map(
   ([value, label]) => ({
     value: value as TConditionId,
     label,
-  })
+  }),
 );
 
 export const conditionIdEnum = Object.keys(conditions) as [

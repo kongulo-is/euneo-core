@@ -1,20 +1,25 @@
 import { DocumentReference, doc, updateDoc } from "firebase/firestore";
-import { TClinicianProgram, TProgramWrite } from "../../types/programTypes";
 import { db } from "../../firebase/db";
 import { _getDeprecatedProgramFromRef } from "../programHelpers";
 import { createVersionForDeprecatedProgram } from "./add";
 import { removeOldPhasesAndDays } from "./delete";
+import {
+  TClinicianProgram,
+  TClinicianProgramBase,
+  TProgramWrite,
+} from "../../entities/program/program";
+import { Collection } from "../../entities/global";
 
 export const archiveClinicianProgram = async (program: TClinicianProgram) => {
   try {
     // set isArchived to true
     const programRef = doc(
       db,
-      "clinicians",
-      program.clinicianId,
-      "programs",
-      program.clinicianProgramId
-    ) as DocumentReference<TClinicianProgram>;
+      Collection.Clinicians,
+      program.programVersionIdentifiers.clinicians,
+      Collection.Programs,
+      program.programVersionIdentifiers.programs,
+    ) as DocumentReference<TProgramWrite, TClinicianProgramBase>;
 
     await updateDoc(programRef, {
       isArchived: true,
@@ -30,7 +35,7 @@ export const archiveClinicianProgram = async (program: TClinicianProgram) => {
 };
 
 export const upgradeDeprecatedProgram = async (
-  programRef: DocumentReference<TProgramWrite>
+  programRef: DocumentReference<TProgramWrite>,
 ) => {
   const program = await _getDeprecatedProgramFromRef(programRef);
   if ("clinicianProgramId" in program) {
@@ -43,7 +48,7 @@ export const upgradeDeprecatedProgram = async (
       program.phases,
       program.days,
       "clinicianId" in program ? program.clinicianId : undefined,
-      "clinicianProgramId" in program ? program.clinicianProgramId : undefined
+      "clinicianProgramId" in program ? program.clinicianProgramId : undefined,
     ),
   ]);
   return program;

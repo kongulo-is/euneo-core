@@ -1,24 +1,42 @@
 import {
+  collection,
+  doc,
   DocumentReference,
   QueryDocumentSnapshot,
   SnapshotOptions,
   Timestamp,
 } from "firebase/firestore";
+import {
+  TClinicianProgramVersionIdentifiers,
+  TEuneoProgramVersionIdentifiers,
+  TProgramVersion,
+  TProgramVersionRead,
+  TProgramVersionWrite,
+} from "./version";
+import { TProgramDay, TProgramDayKey } from "./programDay";
+import { TProgramPhase, TProgramPhaseKey } from "./programPhase";
+import { db } from "../../firebase/db";
 import { Collection } from "../global";
 
-export type TEuneoProgramVersionIdentifiers = {
+export type TEuneoProgramIdentifiers = {
   [Collection.Programs]: string;
-  [Collection.Versions]: string;
 };
 
-export type TClinicianProgramVersionIdentifiers = {
+export type TClinicianProgramIdentifiers = {
   [Collection.Clinicians]: string;
   [Collection.Programs]: string;
-  [Collection.Versions]: string;
 };
 
-type TProgramWrite = {
-  currentVersionRef: DocumentReference<TProgramWrite>;
+export type TProgramIdentifiers =
+  | TEuneoProgramIdentifiers
+  | TClinicianProgramIdentifiers;
+
+export type TProgramWrite = {
+  currentVersionRef: DocumentReference<
+    TProgramVersionRead,
+    TProgramVersionWrite
+  >;
+
   isConsoleLive?: boolean;
   isLive?: boolean;
   isSaved?: boolean;
@@ -27,44 +45,64 @@ type TProgramWrite = {
   lastUpdatedAt?: Timestamp;
 };
 
-export type TProgramBase = {
-  currentVersionRef: DocumentReference<TProgramWrite>;
+type TProgramBase = {
+  currentVersionRef: DocumentReference<
+    TProgramVersionRead,
+    TProgramVersionWrite
+  >;
+  programRef: DocumentReference<TProgramRead, TProgramWrite>;
 };
 
-type TEuneoProgramBase = {
-  currentVersionIdentifiers: TEuneoProgramVersionIdentifiers;
+export type TEuneoProgramRead = TProgramBase & {
   isConsoleLive: boolean;
   isLive: boolean;
 };
 
-type TClinicianProgramBase = {
-  currentVersionIdentifiers: TClinicianProgramVersionIdentifiers;
+export type TClinicianProgramRead = TProgramBase & {
   createdAt: Date;
   lastUpdatedAt: Date;
   isSaved: boolean;
   isArchived: boolean;
 };
 
-type TProgramRead = TProgramBase & (TEuneoProgramBase | TClinicianProgramBase);
+export type TProgramRead = TEuneoProgramRead | TClinicianProgramRead;
 
-// Serialization function for TProgramIdentifiers
-export function serializeProgramIdentifiers(
-  obj: TEuneoProgramVersionIdentifiers | TClinicianProgramVersionIdentifiers,
-): string {
+export function isClinicianProgram(
+  program: TProgramRead,
+): program is TClinicianProgramRead {
+  return (program as TClinicianProgramRead).createdAt !== undefined;
+}
+
+export function isEuneoProgram(
+  program: TProgramRead,
+): program is TEuneoProgramRead {
+  return (program as TEuneoProgramRead).isConsoleLive !== undefined;
+}
+
+export function isClinicianProgramIdentifiers(
+  identifiers: TProgramIdentifiers,
+): identifiers is TClinicianProgramIdentifiers {
+  return (
+    (identifiers as TClinicianProgramIdentifiers)[Collection.Clinicians] !==
+    undefined
+  );
+}
+
+export function serializeProgramIdentifiers(obj: TProgramIdentifiers): string {
   if ("clinicians" in obj) {
-    return `${Collection.Clinicians}/${obj.clinicians}/${Collection.Programs}/${obj.programs}/${Collection.Versions}/${obj.versions}`;
+    return `${Collection.Clinicians}/${obj.clinicians}/${Collection.Programs}/${obj.programs}`;
   } else {
-    return `${Collection.Programs}/${obj.programs}/${Collection.Versions}/${obj.versions}`;
+    return `${Collection.Programs}/${obj.programs}`;
   }
 }
 
-// Deserialization function for TProgramIdentifiers
-export function deserializeProgramPath(
-  path: string,
-): TEuneoProgramVersionIdentifiers | TClinicianProgramVersionIdentifiers {
+export function deserializeProgramPath(path: string): TProgramIdentifiers {
   const segments = path.split("/");
 
-  if (segments.includes(Collection.Clinicians)) {
+  if (
+    segments.includes(Collection.Clinicians) &&
+    segments.includes(Collection.Programs)
+  ) {
     // Clinician Program
     const cliniciansIndex = segments.indexOf(Collection.Clinicians);
     const clinicianId = segments[cliniciansIndex + 1];
@@ -73,34 +111,58 @@ export function deserializeProgramPath(
       cliniciansIndex,
     );
     const programId = segments[programsIndex + 1];
-    const versionsIndex = segments.indexOf(Collection.Versions, programsIndex);
-    const versionId = segments[versionsIndex + 1];
 
     return {
-      [Collection.Clinicians]: clinicianId,
-      [Collection.Programs]: programId,
-      [Collection.Versions]: versionId,
+      clinicians: clinicianId,
+      programs: programId,
     };
   } else if (segments.includes(Collection.Programs)) {
     // Euneo Program
     const programsIndex = segments.indexOf(Collection.Programs);
     const programId = segments[programsIndex + 1];
-    const versionsIndex = segments.indexOf(Collection.Versions, programsIndex);
-    const versionId = segments[versionsIndex + 1];
 
     return {
-      [Collection.Programs]: programId,
-      [Collection.Versions]: versionId,
+      programs: programId,
     };
   } else {
     throw new Error("Invalid path format");
   }
 }
 
+export function createProgramRef({
+  clinicians,
+  programs,
+}: {
+  clinicians?: string;
+  programs?: string;
+}): DocumentReference<TProgramRead, TProgramWrite> {
+  const identifiers: TProgramIdentifiers = clinicians
+    ? { clinicians: clinicians, programs: programs || "" }
+    : { programs: programs || "" };
+
+  const path = serializeProgramIdentifiers(identifiers);
+  const programsCollection = collection(db, path);
+
+  if (programs) {
+    return doc(programsCollection, programs).withConverter(programConverter);
+  }
+
+  return doc(programsCollection).withConverter(programConverter);
+}
+
 export const programConverter = {
   toFirestore(program: TProgramRead): TProgramWrite {
-    let data: TProgramWrite = {
+    const programWrite: TProgramWrite = {
       currentVersionRef: program.currentVersionRef,
+      // Convert dates to Timestamps if they exist
+      createdAt:
+        "createdAt" in program
+          ? Timestamp.fromDate(program.createdAt)
+          : undefined,
+      lastUpdatedAt:
+        "lastUpdatedAt" in program
+          ? Timestamp.fromDate(program.lastUpdatedAt)
+          : undefined,
       isConsoleLive:
         "isConsoleLive" in program ? program.isConsoleLive : undefined,
       isLive: "isLive" in program ? program.isLive : undefined,
@@ -108,59 +170,88 @@ export const programConverter = {
       isArchived: "isArchived" in program ? program.isArchived : undefined,
     };
 
-    return data;
+    // Remove undefined fields before returning because Firestore will throw an error if we try to set undefined values
+    Object.keys(programWrite).forEach((key) => {
+      const typedKey = key as keyof TProgramWrite;
+      if (programWrite[typedKey] === undefined) {
+        delete programWrite[typedKey];
+      }
+    });
+
+    return programWrite;
   },
   fromFirestore(
-    snapshot: QueryDocumentSnapshot<TProgramWrite>,
+    snapshot: QueryDocumentSnapshot<
+      TProgramWrite & {
+        /**
+         * @deprecated use currentVersionRef instead
+         */
+        currentVersion?: DocumentReference<
+          TProgramVersionRead,
+          TProgramVersionWrite
+        >;
+      }
+    >,
     options: SnapshotOptions,
   ): TProgramRead {
     const programWrite = snapshot.data(options);
-    const { createdAt, lastUpdatedAt, ...rest } = programWrite;
-    const programPath = snapshot.ref.path;
-    const programIdentifiers = deserializeProgramPath(programPath);
+    const { createdAt, lastUpdatedAt, currentVersion, ...rest } = programWrite;
+    const clinicianProgram: TClinicianProgramRead = {
+      createdAt: createdAt ? createdAt.toDate() : new Date(),
+      lastUpdatedAt: lastUpdatedAt ? lastUpdatedAt.toDate() : new Date(),
+      isSaved: rest.isSaved ?? false,
+      isArchived: rest.isArchived ?? false,
+      currentVersionRef: currentVersion ?? programWrite.currentVersionRef, // TODO: remove currentVersion when all clients have updated programs, this is for users with deprecated programs
+      programRef: snapshot.ref.withConverter(programConverter),
+    };
 
-    if (
-      (programIdentifiers as TClinicianProgramVersionIdentifiers)[
-        Collection.Clinicians
-      ]
-    ) {
-      // Clinician Program
-      const clinicianProgram: TClinicianProgramBase = {
-        ...rest,
-        currentVersionIdentifiers:
-          programIdentifiers as TClinicianProgramVersionIdentifiers,
-        createdAt: createdAt ? createdAt.toDate() : new Date(),
-        lastUpdatedAt: lastUpdatedAt ? lastUpdatedAt.toDate() : new Date(),
-        isSaved: rest.isSaved ?? false,
-        isArchived: rest.isArchived ?? false,
-      };
-      return {
-        ...clinicianProgram,
-        currentVersionRef: programWrite.currentVersionRef,
-      };
-    } else {
-      // Euneo Program
-      const euneoProgram: TEuneoProgramBase = {
-        ...rest,
-        currentVersionIdentifiers:
-          programIdentifiers as TEuneoProgramVersionIdentifiers,
-        isConsoleLive: rest.isConsoleLive ?? false,
-        isLive: rest.isLive ?? false,
-      };
-      return {
-        ...euneoProgram,
-        currentVersionRef: programWrite.currentVersionRef,
-      };
-    }
+    const euneoProgram: TEuneoProgramRead = {
+      isConsoleLive: rest.isConsoleLive ?? false,
+      isLive: rest.isLive ?? false,
+      currentVersionRef: currentVersion ?? programWrite.currentVersionRef, // TODO: remove currentVersion when all clients have updated programs, this is for users with deprecated programs
+      programRef: snapshot.ref.withConverter(programConverter),
+    };
+
+    return {
+      ...clinicianProgram,
+      ...euneoProgram,
+    };
   },
+};
+
+export type TEuneoProgramInfo = TEuneoProgramRead & {
+  programRef: DocumentReference<TProgramRead, TProgramWrite>;
+};
+
+export type TClinicianProgramInfo = TClinicianProgramRead & {
+  programRef: DocumentReference<TProgramRead, TProgramWrite>;
+};
+
+export type TProgramInfo = TEuneoProgramInfo | TClinicianProgramInfo;
+
+// The types here below are used to merge the base program type with the version information along with phases and days
+
+export type TEuneoProgram = {
+  programInfo: TEuneoProgramInfo;
+  versionInfo: TProgramVersion;
+  // TODO: Move these to versionInfo?
+  programVersionIdentifiers: TEuneoProgramVersionIdentifiers;
+  days: Record<TProgramDayKey, TProgramDay>;
+  phases: Record<TProgramPhaseKey, TProgramPhase>;
+  creator: "euneo";
+};
+
+export type TClinicianProgram = {
+  programInfo: TClinicianProgramInfo;
+  versionInfo: TProgramVersion;
+  // TODO: Move these to versionInfo?
+  programVersionIdentifiers: TClinicianProgramVersionIdentifiers;
+  days: Record<TProgramDayKey, TProgramDay>;
+  phases: Record<TProgramPhaseKey, TProgramPhase>;
+  creator: "clinician";
 };
 
 /**
  * @description This program type merges the base program type with the version information along with phases and days
  */
-type TProgram = {
-  programInfo: TEuneoProgramBase | TClinicianProgramBase;
-  versionInfo: {};
-  days: any;
-  phases: any;
-};
+export type TProgram = TEuneoProgram | TClinicianProgram;

@@ -6,8 +6,6 @@ import {
   QuerySnapshot,
   getDoc,
   DocumentReference,
-  doc,
-  CollectionReference,
   DocumentData,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
@@ -15,19 +13,28 @@ import {
   TInvitationWrite,
   TClinicianClientWrite,
 } from "../../types/clinicianTypes";
+
+import { _getProgramFromRef } from "../programHelpers";
+import { updateDoc } from "../updateDoc";
 import {
   TClinicianProgram,
   TEuneoProgram,
-  TProgramDayKey,
-  TProgramPhaseKey,
-  TProgramVersionWrite,
+  TProgram,
+  TProgramRead,
   TProgramWrite,
-} from "../../types/programTypes";
-import { _getProgramFromRef } from "../programHelpers";
-import { TEuneoProgramId } from "../../types/baseTypes";
-import { updateDoc } from "../updateDoc";
-import { upgradeDeprecatedProgram } from "./update";
+  programConverter,
+} from "../../entities/program/program";
+import { TProgramPhaseKey } from "../../entities/program/programPhase";
+import { TProgramDayKey } from "../../entities/program/programDay";
+import {
+  TProgramVersionRead,
+  TProgramVersionWrite,
+} from "../../entities/program/version";
 
+/**
+ * @description Get program from code in app
+ */
+// TODO: Fix function
 export async function getProgramFromCode(code: string): Promise<{
   program: TClinicianProgram | TEuneoProgram;
   clinicianClientRef: DocumentReference<TClinicianClientWrite, DocumentData>;
@@ -91,70 +98,67 @@ export async function getAllEuneoPrograms(
   excludeMaintenance: boolean = false,
   shouldUpgradeOnError: boolean = false,
 ): Promise<TEuneoProgram[]> {
-  const euneoPrograms: TEuneoProgram[] = [];
+  const programsRef = collection(db, "programs");
 
-  const programsRef = collection(
-    db,
-    "programs",
-  ) as CollectionReference<TProgramVersionWrite>;
-
-  let querySnapshot: QuerySnapshot<TProgramVersionWrite, DocumentData>;
+  let programsSnap: QuerySnapshot<TProgramRead, TProgramWrite>;
   if (filter) {
-    querySnapshot = await getDocs(
-      query(programsRef, where(filter, "==", true)),
-    );
+    const programsQuery = query(programsRef, where(filter, "==", true));
+    programsSnap = await getDocs(programsQuery.withConverter(programConverter));
   } else {
-    querySnapshot = await getDocs(programsRef);
+    programsSnap = await getDocs(programsRef.withConverter(programConverter));
   }
 
-  // map and _getProgramFromRef for each program
-  const programs = querySnapshot.docs.map((programSnap) => {
-    try {
-      const programData = programSnap.data();
-      const currentVersion = programData.currentVersion.id;
-      const programRef = doc(
-        programSnap.ref,
-        "versions",
-        currentVersion,
-      ) as DocumentReference<TProgramWrite>;
-      return _getProgramFromRef(programRef, excludeMaintenance);
-    } catch (error) {
-      // Doing as any because the type we think it is is TProgramVersionWrite but it is in fact TProgramWrite
-      if (shouldUpgradeOnError) {
-        return upgradeDeprecatedProgram(programSnap.ref as any);
+  const programsData = programsSnap.docs.map((doc) => doc.data());
+
+  return Promise.all(
+    programsData.map(async (p) => {
+      const { currentVersionRef } = p;
+      const program = await _getProgramFromRef(
+        currentVersionRef,
+        excludeMaintenance,
+      );
+      if (program.creator !== "euneo") {
+        throw new Error("Program is not a euneo program, invalid program");
       }
-      return [];
-    }
-  });
-
-  const resolvedPrograms = await Promise.all(programs);
-
-  resolvedPrograms.forEach((program) => {
-    if ("euneoProgramId" in program) {
-      euneoPrograms.push(program);
-    }
-  });
-
-  return euneoPrograms;
+      return program;
+    }),
+  );
 }
 
 export async function getEuneoProgramWithDays(
-  euneoProgramId: TEuneoProgramId,
-  version: string = "1.0",
+  programVersionRef: DocumentReference<
+    TProgramVersionRead,
+    TProgramVersionWrite
+  >,
   excludeMaintenance: boolean = false,
 ): Promise<TEuneoProgram> {
-  let programRef = doc(
-    db,
-    "programs",
-    euneoProgramId,
-    "versions",
-    version,
-  ) as DocumentReference<TProgramWrite>;
-  const euneoProgram = await _getProgramFromRef(programRef, excludeMaintenance);
+  const euneoProgram = await _getProgramFromRef(
+    programVersionRef,
+    excludeMaintenance,
+  );
 
-  if (!("euneoProgramId" in euneoProgram)) {
+  if (!(euneoProgram.creator === "euneo")) {
     throw new Error("Program is not an euneo program");
   }
 
   return euneoProgram;
+}
+
+/**
+ * @description Use this function if it does not matter which program type it is
+ * @returns TProgram
+ */
+export async function getProgram(
+  programVersionRef: DocumentReference<
+    TProgramVersionRead,
+    TProgramVersionWrite
+  >,
+  excludeMaintenance: boolean = false,
+): Promise<TProgram> {
+  const program = await _getProgramFromRef(
+    programVersionRef,
+    excludeMaintenance,
+  );
+
+  return program;
 }

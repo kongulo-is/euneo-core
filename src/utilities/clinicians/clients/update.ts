@@ -5,35 +5,8 @@ import {
   DocumentData,
   DocumentReference,
   getDoc,
-  updateDoc,
 } from "firebase/firestore";
 import { db } from "../../../firebase/db";
-import {
-  TClinicianClient,
-  TClinicianClientRead,
-  TClinicianClientWrite,
-  TPrescription,
-  TPrescriptionWrite,
-} from "../../../types/clinicianTypes";
-import {
-  clinicianClientConverter,
-  prescriptionConverter,
-} from "../../converters";
-import {
-  TClientClinicianProgram,
-  TClientEuneoProgram,
-  TClientProgram,
-  TClientProgramWrite,
-  TClientWrite,
-} from "../../../types/clientTypes";
-import {
-  TClinicianProgram,
-  TEuneoProgram,
-  TProgramDay,
-  TProgramDayKey,
-  TProgramPhase,
-  TProgramPhaseKey,
-} from "../../../types/programTypes";
 import { createModifiedClinicianProgramVersion } from "../programs/update";
 import { createModifiedVersion } from "../../programHelpers";
 import { getDeprecatedClinicianClientPastPrescriptions } from "./get";
@@ -43,31 +16,34 @@ import {
   updatePastClientProgram,
 } from "../../clients/programs/update";
 import { removeClinicianClientPastPrescription } from "./remove";
+import {
+  TClinicianClient,
+  TClinicianClientRead,
+  TClinicianClientRef,
+  TClinicianClientWrite,
+} from "../../../entities/clinician/clinicianClient";
+import { updateDoc } from "../../updateDoc";
+import {
+  prescriptionConverter,
+  TPrescription,
+} from "../../../entities/clinician/prescription";
+import { TProgram } from "../../../entities/program/program";
+import { TClientProgram } from "../../../entities/client/clientProgram";
 
+/**
+ * @description This function updates the client document in the database
+ */
 export async function updateClinicianClient(
-  clinicianId: string,
-  clinicianClientId: string,
-  clinicianClient: TClinicianClientRead
+  clinicianClientRef: TClinicianClientRef,
+  clinicianClient: Partial<TClinicianClientRead>,
 ): Promise<boolean> {
   try {
-    const clinicianClientRef = doc(
-      db,
-      "clinicians",
-      clinicianId,
-      "clients",
-      clinicianClientId
-    ) as DocumentReference<TClinicianClientWrite>;
-
-    const clinicianClientConverted =
-      clinicianClientConverter.toFirestore(clinicianClient);
-
-    await updateDoc(clinicianClientRef, clinicianClientConverted);
+    await updateDoc(clinicianClientRef, clinicianClient);
 
     return true;
   } catch (error) {
     console.error("Error updating clinician client: ", error, {
-      clinicianClientId,
-      clinicianId,
+      clinicianClientRef,
       clinicianClient,
     });
     throw error;
@@ -75,19 +51,10 @@ export async function updateClinicianClient(
 }
 
 export async function changeClinicianClientPrescription(
-  clinicianId: string,
-  clinicianClientId: string,
-  newPrescription: TPrescription
+  clinicianClientRef: TClinicianClientRef,
+  newPrescription: TPrescription,
 ): Promise<boolean> {
   try {
-    const clinicianClientRef = doc(
-      db,
-      "clinicians",
-      clinicianId,
-      "clients",
-      clinicianClientId
-    ) as DocumentReference<TClinicianClientWrite>;
-
     const prescriptionConverted =
       prescriptionConverter.toFirestore(newPrescription);
 
@@ -98,20 +65,22 @@ export async function changeClinicianClientPrescription(
     return true;
   } catch (error) {
     console.error("Error updating clinician client prescription: ", error, {
-      clinicianClientId,
-      clinicianId,
+      clinicianClientRef,
       newPrescription,
     });
     return false;
   }
 }
 
+/**
+ * @description used in app? // TODO: Explain what this function does, examples are great
+ */
 export async function updateClinicianClientPrescriptionStatus(
   clinicianId: string,
   clinicianClientId: string,
   clientId: string,
   clientProgramId: string,
-  status: TPrescription["status"]
+  status: TPrescription["status"],
 ): Promise<void> {
   try {
     const clinicianClientRef = doc(
@@ -119,7 +88,7 @@ export async function updateClinicianClientPrescriptionStatus(
       "clinicians",
       clinicianId,
       "clients",
-      clinicianClientId
+      clinicianClientId,
     ) as DocumentReference<TClinicianClientWrite>;
 
     const clinicianClient = await getDoc(clinicianClientRef);
@@ -130,7 +99,7 @@ export async function updateClinicianClientPrescriptionStatus(
         "clients",
         clientId,
         "programs",
-        clientProgramId
+        clientProgramId,
       ) as DocumentReference<TClientProgramWrite, DocumentData>,
       status: status,
     };
@@ -149,9 +118,12 @@ export async function updateClinicianClientPrescriptionStatus(
   }
 }
 
-function createIdWithoutUnderscore<T extends "p" | "d">(
+/**
+ * @description // TODO: Explain what this function does, examples are great
+ */
+function _createIdWithoutUnderscore<T extends "p" | "d">(
   prefix: T,
-  key: string
+  key: string,
 ): `${T}${number}` {
   const oldId = key.split("_")[1];
   const keyNumber = parseInt(oldId.split(prefix)[1]);
@@ -161,8 +133,8 @@ function createIdWithoutUnderscore<T extends "p" | "d">(
 
 function _createClientProgramVersion(
   client: TClinicianClient,
-  selectedProgram: TClinicianProgram | TEuneoProgram
-): TClinicianProgram | TEuneoProgram {
+  selectedProgram: TProgram,
+): TProgram {
   if ("euneoProgramId" in selectedProgram) {
     return {
       ...selectedProgram,
@@ -176,7 +148,7 @@ function _createClientProgramVersion(
       "programs",
       selectedProgram.clinicianProgramId,
       "versions",
-      selectedProgram.version
+      selectedProgram.version,
     );
     const newVersion = createModifiedVersion("1.0");
 
@@ -186,7 +158,7 @@ function _createClientProgramVersion(
         return (
           phaseId.includes(client.clinicianClientId) || !phaseId.includes("_")
         );
-      }
+      },
     ) as TProgramPhaseKey[];
 
     const clientDayIds = Object.keys(selectedProgram.days).filter((dayKey) => {
@@ -202,9 +174,9 @@ function _createClientProgramVersion(
           // Delete modified phase from base version
           deleteDoc(doc(phasesRef, phaseId));
           // TODO: remove or check how this  works
-          const newPhaseId = createIdWithoutUnderscore("p", phaseId);
+          const newPhaseId = _createIdWithoutUnderscore("p", phaseId);
           const days = selectedProgram.phases[phaseId].days.map((dayId) =>
-            createIdWithoutUnderscore("d", dayId)
+            _createIdWithoutUnderscore("d", dayId),
           );
           return {
             ...acc,
@@ -224,7 +196,7 @@ function _createClientProgramVersion(
           };
         }
       },
-      {} as Record<`p${number}`, TProgramPhase>
+      {} as Record<`p${number}`, TProgramPhase>,
     );
 
     const daysRef = collection(programRef, "days");
@@ -234,7 +206,7 @@ function _createClientProgramVersion(
         if (dayId.includes("_")) {
           // Delete modified day from base version
           deleteDoc(doc(daysRef, dayId));
-          const newDayId = createIdWithoutUnderscore("d", dayId);
+          const newDayId = _createIdWithoutUnderscore("d", dayId);
           return {
             ...acc,
             [newDayId]: selectedProgram.days[dayId],
@@ -246,7 +218,7 @@ function _createClientProgramVersion(
           };
         }
       },
-      {} as Record<`d${number}`, TProgramDay>
+      {} as Record<`d${number}`, TProgramDay>,
     );
 
     return {
@@ -258,16 +230,20 @@ function _createClientProgramVersion(
   }
 }
 
+/**
+ * @description is this deprecated? // TODO: Explain what this function does, examples are great
+ *
+ */
 function _upgradeClientProgram(
   oldClientProgram: TClientProgram,
-  newVersion: string
+  newVersion: string,
 ) {
   return {
     ...oldClientProgram,
     phases: oldClientProgram.phases.map((phaseObj) => {
       const oldKeyPhase = phaseObj.key;
       if (oldKeyPhase.includes("_")) {
-        const newPhaseId = createIdWithoutUnderscore("p", oldKeyPhase);
+        const newPhaseId = _createIdWithoutUnderscore("p", oldKeyPhase);
         return {
           ...phaseObj,
           key: newPhaseId,
@@ -279,8 +255,8 @@ function _upgradeClientProgram(
       const oldDayId = day.dayId;
       const oldPhaseId = day.phaseId;
       if (oldDayId.includes("_")) {
-        const newDayId = createIdWithoutUnderscore<"d">("d", oldDayId);
-        const newPhaseId = createIdWithoutUnderscore<"p">("p", oldPhaseId);
+        const newDayId = _createIdWithoutUnderscore<"d">("d", oldDayId);
+        const newPhaseId = _createIdWithoutUnderscore<"p">("p", oldPhaseId);
         return {
           ...day,
           dayId: newDayId,
@@ -292,11 +268,11 @@ function _upgradeClientProgram(
     programVersion: newVersion,
   };
 }
-
-function _updateClient(
-  client: TClinicianClient,
-  program: TClinicianProgram | TEuneoProgram
-) {
+/**
+ * @description is this deprecated? // TODO: Explain what this function does, examples are great
+ *
+ */
+function _updateClient(client: TClinicianClient, program: TProgram) {
   const updatedClient = { ...client };
   if (client.prescription) {
     updatedClient.prescription = {
@@ -307,31 +283,35 @@ function _updateClient(
   if (client.clientProgram) {
     updatedClient.clientProgram = _upgradeClientProgram(
       client.clientProgram,
-      program.version
+      program.version,
     );
   }
 
   return updatedClient;
 }
 
+/**
+ * @description is this deprecated? // TODO: Explain what this function does, examples are great
+ *
+ */
 export async function updatePastPrescription(
   clinicianId: string,
   clinicianClientId: string,
   prescription: TPrescription,
   prescriptionDocId: string,
-  programVersion: string
+  programVersion: string,
 ) {
   const clinicianClientRef = doc(
     db,
     "clinicians",
     clinicianId,
     "clients",
-    clinicianClientId
+    clinicianClientId,
   ) as DocumentReference<TClinicianClientWrite>;
   const pastPrescriptionRef = doc(
     clinicianClientRef,
     "pastPrescriptions",
-    prescriptionDocId
+    prescriptionDocId,
   ) as DocumentReference<TPrescriptionWrite>;
   const convertedPrescription = prescriptionConverter.toFirestore({
     ...prescription,
@@ -341,12 +321,14 @@ export async function updatePastPrescription(
     programRef: convertedPrescription.programRef,
   });
 }
-
+/**
+ * @description deprecated? // TODO: Explain what this function does, examples are great
+ */
 async function upgradeClinicianClientCurrentPrescription(
   clinicianId: string,
   client: TClinicianClient,
   clinicianPrograms: TClinicianProgram[],
-  euneoPrograms: TEuneoProgram[]
+  euneoPrograms: TEuneoProgram[],
 ) {
   if (client.clientProgram && !client.clientProgram.programVersion) {
     // If no program version we have a deprecated program
@@ -356,12 +338,13 @@ async function upgradeClinicianClientCurrentPrescription(
       ? (euneoPrograms.find(
           (program) =>
             program.euneoProgramId ===
-            (client.clientProgram as TClientEuneoProgram).euneoProgramId
+            (client.clientProgram as TClientEuneoProgram).euneoProgramId,
         ) as TEuneoProgram)
       : (clinicianPrograms.find(
           (program) =>
             program.clinicianProgramId ===
-            (client.clientProgram as TClientClinicianProgram).clinicianProgramId
+            (client.clientProgram as TClientClinicianProgram)
+              .clinicianProgramId,
         ) as TClinicianProgram);
 
     if (!selectedProgram) {
@@ -380,7 +363,7 @@ async function upgradeClinicianClientCurrentPrescription(
           updatedProgram.days,
           (updatedClient.clientProgram as TClientClinicianProgram)
             .clinicianProgramId,
-          clinicianId
+          clinicianId,
         ),
       setClientProgramVersion(
         updatedClient.prescription!.clientId as string,
@@ -389,13 +372,13 @@ async function upgradeClinicianClientCurrentPrescription(
         clinicianId,
         client.clinicianClientId,
         updatedProgram.version,
-        true
+        true,
       ),
     ]).catch((error) => {
       console.error(
         "Error on client document: ",
         client.clinicianClientId,
-        error
+        error,
       );
       throw new Error(error);
     });
@@ -405,7 +388,7 @@ async function upgradeClinicianClientCurrentPrescription(
       "clinicians",
       clinicianId,
       "clients",
-      client.clinicianClientId
+      client.clinicianClientId,
     ) as DocumentReference<TClientWrite>;
     const prescriptionConverted = prescriptionConverter.toFirestore({
       ...client.prescription,
@@ -417,15 +400,18 @@ async function upgradeClinicianClientCurrentPrescription(
   }
 }
 
+/**
+ * @description deprecated? // TODO: Explain what this function does, examples are great
+ */
 async function upgradeClientPastPrescription(
   clinicianId: string,
   client: TClinicianClient,
   clinicianPrograms: TClinicianProgram[],
-  euneoPrograms: TEuneoProgram[]
+  euneoPrograms: TEuneoProgram[],
 ) {
   const pastPrescriptions = await getDeprecatedClinicianClientPastPrescriptions(
     clinicianId,
-    client.clinicianClientId
+    client.clinicianClientId,
   );
 
   if (pastPrescriptions && pastPrescriptions.length > 0) {
@@ -437,20 +423,20 @@ async function upgradeClientPastPrescription(
           if (prescription.status === "Started") {
             const clientProgram = await getDeprecatedClientProgram(
               prescription.clientId!,
-              prescription.clientProgramId!
+              prescription.clientProgramId!,
             );
             const hasEuneoProgram = "euneoProgramId" in clientProgram;
             const selectedProgram = hasEuneoProgram
               ? (euneoPrograms.find(
                   (program) =>
                     program.euneoProgramId ===
-                    (clientProgram as TClientEuneoProgram).euneoProgramId
+                    (clientProgram as TClientEuneoProgram).euneoProgramId,
                 ) as TEuneoProgram)
               : (clinicianPrograms.find(
                   (program) =>
                     program.clinicianProgramId ===
                     (clientProgram as TClientClinicianProgram)
-                      .clinicianProgramId
+                      .clinicianProgramId,
                 ) as TClinicianProgram);
             if (!selectedProgram) {
               throw new Error("Program not found");
@@ -458,13 +444,13 @@ async function upgradeClientPastPrescription(
 
             const updatedPastProgram = _createClientProgramVersion(
               client,
-              selectedProgram
+              selectedProgram,
             );
 
             const newVersion = createModifiedVersion("1.0");
             const upgradedPastClientProgram = _upgradeClientProgram(
               clientProgram,
-              newVersion
+              newVersion,
             );
             await Promise.all([
               !hasEuneoProgram &&
@@ -473,24 +459,24 @@ async function upgradeClientPastPrescription(
                   updatedPastProgram.phases,
                   updatedPastProgram.days,
                   (clientProgram as TClientClinicianProgram).clinicianProgramId,
-                  clinicianId
+                  clinicianId,
                 ),
               updatePastClientProgram(
                 prescription.clientId!,
-                upgradedPastClientProgram
+                upgradedPastClientProgram,
               ),
               updatePastPrescription(
                 clinicianId,
                 client.clinicianClientId,
                 prescription,
                 id,
-                newVersion
+                newVersion,
               ),
             ]).catch((err) => {
               console.error(
                 "Error on client document: ",
                 client.clinicianClientId,
-                err
+                err,
               );
               throw new Error(err);
             });
@@ -500,19 +486,22 @@ async function upgradeClientPastPrescription(
             await removeClinicianClientPastPrescription(
               clinicianId,
               client.clinicianClientId,
-              id
+              id,
             );
           }
-        })
+        }),
     );
   }
 }
 
+/**
+ * @description deprecated? // TODO: Explain what this function does, examples are great
+ */
 export async function upgradePrescriptions(
   clinicianId: string,
   clients: TClinicianClient[],
   clinicianPrograms: TClinicianProgram[],
-  euneoPrograms: TEuneoProgram[]
+  euneoPrograms: TEuneoProgram[],
 ) {
   await Promise.all(
     clients.map(async (client) => {
@@ -521,15 +510,15 @@ export async function upgradePrescriptions(
           clinicianId,
           client,
           clinicianPrograms,
-          euneoPrograms
+          euneoPrograms,
         ),
         upgradeClientPastPrescription(
           clinicianId,
           client,
           clinicianPrograms,
-          euneoPrograms
+          euneoPrograms,
         ),
       ]);
-    })
+    }),
   );
 }
