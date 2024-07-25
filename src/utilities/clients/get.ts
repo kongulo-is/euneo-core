@@ -41,7 +41,7 @@ export async function getAllClients(): Promise<
 > {
   const clientsRef = collection(
     db,
-    "clients",
+    "clients"
   ) as CollectionReference<TClientRead>;
 
   const clientsSnap = await getDocs(clientsRef.withConverter(clientConverter));
@@ -60,7 +60,7 @@ export async function getAllClients(): Promise<
         clientId: client.id,
         ...(clientProgram && { clientProgram }),
       };
-    }),
+    })
   );
 
   if (!clientData) {
@@ -75,14 +75,14 @@ export async function getAllClients(): Promise<
 export async function getAllClientsToUpgrade(): Promise<TClient[]> {
   const clientsRef = collection(
     db,
-    "clients",
+    "clients"
   ) as CollectionReference<TClientRead>;
 
   const clientsQuery = query(clientsRef, where("name", ">", ""));
   // const clientsQuery = query(clientsRef, where("name", "==", "Developer"));
 
   const clientsSnap = await getDocs(
-    clientsQuery.withConverter(clientConverter),
+    clientsQuery.withConverter(clientConverter)
   );
 
   const clientData = await Promise.all(
@@ -91,7 +91,7 @@ export async function getAllClientsToUpgrade(): Promise<TClient[]> {
         ...client.data(),
         clientId: client.id,
       };
-    }),
+    })
   );
 
   if (!clientData) {
@@ -107,24 +107,17 @@ export async function getAllClientsToUpgrade(): Promise<TClient[]> {
  * @description Used in app? //TODO: add description
  */
 export async function getClient(clientId: string): Promise<TClient> {
-  const clientRef = doc(
-    db,
-    "clients",
-    clientId,
-  ) as DocumentReference<TClientRead>;
+  const clientRef = doc(db, "clients", clientId);
 
   const clientDoc = await getDoc(clientRef.withConverter(clientConverter));
 
   const clientData = clientDoc.data();
-
+  console.log("clientData", clientData);
   if (!clientData) {
-    // throw new Error("No client found");
-    // signOut(auth);
-    await convertUser(clientId);
-    return getClient(clientId);
+    throw new Error("No client found");
   }
 
-  const client = {
+  const client: TClient = {
     ...clientData,
     clientId: clientId,
   };
@@ -187,7 +180,7 @@ export async function convertUser(userId: string): Promise<boolean> {
                     ...section,
                     sectionName: index === 0 ? "Activites" : "Sports",
                   };
-                },
+                }
               ),
             };
           }),

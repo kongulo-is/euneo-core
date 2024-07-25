@@ -1,4 +1,6 @@
 import {
+  collection,
+  doc,
   DocumentReference,
   QueryDocumentSnapshot,
   SnapshotOptions,
@@ -28,6 +30,7 @@ import {
   deserializeProgramVersionPath,
 } from "../program/version";
 import { TClientProgramDay } from "./day";
+import { db } from "../../firebase/db";
 
 // Ref type
 export type TClientProgramRef = DocumentReference<
@@ -98,29 +101,44 @@ type TClinicianProgramVersion = {
 };
 
 // Euneo with prescription
-type TClientProgram_EuneoWithPrescription_Read = TClientProgramBase &
+export type TClientProgram_EuneoWithPrescription_Read = TClientProgramBase &
   PrescriptionFields &
   TEuneoProgramVersion;
 
 // Euneo without prescription
-type TClientProgram_EuneoWithoutPrescription_Read = TClientProgramBase &
+export type TClientProgram_EuneoWithoutPrescription_Read = TClientProgramBase &
   TEuneoProgramVersion;
 
+export type TClientProgram_Euneo_Read =
+  | TClientProgram_EuneoWithPrescription_Read
+  | TClientProgram_EuneoWithoutPrescription_Read;
+
 // Clinician with prescription
-type TClientProgram_ClinicianWithPrescription_Read = TClientProgramBase &
+export type TClientProgram_ClinicianWithPrescription_Read = TClientProgramBase &
   PrescriptionFields &
   TClinicianProgramVersion;
 
-// Clinician without prescription
-type TClientProgram_ClinicianWithoutPrescription_Read = TClientProgramBase &
-  TClinicianProgramVersion;
+// Clinician without prescription (never used)
+// type TClientProgram_ClinicianWithoutPrescription_Read = TClientProgramBase &
+//   TClinicianProgramVersion;
 
 // Union type for all states
 export type TClientProgramRead =
-  | TClientProgram_EuneoWithPrescription_Read
-  | TClientProgram_EuneoWithoutPrescription_Read
-  | TClientProgram_ClinicianWithPrescription_Read
-  | TClientProgram_ClinicianWithoutPrescription_Read;
+  | TClientProgram_Euneo_Read
+  | TClientProgram_ClinicianWithPrescription_Read;
+
+export type TClientProgram_Euneo = TClientProgram_Euneo_Read & {
+  days: TClientProgramDay[];
+  clientProgramRef: TClientProgramRef;
+  clientProgramIdentifiers: TClientProgramIdentifiers;
+};
+
+export type TClientProgram_Clinician =
+  TClientProgram_ClinicianWithPrescription_Read & {
+    days: TClientProgramDay[];
+    clientProgramRef: TClientProgramRef;
+    clientProgramIdentifiers: TClientProgramIdentifiers;
+  };
 
 /**
  * @description this is the converted reference to the program
@@ -128,15 +146,11 @@ export type TClientProgramRead =
  * and the subcollection data
  * /clients/{clientId}/programs/{programId}/days/{dayId}
  */
-export type TClientProgram = TClientProgramRead & {
-  days: TClientProgramDay[];
-  clientProgramRef: TClientProgramRef;
-  clientProgramIdentifiers: TClientProgramIdentifiers;
-};
+export type TClientProgram = TClientProgram_Euneo | TClientProgram_Clinician;
 
 // Serialization Functions
 export function serializeClientProgramIdentifiers(
-  obj: TClientProgramIdentifiers,
+  obj: TClientProgramIdentifiers
 ): string {
   try {
     return `${Collection.Clients}/${obj.clients}/${Collection.Programs}/${obj.programs}`;
@@ -147,7 +161,7 @@ export function serializeClientProgramIdentifiers(
 }
 
 export function deserializeClientProgramPath(
-  path: string,
+  path: string
 ): TClientProgramIdentifiers {
   try {
     const [_clients, clientId, _programs, programId] = path.split("/");
@@ -159,6 +173,25 @@ export function deserializeClientProgramPath(
     console.error("Error deserializing client program path: ", error);
     throw error;
   }
+}
+
+export function createClientProgramRef({
+  clients,
+  programs,
+}: {
+  clients: string;
+  programs?: string;
+}): DocumentReference<TClientProgramRead, TClientProgramWrite> {
+  const path = `${Collection.Clients}/${clients}/${Collection.Programs}`;
+  const clientProgramsCollection = collection(db, path);
+
+  const programRef = programs
+    ? doc(clientProgramsCollection, programs).withConverter(
+        clientProgramConverter
+      )
+    : doc(clientProgramsCollection).withConverter(clientProgramConverter);
+
+  return programRef;
 }
 
 // Converter
@@ -211,7 +244,7 @@ export const clientProgramConverter = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TClientProgramWrite>,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): TClientProgramRead {
     // * Omit removes the days property from the return type because converters cant be async and then we cant get the days
     const data = snapshot.data(options);
@@ -268,24 +301,22 @@ export const clientProgramConverter = {
         outcomeMeasuresAnswers,
         programVersionRef: programVersionRef,
         programVersionIdentifiers: deserializeProgramVersionPath(
-          programVersionRef.path,
+          programVersionRef.path
         ),
         clinicianClientRef: clinicianClientRef,
         clinicianClientIdentifiers: deserializeClinicianClientPath(
-          clinicianClientRef.path,
+          clinicianClientRef.path
         ),
       };
       return clientProgram;
     } else {
-      const clientProgram:
-        | TClientProgram_ClinicianWithoutPrescription_Read
-        | TClientProgram_EuneoWithoutPrescription_Read = {
+      const clientProgram: TClientProgram_EuneoWithoutPrescription_Read = {
         ...rest,
         painLevels: painLevelsClient,
         outcomeMeasuresAnswers,
         programVersionRef: programVersionRef,
         programVersionIdentifiers: deserializeProgramVersionPath(
-          programVersionRef.path,
+          programVersionRef.path
         ),
       };
       return clientProgram;

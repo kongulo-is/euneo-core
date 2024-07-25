@@ -5,14 +5,7 @@ import {
   collection,
   doc,
 } from "firebase/firestore";
-import { TConditionId, TEuneoProgramId } from "../types/baseTypes";
 
-import {
-  oldProgramConverter,
-  oldProgramDayConverter,
-  oldProgramPhaseConverter,
-} from "./converters";
-import { TClientProgramDay } from "../types/clientTypes";
 import { db } from "../firebase/db";
 import { conditions } from "../constants/conditions";
 import {
@@ -43,15 +36,18 @@ import {
   TProgramPhaseRead,
   programPhaseConverter,
 } from "../entities/program/programPhase";
+import { TClientProgramDay } from "../entities/client/day";
+import { TConditionId } from "../entities/global";
 
-export async function _fetchProgramVersion(
+// TODO: is this function not already defined somewhere else?
+async function _fetchProgramVersion(
   programVersionRef: DocumentReference<
     TProgramVersionRead,
     TProgramVersionWrite
-  >,
+  >
 ): Promise<TProgramVersion> {
   const programSnap = await getDoc(
-    programVersionRef.withConverter(programVersionConverter),
+    programVersionRef.withConverter(programVersionConverter)
   );
 
   if (!programSnap.exists()) {
@@ -62,8 +58,9 @@ export async function _fetchProgramVersion(
   return { ...programVersion, programVersionRef: programVersionRef };
 }
 
-export async function _fetchProgramBase(
-  programRef: DocumentReference<TProgramRead, TProgramWrite>,
+// TODO: is this function not already defined somewhere else?
+async function _fetchProgramBase(
+  programRef: DocumentReference<TProgramRead, TProgramWrite>
 ): Promise<TProgramInfo> {
   const programSnap = await getDoc(programRef.withConverter(programConverter));
 
@@ -75,24 +72,26 @@ export async function _fetchProgramBase(
   return { ...programData, programRef: programRef };
 }
 
+// TODO: is this function not already defined somewhere else? add description?
 export async function _fetchDays(
-  programRef: DocumentReference<TProgramVersionRead, TProgramVersionWrite>,
+  programRef: DocumentReference<TProgramVersionRead, TProgramVersionWrite>
 ): Promise<Record<TProgramDayKey, TProgramDay>> {
   const daySnapshots = await getDocs(
-    collection(programRef, "days").withConverter(programDayConverter),
+    collection(programRef, "days").withConverter(programDayConverter)
   );
 
   return Object.fromEntries(
-    daySnapshots.docs.map((doc) => [doc.id, doc.data()]),
+    daySnapshots.docs.map((doc) => [doc.id, doc.data()])
   );
 }
 
+// TODO: is this function not already defined somewhere else? add description?
 export async function _fetchPhases(
   programRef: DocumentReference<TProgramVersionRead, TProgramVersionWrite>,
-  excludeMaintenancePhases: boolean = false,
+  excludeMaintenancePhases: boolean = false
 ): Promise<Record<TProgramPhaseKey, TProgramPhaseRead>> {
   const phaseSnapshots = await getDocs(
-    collection(programRef, "phases").withConverter(programPhaseConverter),
+    collection(programRef, "phases").withConverter(programPhaseConverter)
   );
 
   const sortedPhaseDocs = phaseSnapshots.docs.sort((a, b) => {
@@ -106,7 +105,7 @@ export async function _fetchPhases(
     const phases = Object.fromEntries(
       sortedPhaseDocs
         .filter((doc) => !doc.id.includes("m"))
-        .map((doc) => [doc.id, doc.data()]),
+        .map((doc) => [doc.id, doc.data()])
     );
 
     return phases;
@@ -125,7 +124,7 @@ export async function _fetchPhases(
         highestPhaseId = phaseNumber;
       }
       return [doc.id, doc.data()];
-    }),
+    })
   );
 
   // Add maintenance phase if there isn't one already
@@ -138,7 +137,6 @@ export async function _fetchPhases(
       finalPhase: true,
     };
   }
-  console.log("_PHASES", phases);
 
   return phases;
 }
@@ -148,32 +146,14 @@ export async function _getProgramFromRef(
     TProgramVersionRead,
     TProgramVersionWrite
   >,
-  excludeMaintenancePhases: boolean = false,
+  excludeMaintenancePhases: boolean = false
 ): Promise<TProgram> {
   const programVersionIdentifiers = deserializeProgramVersionPath(
-    programVersionRef.path,
+    programVersionRef.path
   );
-
-  console.log("PROGRAM VERSION IDENTIFIERS", programVersionIdentifiers);
 
   let programRef: DocumentReference<TProgramRead, TProgramWrite> =
     programVersionRef.parent.parent!.withConverter(programConverter);
-
-  // if (isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
-  //   programRef = doc(
-  //     db,
-  //     "clinicians",
-  //     programVersionIdentifiers.clinicians,
-  //     "programs",
-  //     programVersionIdentifiers.programs,
-  //   ) as DocumentReference<TProgramRead, TProgramWrite>;
-  // } else {
-  //   programRef = doc(
-  //     db,
-  //     "programs",
-  //     programVersionIdentifiers.programs,
-  //   ) as DocumentReference<TProgramRead, TProgramWrite>;
-  // }
 
   const [programInfo, versionInfo, phases, days] = await Promise.all([
     _fetchProgramBase(programRef),
@@ -182,13 +162,11 @@ export async function _getProgramFromRef(
     _fetchDays(programVersionRef),
   ]);
 
-  console.log("PHASES", phases);
-
   // Adjust the returned type based on the program type
   if (isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
     if (!isClinicianProgram(programInfo)) {
       throw new Error(
-        "Program is not a clinician program, invalid program info",
+        "Program is not a clinician program, invalid program info"
       );
     }
     return {
@@ -213,13 +191,9 @@ export async function _getProgramFromRef(
     };
   }
 }
+
 /**
- *
- * @param trainingDays
- * @param program
- * @param phaseId
- * @param date
- * @param length
+ * @description //TODO: add description
  * @param startDayIndex what day of the phase to start on (not the day of the program)
  * @returns
  */
@@ -229,7 +203,7 @@ export function createPhase(
   phaseId: TProgramPhaseKey,
   date?: Date,
   length?: number,
-  startDayIndex?: number,
+  startDayIndex?: number
 ): TClientProgramDay[] {
   // Get the phase from the program using the phaseId
   const phase = program.phases[phaseId];
@@ -339,77 +313,4 @@ export function getProgramNameForApp(programInfo: {
   if (programInfo.conditionId && programInfo.name) return programInfo.name;
   else if (programInfo.conditionId) return conditions[programInfo.conditionId];
   else return "";
-}
-
-// Deprecated program functions
-// TODO: Remove when all clients are stable
-export async function _fetchDeprecatedProgramBase(
-  programVersionRef: DocumentReference<TProgramWrite>,
-) {
-  const programSnap = await getDoc(
-    programRef.withConverter(oldProgramConverter),
-  );
-  if (!programSnap.exists()) {
-    throw new Error("Program does not exist.");
-  }
-  const programData = programSnap.data();
-  return programData;
-}
-
-export async function _fetchDeprecatedProgramDays(
-  programRef: DocumentReference,
-) {
-  const daySnapshots = await getDocs(
-    collection(programRef, "days").withConverter(oldProgramDayConverter),
-  );
-
-  return Object.fromEntries(
-    daySnapshots.docs.map((doc) => [doc.id, doc.data()]),
-  );
-}
-
-export async function _fetchDeprecatedProgramPhases(
-  programRef: DocumentReference,
-): Promise<{
-  [k: string]: TProgramPhase;
-}> {
-  const phaseSnapshots = await getDocs(
-    collection(programRef, "phases").withConverter(oldProgramPhaseConverter),
-  );
-
-  return Object.fromEntries(
-    phaseSnapshots.docs.map((doc) => [doc.id, doc.data()]),
-  );
-}
-
-export async function _getDeprecatedProgramFromRef(
-  programRef: DocumentReference<TProgramWrite>,
-): Promise<TProgram> {
-  const [programBase, phases, days] = await Promise.all([
-    _fetchDeprecatedProgramBase(programRef),
-    _fetchDeprecatedProgramPhases(programRef),
-    _fetchDeprecatedProgramDays(programRef),
-  ]);
-
-  const programId = programRef.id;
-
-  const programMode: TProgramWithSubCollections = {
-    ...programBase,
-    days,
-    phases,
-  };
-
-  let program: TProgram;
-
-  if (programRef.parent.parent) {
-    program = {
-      ...programMode,
-      clinicianId: programRef.parent.parent.id,
-      clinicianProgramId: programId,
-      version: "1.0",
-    };
-    return program;
-  } else {
-    return { ...programMode, euneoProgramId: programId as TEuneoProgramId };
-  }
 }

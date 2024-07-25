@@ -22,17 +22,20 @@ import {
   TProgramVersionWrite,
 } from "../../../entities/program/version";
 
+/**
+ * @deprecated use getProgram instead // TODO: remove this?
+ */
 export async function getClinicianProgramWithDays(
   programVersionRef: DocumentReference<
     TProgramVersionRead,
     TProgramVersionWrite
   >,
 
-  excludeMaintenance: boolean = false,
+  excludeMaintenance: boolean = false
 ): Promise<TClinicianProgram> {
   const clinicianProgram = await _getProgramFromRef(
     programVersionRef,
-    excludeMaintenance,
+    excludeMaintenance
   );
 
   if (clinicianProgram.creator !== "clinician") {
@@ -58,7 +61,7 @@ export async function getClinicianProgramWithDays(
 }
 
 export async function getClinicianProgramsWithSubcollections(
-  clinicianId: string,
+  clinicianId: string
 ): Promise<TClinicianProgram[]> {
   try {
     const clinicianRef = doc(db, "clinicians", clinicianId);
@@ -66,7 +69,7 @@ export async function getClinicianProgramsWithSubcollections(
 
     const programsQuery = query(programsRef, where("isSaved", "==", true));
     const programsSnap = await getDocs(
-      programsQuery.withConverter(programConverter),
+      programsQuery.withConverter(programConverter)
     );
 
     const programsData = programsSnap.docs.map((doc) => doc.data());
@@ -77,102 +80,14 @@ export async function getClinicianProgramsWithSubcollections(
         const program = await _getProgramFromRef(currentVersionRef, true);
         if (program.creator !== "clinician") {
           throw new Error(
-            "Program is not a clinician program, invalid program",
+            "Program is not a clinician program, invalid program"
           );
         }
         return program;
-      }),
+      })
     );
   } catch (error) {
     console.error("Error fetching clinician programs:", error);
     throw error;
   }
 }
-
-// TODO: Functions for deprecated programs
-// export async function getAndUpgradeDeprecatedClinicianPrograms(
-//   clinicianId: string,
-// ): Promise<TClinicianProgram[]> {
-//   try {
-//     const clinicianRef = doc(db, "clinicians", clinicianId);
-//     const programsRef = collection(clinicianRef, "programs");
-//     const programsSnap = await getDocs(
-//       programsRef.withConverter(oldProgramVersionConverter),
-//     );
-//     const programsData = programsSnap.docs.map((doc) => doc.data());
-//     const programsCurrentVersionSnap = await Promise.all(
-//       programsData.map(async (program) => {
-//         if (program.currentVersion) {
-//           return await getDoc(
-//             doc(
-//               programsRef,
-//               program.programId,
-//               "versions",
-//               program.currentVersion,
-//             ).withConverter(programConverter),
-//           );
-//         } else {
-//           const upgradedProgram = await upgradeDeprecatedProgram(
-//             doc(
-//               programsRef,
-//               program.programId,
-//             ) as DocumentReference<TProgramWrite>,
-//           );
-//           return await getDoc(
-//             doc(
-//               programsRef,
-//               program.programId,
-//               "versions",
-//               upgradedProgram.version,
-//             ).withConverter(programConverter),
-//           );
-//         }
-//       }),
-//     );
-
-//     // for each program, get the phases and days
-//     const phasesSnap = await Promise.all(
-//       programsCurrentVersionSnap.map((programSnap) => {
-//         return getDocs(
-//           collection(programSnap.ref, "phases").withConverter(
-//             programPhaseConverter,
-//           ),
-//         );
-//       }),
-//     );
-//     const daysSnap = await Promise.all(
-//       programsCurrentVersionSnap.map((programSnap) => {
-//         return getDocs(
-//           collection(programSnap.ref, "days").withConverter(
-//             programDayConverter,
-//           ),
-//         );
-//       }),
-//     );
-//     // map the days to the programs
-//     const programs: TClinicianProgram[] = programsCurrentVersionSnap.map(
-//       (programSnap, i) => {
-//         const phases = Object.fromEntries(
-//           phasesSnap[i].docs.map((doc) => [doc.id, doc.data()]),
-//         );
-//         const days = Object.fromEntries(
-//           daysSnap[i].docs.map((doc) => [doc.id, doc.data()]),
-//         );
-
-//         return {
-//           ...(programSnap.data() as TProgramBase),
-//           phases,
-//           days,
-//           clinicianProgramId: programSnap.ref.parent.parent?.id || "",
-//           clinicianId,
-//           version: programSnap.id,
-//         };
-//       },
-//     );
-
-//     return programs;
-//   } catch (error) {
-//     console.error("Error fetching clinician programs:", error);
-//     throw error;
-//   }
-// }

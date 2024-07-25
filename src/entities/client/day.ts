@@ -1,10 +1,20 @@
 import {
+  collection,
+  doc,
+  DocumentReference,
   QueryDocumentSnapshot,
   SnapshotOptions,
   Timestamp,
 } from "firebase/firestore";
 import { TProgramPhaseKey } from "../program/programPhase";
 import { TProgramDayKey } from "../program/programDay";
+import { Collection } from "../global";
+import { db } from "../../firebase/db";
+
+export type TClientProgramDayRef = DocumentReference<
+  TClientProgramDayRead,
+  TClientProgramDayWrite
+>;
 
 export type TClientProgramDayWrite = {
   dayId: TProgramDayKey;
@@ -23,7 +33,7 @@ export type TClientProgramDayWrite = {
  * @param adherence 0-100%
  * @param exercises array completed exercises in a day (0 = not completed, 1 = completed)
  */
-export type TClientProgramDay = {
+export type TClientProgramDayRead = {
   dayId: TProgramDayKey;
   phaseId: TProgramPhaseKey;
   date: Date;
@@ -33,9 +43,25 @@ export type TClientProgramDay = {
   exercises: number[];
 };
 
+export type TClientProgramDay = TClientProgramDayRead;
+
+export function createClientProgramDayRef({
+  clients,
+  programs,
+  days,
+}: {
+  clients: string;
+  programs: string;
+  days: string;
+}): DocumentReference<TClientProgramDayRead, TClientProgramDayWrite> {
+  const path = `${Collection.Clients}/${clients}/${Collection.Programs}/${programs}/${Collection.Days}/${days}`;
+
+  return doc(db, path).withConverter(clientProgramDayConverter);
+}
+
 // Converter
 export const clientProgramDayConverter = {
-  toFirestore(day: TClientProgramDay): TClientProgramDayWrite {
+  toFirestore(day: TClientProgramDayRead): TClientProgramDayWrite {
     const data: TClientProgramDayWrite = {
       dayId: day.dayId,
       date: Timestamp.fromDate(day.date),
@@ -50,8 +76,8 @@ export const clientProgramDayConverter = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TClientProgramDayWrite>,
-    options: SnapshotOptions,
-  ): TClientProgramDay {
+    options: SnapshotOptions
+  ): TClientProgramDayRead {
     const data = snapshot.data(options);
     const clientProgramDay: TClientProgramDay = {
       ...data,

@@ -1,10 +1,18 @@
-import { QueryDocumentSnapshot, SnapshotOptions } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  DocumentReference,
+  QueryDocumentSnapshot,
+  SnapshotOptions,
+} from "firebase/firestore";
 import {
   TClientProgram,
   TClientProgramIdentifiers,
   TClientProgramRef,
   deserializeClientProgramPath,
 } from "./clientProgram";
+import { Collection } from "../global";
+import { db } from "../../firebase/db";
 
 export type TClientPreferences = {
   reminders: {
@@ -40,8 +48,8 @@ type TClientBase = {
 };
 
 type TClient_WithCurrentClientProgram_Read = TClientBase & {
-  currentClientProgramRef?: TClientProgramRef;
-  currentClientProgramIdentifiers?: TClientProgramIdentifiers;
+  currentClientProgramRef: TClientProgramRef;
+  currentClientProgramIdentifiers: TClientProgramIdentifiers;
 };
 
 export type TClientRead = TClientBase | TClient_WithCurrentClientProgram_Read;
@@ -54,8 +62,18 @@ export type TClient = TClientRead & {
   clientId: string;
 };
 
+export function createClientRef({
+  clients,
+}: {
+  clients: string;
+}): DocumentReference<TClientRead, TClientWrite> {
+  const path = `${Collection.Clients}/${clients}`;
+
+  return doc(db, path).withConverter(clientConverter);
+}
+
 export function hasCurrentClientProgram(
-  client: TClientRead,
+  client: TClientRead
 ): client is TClient_WithCurrentClientProgram_Read {
   return "currentClientProgramRef" in client;
 }
@@ -77,7 +95,7 @@ export const clientConverter = {
   // only needs to convert clientProgramRef to id
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TClientWrite>,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): TClientRead {
     const data = snapshot.data(options);
     let {
@@ -101,7 +119,7 @@ export const clientConverter = {
       ...(currentClientProgramRef && {
         currentClientProgramRef,
         currentClientProgramIdentifiers: deserializeClientProgramPath(
-          currentClientProgramRef.path,
+          currentClientProgramRef.path
         ),
       }),
     };

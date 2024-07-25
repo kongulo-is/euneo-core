@@ -6,13 +6,9 @@ import {
   QuerySnapshot,
   getDoc,
   DocumentReference,
-  DocumentData,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
-import {
-  TInvitationWrite,
-  TClinicianClientWrite,
-} from "../../types/clinicianTypes";
+import { TInvitationWrite } from "../../types/clinicianTypes";
 
 import { _getProgramFromRef } from "../programHelpers";
 import { updateDoc } from "../updateDoc";
@@ -30,6 +26,7 @@ import {
   TProgramVersionRead,
   TProgramVersionWrite,
 } from "../../entities/program/version";
+import { TClinicianClientRef } from "../../entities/clinician/clinicianClient";
 
 /**
  * @description Get program from code in app
@@ -37,7 +34,7 @@ import {
 // TODO: Fix function
 export async function getProgramFromCode(code: string): Promise<{
   program: TClinicianProgram | TEuneoProgram;
-  clinicianClientRef: DocumentReference<TClinicianClientWrite, DocumentData>;
+  clinicianClientRef: TClinicianClientRef;
   clinicianId: string;
   invitationId: string;
 }> {
@@ -96,7 +93,7 @@ export async function getProgramFromCode(code: string): Promise<{
 export async function getAllEuneoPrograms(
   filter: "isConsoleLive" | "isLive" | "",
   excludeMaintenance: boolean = false,
-  shouldUpgradeOnError: boolean = false,
+  shouldUpgradeOnError: boolean = false // TODO: remove this?
 ): Promise<TEuneoProgram[]> {
   const programsRef = collection(db, "programs");
 
@@ -110,31 +107,39 @@ export async function getAllEuneoPrograms(
 
   const programsData = programsSnap.docs.map((doc) => doc.data());
 
-  return Promise.all(
+  console.log("PROGRAMS DATA", programsData);
+
+  const programs = Promise.all(
     programsData.map(async (p) => {
       const { currentVersionRef } = p;
       const program = await _getProgramFromRef(
         currentVersionRef,
-        excludeMaintenance,
+        excludeMaintenance
       );
       if (program.creator !== "euneo") {
         throw new Error("Program is not a euneo program, invalid program");
       }
       return program;
-    }),
+    })
   );
+  console.log("PROGRAMS", programs);
+
+  return programs;
 }
 
+/**
+ * @deprecated // TODO: remove this?
+ */
 export async function getEuneoProgramWithDays(
   programVersionRef: DocumentReference<
     TProgramVersionRead,
     TProgramVersionWrite
   >,
-  excludeMaintenance: boolean = false,
+  excludeMaintenance: boolean = false
 ): Promise<TEuneoProgram> {
   const euneoProgram = await _getProgramFromRef(
     programVersionRef,
-    excludeMaintenance,
+    excludeMaintenance
   );
 
   if (!(euneoProgram.creator === "euneo")) {
@@ -153,11 +158,11 @@ export async function getProgram(
     TProgramVersionRead,
     TProgramVersionWrite
   >,
-  excludeMaintenance: boolean = false,
+  excludeMaintenance: boolean = false
 ): Promise<TProgram> {
   const program = await _getProgramFromRef(
     programVersionRef,
-    excludeMaintenance,
+    excludeMaintenance
   );
 
   return program;
