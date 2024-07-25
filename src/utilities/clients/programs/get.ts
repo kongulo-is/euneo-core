@@ -103,3 +103,27 @@ export async function getClientProgram(
   }
   return {} as TClientProgram;
 }
+
+export async function getClientPrograms(clientId: string) {
+  try {
+    const clientProgramsRef = collection(
+      db,
+      "clients",
+      clientId,
+      "programs"
+    ) as CollectionReference<TClientProgramWrite>;
+
+    const clientProgramsSnap = await getDocs(
+      clientProgramsRef.withConverter(clientProgramConverter)
+    );
+
+    const clientPrograms = clientProgramsSnap.docs.map((c) => {
+      const clientProgramRead = c.data();
+      return { ...clientProgramRead, clientProgramId: c.id };
+    });
+
+    return clientPrograms;
+  } catch (error) {
+    console.error("Error fetching client programs:", error);
+  }
+}
