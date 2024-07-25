@@ -132,9 +132,8 @@ export async function getClinicianClient(
     console.error("Error fetching client:", error, {
       clinicianClientRef,
     });
+    throw error;
   }
-
-  return {} as TClinicianClient;
 }
 
 // Get all clinician clients

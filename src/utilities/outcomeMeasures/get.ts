@@ -7,9 +7,12 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
-import { TOutcomeMeasure, TOutcomeMeasureWrite } from "../../types/baseTypes";
-import { outcomeMeasureConverter } from "../converters";
-import { TOutcomeMeasureId } from "../../types/clinicianTypes";
+import {
+  outcomeMeasureConverter,
+  TOutcomeMeasure,
+  TOutcomeMeasureId,
+  TOutcomeMeasureWrite,
+} from "../../entities/outcomeMeasure/outcomeMeasure";
 
 export async function getAllOutcomeMeasures(): Promise<
   Record<string, TOutcomeMeasure>

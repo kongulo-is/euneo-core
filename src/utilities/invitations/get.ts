@@ -7,27 +7,30 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
-import { TInvitation } from "../../types/clinicianTypes";
+import {
+  deserializeInvitationPath,
+  invitationConverter,
+  TInvitation,
+} from "../../entities/invitation/invitation";
+import { createClinicianClientRef } from "../../entities/clinician/clinicianClient";
 
 export function getProgramCode(
   clinicianId: string,
   clinicianClientId: string
 ): Promise<TInvitation> {
-  let invitation: TInvitation = {
-    invitationId: "",
-    code: "",
-    date: new Date(),
-  };
+  const clinicianClientRef = createClinicianClientRef({
+    clinicians: clinicianId,
+    clients: clinicianClientId,
+  });
+
   // query the database for the invitation code
-  const invitationRef = collection(db, "invitations");
+  const invitationRef = collection(db, "invitations").withConverter(
+    invitationConverter
+  );
   const q = query(
     invitationRef,
     orderBy("date", "desc"), // assumes the field is named 'date' and we're sorting in descending order
-    where(
-      "clinicianClientRef",
-      "==",
-      doc(db, "clinicians", clinicianId, "clients", clinicianClientId)
-    )
+    where("clinicianClientRef", "==", clinicianClientRef)
   );
 
   return getDocs(q).then((querySnapshot) => {
@@ -35,12 +38,15 @@ export function getProgramCode(
 
     if (newestDoc) {
       const data = newestDoc.data();
-      invitation.invitationId = newestDoc.id;
-      invitation.code = data.code;
-      invitation.date = data.date.toDate();
+
+      const invitation = {
+        ...data,
+        invitationRef: newestDoc.ref,
+        invitationIdentifiers: deserializeInvitationPath(newestDoc.ref.path),
+      };
+
       return invitation; // Assumes code is a string. Format it here if necessary.
     }
-
-    return invitation; // return an empty string if no documents were found
+    throw new Error("No invitation found");
   });
 }

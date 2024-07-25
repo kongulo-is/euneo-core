@@ -1,18 +1,16 @@
-import { DocumentReference, doc } from "firebase/firestore";
-import { TExercise, TExerciseWrite } from "../../types/baseTypes";
-import { db } from "../../firebase/db";
 import { updateDoc } from "../updateDoc";
+import {
+  createExerciseRef,
+  TExercise,
+} from "../../entities/exercises/exercises";
 
 export async function makeExercisesConsoleLive(
-  exercises: Record<string, TExercise>,
+  exercises: Record<string, TExercise>
 ): Promise<boolean> {
   try {
     Object.keys(exercises).forEach(async (id) => {
-      const exerciseRef = doc(
-        db,
-        "exercises",
-        id,
-      ) as DocumentReference<TExerciseWrite>;
+      const exerciseRef = createExerciseRef({ exercises: id });
+
       await updateDoc(exerciseRef, {
         isConsoleLive: true,
       });
@@ -27,12 +25,7 @@ export async function makeExercisesConsoleLive(
 
 export async function archiveExercise(exercise: TExercise) {
   try {
-    const exerciseRef = doc(
-      db,
-      "exercises",
-      exercise.id,
-    ) as DocumentReference<TExerciseWrite>;
-    await updateDoc(exerciseRef, {
+    await updateDoc(exercise.exerciseRef, {
       isArchived: true,
     });
     return true;

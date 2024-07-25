@@ -1,3 +1,5 @@
+import { QueryDocumentSnapshot, SnapshotOptions } from "firebase/firestore";
+
 export type TOutcomeMeasureId =
   | "faam"
   | "sf-36"
@@ -39,3 +41,27 @@ export type TOutcomeMeasure = TOutcomeMeasureBase & {
 };
 
 export type TOutcomeMeasureWrite = TOutcomeMeasureBase;
+
+export const outcomeMeasureConverter = {
+  toFirestore(measure: TOutcomeMeasure): TOutcomeMeasureWrite {
+    const { id, ...rest } = measure;
+    const data: TOutcomeMeasureWrite = {
+      ...rest,
+    };
+
+    return data;
+  },
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<TOutcomeMeasureWrite>,
+    options: SnapshotOptions
+  ): TOutcomeMeasure {
+    const data = snapshot.data(options);
+
+    const measure: TOutcomeMeasure = {
+      ...data,
+      id: snapshot.id as TOutcomeMeasureId,
+    };
+
+    return measure;
+  },
+};

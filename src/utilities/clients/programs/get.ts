@@ -9,9 +9,11 @@ import {
   QueryConstraint,
   limitToLast,
   Timestamp,
+  CollectionReference,
 } from "firebase/firestore";
 
 import {
+  clientProgramConverter,
   deserializeClientProgramPath,
   TClientProgram,
   TClientProgramRead,
@@ -19,6 +21,7 @@ import {
 } from "../../../entities/client/clientProgram";
 import { clientProgramDayConverter } from "../../../entities/client/day";
 import { TOutcomeMeasureId } from "../../../entities/outcomeMeasure/outcomeMeasure";
+import { db } from "../../../firebase/db";
 
 export async function getClientProgram(
   clientProgramRef: DocumentReference<TClientProgramRead, TClientProgramWrite>,
@@ -104,7 +107,9 @@ export async function getClientProgram(
   return {} as TClientProgram;
 }
 
-export async function getClientPrograms(clientId: string) {
+export async function getClientPrograms(
+  clientId: string
+): Promise<TClientProgram[]> {
   try {
     const clientProgramsRef = collection(
       db,
@@ -117,13 +122,26 @@ export async function getClientPrograms(clientId: string) {
       clientProgramsRef.withConverter(clientProgramConverter)
     );
 
-    const clientPrograms = clientProgramsSnap.docs.map((c) => {
-      const clientProgramRead = c.data();
-      return { ...clientProgramRead, clientProgramId: c.id };
-    });
+    const clientPrograms: TClientProgram[] = clientProgramsSnap.docs.map(
+      (c) => {
+        const clientProgramRead = c.data();
+        const clientProgramRef = c.ref.withConverter(clientProgramConverter);
+        const clientProgramIdentifiers = deserializeClientProgramPath(
+          clientProgramRef.path
+        );
+        return {
+          ...clientProgramRead,
+          clientProgramId: c.id,
+          clientProgramRef,
+          clientProgramIdentifiers,
+          days: [],
+        };
+      }
+    );
 
     return clientPrograms;
   } catch (error) {
     console.error("Error fetching client programs:", error);
+    throw error;
   }
 }

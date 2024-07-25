@@ -5,6 +5,7 @@ import { updateDoc } from "../updateDoc";
 import { updateProfile } from "firebase/auth";
 import { auth } from "../../firebase/authApp";
 import { TGender } from "../../types/baseTypes";
+import { createClientRef } from "../../entities/client/client";
 
 export const updateClientPreference = async (
   clientId: string,
@@ -12,11 +13,7 @@ export const updateClientPreference = async (
   preferenceKey: keyof TClientPreferences,
   preferenceValue: TClientPreferences[keyof TClientPreferences]
 ) => {
-  const clientRef = doc(
-    db,
-    "clients",
-    clientId
-  ) as DocumentReference<TClientWrite>;
+  const clientRef = createClientRef({ clients: clientId });
 
   await updateDoc(clientRef, {
     preferences: {
@@ -33,11 +30,7 @@ export async function updateClientSetup(
   gender: TGender | ""
 ): Promise<boolean> {
   try {
-    const userRef = doc(
-      db,
-      "clients",
-      clientId
-    ) as DocumentReference<TClientWrite>;
+    const clientRef = createClientRef({ clients: clientId });
 
     await updateProfile(auth.currentUser!, {
       displayName: name,
@@ -45,7 +38,7 @@ export async function updateClientSetup(
 
     const birthDateString = _createDateString(birthDate);
 
-    await updateDoc(userRef, {
+    await updateDoc(clientRef, {
       name,
       birthDate: birthDateString,
       gender: gender as TGender,
@@ -62,11 +55,7 @@ export async function updateClientSetup(
 
 export const completeCurrentProgram = async (clientId: string) => {
   try {
-    const clientRef = doc(
-      db,
-      "clients",
-      clientId
-    ) as DocumentReference<TClientWrite>;
+    const clientRef = createClientRef({ clients: clientId });
 
     await updateDoc(clientRef, {
       currentProgramRef: deleteField(),
@@ -94,11 +83,7 @@ export const changeCurrentProgram = async (
   programId: string
 ) => {
   try {
-    const clientRef = doc(
-      db,
-      "clients",
-      clientId
-    ) as DocumentReference<TClientWrite>;
+    const clientRef = createClientRef({ clients: clientId });
 
     const programRef = doc(db, "clients", clientId, "programs", programId);
 

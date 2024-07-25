@@ -12,7 +12,6 @@ import {
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
 import { TClinician } from "../../types/clinicianTypes";
-import { ClinicianWrite } from "../../types/converterTypes";
 
 export async function getAllClinicians(): Promise<
   (TClinician & { uid: string })[]

@@ -8,7 +8,6 @@ import {
   DocumentReference,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
-import { TInvitationWrite } from "../../types/clinicianTypes";
 
 import { _getProgramFromRef } from "../programHelpers";
 import { updateDoc } from "../updateDoc";
@@ -27,6 +26,7 @@ import {
   TProgramVersionWrite,
 } from "../../entities/program/version";
 import { TClinicianClientRef } from "../../entities/clinician/clinicianClient";
+import { invitationConverter } from "../../entities/invitation/invitation";
 
 /**
  * @description Get program from code in app
@@ -38,16 +38,18 @@ export async function getProgramFromCode(code: string): Promise<{
   clinicianId: string;
   invitationId: string;
 }> {
+  const invitationCollectionRef = collection(db, "invitations").withConverter(
+    invitationConverter
+  );
+
   // We dont need a converter here because it would not convert anything
-  const q = query(collection(db, "invitations"), where("code", "==", code));
+  const q = query(invitationCollectionRef, where("code", "==", code));
 
-  const querySnapshot = (await getDocs(q)) as QuerySnapshot<TInvitationWrite>;
+  const querySnapshot = await getDocs(q);
 
-  if (querySnapshot.empty) {
-    console.log("No matching invitation found.");
-    throw new Error("No matching invitation found.");
-  }
+  if (querySnapshot.empty) throw new Error("No matching invitation found.");
 
+  // TODO: vantar að laga invitation converterinn þá þarf ekki að hafa þetta withConverter útum allt
   const firstDoc = querySnapshot.docs[0];
   const { clinicianClientRef } = firstDoc.data();
 
@@ -59,15 +61,18 @@ export async function getProgramFromCode(code: string): Promise<{
     throw new Error("Prescription not found for the given ClinicianClient");
   }
 
-  const { programRef } = clinicianClientData.prescription;
-  const program = await _getProgramFromRef(programRef);
+  const { programVersionRef } = clinicianClientData.prescription;
 
+  const program = await _getProgramFromRef(programVersionRef);
+
+  // TODO: what does this do?
   Object.keys(program.phases).forEach((key) => {
     if (key.includes("_") && !key.includes(clinicianClientRef.id)) {
       delete program.phases[key as TProgramPhaseKey];
     }
   });
 
+  // TODO: what does this do?
   Object.keys(program.days).forEach((key) => {
     if (key.includes("_") && !key.includes(clinicianClientRef.id)) {
       delete program.days[key as TProgramDayKey];
@@ -87,7 +92,12 @@ export async function getProgramFromCode(code: string): Promise<{
     },
   });
 
-  return { program, clinicianClientRef, clinicianId, invitationId };
+  return {
+    program,
+    clinicianClientRef: clinicianClientRef,
+    clinicianId,
+    invitationId,
+  };
 }
 
 export async function getAllEuneoPrograms(

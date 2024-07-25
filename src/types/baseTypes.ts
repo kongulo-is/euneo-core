@@ -53,30 +53,30 @@ export type TExerciseType =
  * @param displayID url video
  * @param assetID id of video in mux
  */
-export type TExercise = {
-  id: string;
-  variation: string;
-  description: string;
-  startPreview: number;
-  thumbnailTimestamp: number;
-  name: string;
-  steps: string[];
-  instructions?: string;
-  tips: string[];
-  videoLink: {
-    displayID: string;
-    assetID: string;
-  };
-  defaultSets: number | null;
-  defaultReps: number | null;
-  defaultTime: number | null;
-  type: TExerciseType;
-  editableFields: TExerciseField[];
-  isConsoleLive: boolean;
-  clinicianId?: string;
-  createdAt?: Date;
-  isArchived?: boolean;
-};
+// export type TExercise = {
+//   id: string;
+//   variation: string;
+//   description: string;
+//   startPreview: number;
+//   thumbnailTimestamp: number;
+//   name: string;
+//   steps: string[];
+//   instructions?: string;
+//   tips: string[];
+//   videoLink: {
+//     displayID: string;
+//     assetID: string;
+//   };
+//   defaultSets: number | null;
+//   defaultReps: number | null;
+//   defaultTime: number | null;
+//   type: TExerciseType;
+//   editableFields: TExerciseField[];
+//   isConsoleLive: boolean;
+//   clinicianId?: string;
+//   createdAt?: Date;
+//   isArchived?: boolean;
+// };
 
 export type TSectionGroup = {
   title: string;
@@ -186,30 +186,30 @@ export type TEuneoProgramId =
 
 // ! Write types
 
-export type TExerciseWrite = {
-  // TODO: þarf að vera á meðan gamla programmið er inni
-  description: string;
-  variation: string;
-  startPreview: number;
-  thumbnailTimestamp: number;
-  name: string;
-  steps: string[];
-  instructions?: string;
-  tips: string[];
-  videoLink: {
-    displayID: string;
-    assetID: string;
-  };
-  defaultSets: number | null;
-  defaultReps: number | null;
-  defaultTime: number | null;
-  type: TExerciseType;
-  editableFields: TExerciseField[];
-  isConsoleLive: boolean;
-  clinicianId?: string;
-  createdAt?: Timestamp;
-  isArchived?: boolean;
-};
+// export type TExerciseWrite = {
+//   // TODO: þarf að vera á meðan gamla programmið er inni
+//   description: string;
+//   variation: string;
+//   startPreview: number;
+//   thumbnailTimestamp: number;
+//   name: string;
+//   steps: string[];
+//   instructions?: string;
+//   tips: string[];
+//   videoLink: {
+//     displayID: string;
+//     assetID: string;
+//   };
+//   defaultSets: number | null;
+//   defaultReps: number | null;
+//   defaultTime: number | null;
+//   type: TExerciseType;
+//   editableFields: TExerciseField[];
+//   isConsoleLive: boolean;
+//   clinicianId?: string;
+//   createdAt?: Timestamp;
+//   isArchived?: boolean;
+// };
 
 export type TGender = "male" | "female" | "other";
 export type TPlatform = "ios" | "android" | "windows" | "macos" | "web";

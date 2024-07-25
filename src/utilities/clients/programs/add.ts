@@ -8,6 +8,7 @@ import {
 } from "../../../entities/program/program";
 import { TProgramPhaseKey } from "../../../entities/program/programPhase";
 import {
+  clientProgramDayConverter,
   createClientProgramDayRef,
   TClientProgramDay,
 } from "../../../entities/client/day";
@@ -20,7 +21,6 @@ import {
   TClientProgram_Euneo_Read,
   TClientProgramWrite,
 } from "../../../entities/client/clientProgram";
-import { clientProgramDayConverter } from "../../converters";
 import { createClientRef } from "../../../entities/client/client";
 import { TOutcomeMeasureId } from "../../../entities/outcomeMeasure/outcomeMeasure";
 import { TOutcomeMeasureAnswers } from "../../../entities/client/outcomeMeasureAnswer";

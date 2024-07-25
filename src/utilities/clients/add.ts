@@ -17,13 +17,13 @@ import { TClientProgram } from "../../entities/client/clientProgram";
  */
 export const addClientPreferences = async (
   clientId: string,
-  preferences: TClientPreferences,
+  preferences: TClientPreferences
 ) => {
   // TODO: move this out of here and take it as a parameter (also create a ref creator function for client)
   const clientRef: DocumentReference<TClientRead, TClientWrite> = doc(
     db,
     "clients",
-    clientId,
+    clientId
   ).withConverter(clientConverter);
 
   await updateDoc(clientRef, {
@@ -37,7 +37,7 @@ export const addClientPreferences = async (
 export async function createClientDocument(
   clientId: string,
   name: string,
-  platform: string,
+  platform: string
 ) {
   try {
     const clientRef = doc(db, "clients", clientId);
@@ -55,56 +55,56 @@ export async function createClientDocument(
 }
 
 /**
- * @description Used in app //TODO: add description
+ * @description Used in app //TODO: add description,  not used?
  */
-export async function createDuplicateDocument(
-  newClientId: string,
-  client: TClient,
-  clientProgram: TClientProgram,
-) {
-  try {
-    const clientRef = doc(db, "clients", newClientId);
-    const clientProgramRef = doc(
-      db,
-      "clients",
-      newClientId,
-      "programs",
-      clientProgram.clientProgramId,
-    );
-    // Update client document
-    await setDoc(clientRef, {
-      name: client.name,
-      gender: client.gender,
-      platform: client.platform,
-      birthDate: client.birthDate,
-      preferences: client.preferences,
-      currentProgramRef: clientProgramRef,
-    });
+// export async function createDuplicateDocument(
+//   newClientId: string,
+//   client: TClient,
+//   clientProgram: TClientProgram,
+// ) {
+//   try {
+//     const clientRef = doc(db, "clients", newClientId);
+//     const clientProgramRef = doc(
+//       db,
+//       "clients",
+//       newClientId,
+//       "programs",
+//       clientProgram.clientProgramId,
+//     );
+//     // Update client document
+//     await setDoc(clientRef, {
+//       name: client.name,
+//       gender: client.gender,
+//       platform: client.platform,
+//       birthDate: client.birthDate,
+//       preferences: client.preferences,
+//       currentProgramRef: clientProgramRef,
+//     });
 
-    await setDoc(
-      clientProgramRef.withConverter(clientProgramConverter),
-      clientProgram,
-    );
+//     await setDoc(
+//       clientProgramRef.withConverter(clientProgramConverter),
+//       clientProgram,
+//     );
 
-    await Promise.all(
-      clientProgram.days.map((day, i) => {
-        const dayCol = doc(
-          db,
-          "clients",
-          newClientId,
-          "programs",
-          clientProgramRef.id,
-          "days",
-          i.toString(),
-        );
-        return setDoc(dayCol.withConverter(clientProgramDayConverter), day);
-      }),
-    );
-    // Add program subcollection to client document
-  } catch (error) {
-    console.error("Error creating client document: ", error, {
-      client,
-    });
-    throw error;
-  }
-}
+//     await Promise.all(
+//       clientProgram.days.map((day, i) => {
+//         const dayCol = doc(
+//           db,
+//           "clients",
+//           newClientId,
+//           "programs",
+//           clientProgramRef.id,
+//           "days",
+//           i.toString(),
+//         );
+//         return setDoc(dayCol.withConverter(clientProgramDayConverter), day);
+//       }),
+//     );
+//     // Add program subcollection to client document
+//   } catch (error) {
+//     console.error("Error creating client document: ", error, {
+//       client,
+//     });
+//     throw error;
+//   }
+// }

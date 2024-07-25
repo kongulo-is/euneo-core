@@ -1,9 +1,6 @@
 import {
-  collection,
-  CollectionReference,
   getDocs,
   doc,
-  DocumentReference,
   getDoc,
   setDoc,
   query,
@@ -13,20 +10,25 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
-import { TExercise, TExerciseWrite } from "../../types/baseTypes";
-import { exerciseConverter } from "../converters";
 import { updateDoc } from "../updateDoc";
+import {
+  createExerciseCollectionRef,
+  createExerciseRef,
+  deserializeExercisePath,
+  TExercise,
+  TExerciseWrite,
+} from "../../entities/exercises/exercises";
 
 export async function getAllExercises(): Promise<Record<string, TExercise>> {
   try {
-    const exercisesRef = collection(
-      db,
-      "exercises"
-    ) as CollectionReference<TExerciseWrite>;
-    const exercisesSnap = await getDocs(
-      exercisesRef.withConverter(exerciseConverter)
-    );
-    const exercisesList = exercisesSnap.docs.map((doc) => doc.data());
+    const exerciseCollectionRef = createExerciseCollectionRef();
+    const exercisesSnap = await getDocs(exerciseCollectionRef);
+
+    const exercisesList: TExercise[] = exercisesSnap.docs.map((doc) => ({
+      ...doc.data(),
+      exerciseRef: doc.ref,
+      exerciseIdentifiers: deserializeExercisePath(doc.ref.path),
+    }));
 
     // create a map of exercises
     const exercises = Object.fromEntries(
@@ -40,54 +42,21 @@ export async function getAllExercises(): Promise<Record<string, TExercise>> {
   }
 }
 
-// export async function getAllEuneoAndClinicianExercises(
-//   clinicianId: string
-// ): Promise<Record<string, TExercise>> {
-//   try {
-//     const exercisesRef = collection(
-//       db,
-//       "exercises"
-//     ) as CollectionReference<TExerciseWrite>;
-
-//     // Create the query to filter by clinicianId
-//     const queryRef = query(
-//       exercisesRef.withConverter(exerciseConverter),
-//       where("clinicianId", "in", [null, clinicianId])
-//     );
-
-//     const exercisesSnap = await getDocs(queryRef);
-//     const exercisesList = exercisesSnap.docs.map((doc) => doc.data());
-
-//     // create a map of exercises
-//     const exercises = Object.fromEntries(
-//       exercisesList.map((exercise) => [exercise.id, exercise])
-//     );
-
-//     return exercises;
-//   } catch (error) {
-//     console.error("Error fetching exercises:", error);
-//     throw error;
-//   }
-// }
-
 export async function getAllEuneoAndClinicianExercises(
   clinicianId: string
 ): Promise<Record<string, TExercise>> {
   try {
-    const exercisesRef = collection(
-      db,
-      "exercises"
-    ) as CollectionReference<TExerciseWrite>;
+    const exerciseCollectionRef = createExerciseCollectionRef();
 
     // Query for exercises with the specific clinicianId and ID starting with "EHE"
     const clinicianQueryRef = query(
-      exercisesRef.withConverter(exerciseConverter),
+      exerciseCollectionRef,
       where("clinicianId", "==", clinicianId)
     );
 
     // Query for exercises without a clinicianId and ID starting with "EHE"
     const noClinicianQueryRef = query(
-      exercisesRef.withConverter(exerciseConverter),
+      exerciseCollectionRef,
       where("isConsoleLive", "==", true),
       orderBy("__name__"),
       startAt("EHE"),
@@ -112,11 +81,18 @@ export async function getAllEuneoAndClinicianExercises(
       // getDocs(developmentQueryRef),
     ]);
 
-    const clinicianExercisesList = clinicianExercisesSnap.docs.map((doc) =>
-      doc.data()
-    );
-    const noClinicianExercisesList = noClinicianExercisesSnap.docs.map((doc) =>
-      doc.data()
+    const clinicianExercisesList = clinicianExercisesSnap.docs.map((doc) => ({
+      ...doc.data(),
+      exerciseRef: doc.ref,
+      exerciseIdentifiers: deserializeExercisePath(doc.ref.path),
+    }));
+
+    const noClinicianExercisesList = noClinicianExercisesSnap.docs.map(
+      (doc) => ({
+        ...doc.data(),
+        exerciseRef: doc.ref,
+        exerciseIdentifiers: deserializeExercisePath(doc.ref.path),
+      })
     );
 
     // const developmentExercisesList = developmentExercisesSnap.docs.map((doc) =>
@@ -144,17 +120,16 @@ export async function getAllEuneoAndClinicianExercises(
 
 export async function getExerciseById(id: string): Promise<TExercise> {
   try {
-    const exerciseRef = doc(
-      db,
-      "exercises",
-      id
-    ) as DocumentReference<TExerciseWrite>;
-    const exerciseSnap = await getDoc(
-      exerciseRef.withConverter(exerciseConverter)
-    );
+    const exerciseRef = createExerciseRef({ exercises: id });
+    const exerciseSnap = await getDoc(exerciseRef);
     const exercise = exerciseSnap.data();
     if (!exercise) throw new Error(`Exercise with id ${id} not found`);
-    return exercise;
+
+    return {
+      ...exercise,
+      exerciseRef,
+      exerciseIdentifiers: deserializeExercisePath(exerciseRef.path),
+    };
   } catch (error) {
     console.error("Error fetching exercise:", error);
     throw error;
@@ -185,11 +160,7 @@ export async function updateExerciseTimestampAndPreview(
   time: number
 ): Promise<string> {
   try {
-    const exerciseRef = doc(
-      db,
-      "exercises",
-      exerciseId
-    ) as DocumentReference<TExerciseWrite>;
+    const exerciseRef = createExerciseRef({ exercises: exerciseId });
     await updateDoc(exerciseRef, {
       thumbnailTimestamp: time,
       startPreview: time,
