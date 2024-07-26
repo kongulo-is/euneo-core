@@ -18,6 +18,8 @@ import { TProgramPhase, TProgramPhaseKey } from "./programPhase";
 import { db } from "../../firebase/db";
 import { Collection } from "../global";
 
+export type TProgramRef = DocumentReference<TProgramRead, TProgramWrite>;
+
 export type TEuneoProgramIdentifiers = {
   [Collection.Programs]: string;
 };
@@ -50,7 +52,7 @@ type TProgramBase = {
     TProgramVersionRead,
     TProgramVersionWrite
   >;
-  programRef: DocumentReference<TProgramRead, TProgramWrite>;
+  programRef: TProgramRef;
 };
 
 export type TEuneoProgramRead = TProgramBase & {
@@ -135,7 +137,7 @@ export function createProgramRef({
 }: {
   clinicians?: string;
   programs?: string;
-}): DocumentReference<TProgramRead, TProgramWrite> {
+}): TProgramRef {
   const identifiers: TProgramIdentifiers = clinicians
     ? { clinicians: clinicians, programs: programs || "" }
     : { programs: programs || "" };
@@ -220,11 +222,11 @@ export const programConverter = {
 };
 
 export type TEuneoProgramInfo = TEuneoProgramRead & {
-  programRef: DocumentReference<TProgramRead, TProgramWrite>;
+  programRef: TProgramRef;
 };
 
 export type TClinicianProgramInfo = TClinicianProgramRead & {
-  programRef: DocumentReference<TProgramRead, TProgramWrite>;
+  programRef: TProgramRef;
 };
 
 export type TProgramInfo = TEuneoProgramInfo | TClinicianProgramInfo;

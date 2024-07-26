@@ -1,5 +1,6 @@
 import {
   collection,
+  CollectionReference,
   doc,
   DocumentReference,
   QueryDocumentSnapshot,
@@ -20,6 +21,11 @@ export type TInvitationIdentifiers = {
 };
 
 export type TInvitationRef = DocumentReference<
+  TInvitationRead,
+  TInvitationWrite
+>;
+
+export type TInvitationCollectionRef = CollectionReference<
   TInvitationRead,
   TInvitationWrite
 >;
@@ -47,7 +53,7 @@ export type TInvitation = TInvitationRead & {
 };
 
 export function serializeInvitationIdentifiers(
-  obj: TInvitationIdentifiers
+  obj: TInvitationIdentifiers,
 ): string {
   try {
     return `${Collection.Invitations}/${obj.invitations}`;
@@ -58,7 +64,7 @@ export function serializeInvitationIdentifiers(
 }
 
 export function deserializeInvitationPath(
-  path: string
+  path: string,
 ): TInvitationIdentifiers {
   try {
     const [_invitations, invitationId] = path.split("/");
@@ -71,11 +77,9 @@ export function deserializeInvitationPath(
   }
 }
 
-export function createInvitationRef({
-  invitations,
-}: {
-  invitations?: string;
-}): DocumentReference<TInvitationRead, TInvitationWrite> {
+export function createInvitationRef(
+  invitations?: string,
+): DocumentReference<TInvitationRead, TInvitationWrite> {
   const path = `${Collection.Invitations}`;
   const invitationsCollection = collection(db, path);
 
@@ -84,6 +88,15 @@ export function createInvitationRef({
     : doc(invitationsCollection).withConverter(invitationConverter);
 
   return invitationRef;
+}
+
+export function createInvitationCollectionRef(): TInvitationCollectionRef {
+  const path = `${Collection.Invitations}`;
+  const invitationsCollection = collection(db, path).withConverter(
+    invitationConverter,
+  );
+
+  return invitationsCollection;
 }
 
 export const invitationConverter = {
@@ -96,7 +109,7 @@ export const invitationConverter = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TInvitationWrite>,
-    options: SnapshotOptions
+    options: SnapshotOptions,
   ): TInvitationRead {
     const data = snapshot.data(options);
 
@@ -104,10 +117,10 @@ export const invitationConverter = {
       ...data,
       date: data.date.toDate(),
       clinicianClientRef: data.clinicianClientRef.withConverter(
-        clinicianClientConverter
+        clinicianClientConverter,
       ),
       clinicianClientIdentifiers: deserializeClinicianClientPath(
-        data.clinicianClientRef.path
+        data.clinicianClientRef.path,
       ),
     };
 

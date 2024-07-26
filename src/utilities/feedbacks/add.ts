@@ -1,11 +1,11 @@
 import { addDoc, collection, doc } from "firebase/firestore";
 import { db } from "../../firebase/db";
-import { TFeedbackAnswer } from "../../types/baseTypes";
+import { TFeedbackAnswer } from "../../entities/feedback/feedback";
 
 export async function createFeedback(
   feedbackAnswers: TFeedbackAnswer[],
   clientId: string,
-  platform: string
+  platform: string,
 ) {
   try {
     const clientRef = doc(db, "clients", clientId);

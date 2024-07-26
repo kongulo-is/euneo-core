@@ -1,5 +1,4 @@
 import {
-  collection,
   doc,
   DocumentReference,
   QueryDocumentSnapshot,
@@ -14,6 +13,8 @@ import {
 import { Collection } from "../global";
 import { db } from "../../firebase/db";
 
+export type TGender = "male" | "female" | "other";
+
 export type TClientPreferences = {
   reminders: {
     exercise?: {
@@ -27,7 +28,7 @@ export type TClientPreferences = {
 
 export type TClientWrite = {
   name: string;
-  gender: "male" | "female" | "other";
+  gender: TGender;
   platform: "android" | "ios";
   birthDate: string;
   email?: string;
@@ -42,7 +43,7 @@ export type TClientWrite = {
 type TClientBase = {
   name: string;
   birthDate: string;
-  gender: "male" | "female" | "other";
+  gender: TGender;
   platform: "ios" | "android";
   preferences: TClientPreferences;
 };
@@ -73,7 +74,7 @@ export function createClientRef({
 }
 
 export function hasCurrentClientProgram(
-  client: TClientRead
+  client: TClientRead,
 ): client is TClient_WithCurrentClientProgram_Read {
   return "currentClientProgramRef" in client;
 }
@@ -95,7 +96,7 @@ export const clientConverter = {
   // only needs to convert clientProgramRef to id
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TClientWrite>,
-    options: SnapshotOptions
+    options: SnapshotOptions,
   ): TClientRead {
     const data = snapshot.data(options);
     let {
@@ -119,7 +120,7 @@ export const clientConverter = {
       ...(currentClientProgramRef && {
         currentClientProgramRef,
         currentClientProgramIdentifiers: deserializeClientProgramPath(
-          currentClientProgramRef.path
+          currentClientProgramRef.path,
         ),
       }),
     };

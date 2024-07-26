@@ -1,9 +1,11 @@
 import { doc, DocumentReference, setDoc, Timestamp } from "firebase/firestore";
 
 import {
+  createProgramVersionRef,
   deserializeProgramVersionPath,
   isClinicianProgramVersionIdentifiers,
   programVersionConverter,
+  TProgramVersion,
   TProgramVersionRead,
   TProgramVersionWrite,
 } from "../../../entities/program/version";
@@ -115,21 +117,21 @@ export async function createNewClinicianProgramVersion(
 
 export async function createModifiedClinicianProgramVersion(
   currentProgram: TClinicianProgram,
-  newProgramVersion: TProgramVersionRead,
+  newProgramVersionRead: TProgramVersionRead,
   phases: Record<TProgramPhaseKey, TProgramPhaseForm>,
   days: Record<TProgramDayKey, TProgramDayRead>,
   version: string,
 ): Promise<TClinicianProgram> {
   try {
     const { programRef } = currentProgram.programInfo;
-    const newProgramVersionRef: DocumentReference<
-      TProgramVersionRead,
-      TProgramVersionWrite
-    > = doc(programRef, Collection.Versions, version).withConverter(
-      programVersionConverter,
-    );
+
+    const newProgramVersionRef = createProgramVersionRef({
+      programRef,
+      versions: version,
+    });
+
     // convert and create new program version.
-    await setDoc(newProgramVersionRef, newProgramVersion);
+    await setDoc(newProgramVersionRef, newProgramVersionRead);
 
     await _saveDays(newProgramVersionRef, days);
 
@@ -145,6 +147,18 @@ export async function createModifiedClinicianProgramVersion(
       highestPhaseId,
     );
 
+    const newProgramVersion: TProgramVersion = {
+      ...newProgramVersionRead,
+      programVersionRef: newProgramVersionRef,
+    };
+    const programVersionIdentifiers = deserializeProgramVersionPath(
+      newProgramVersionRef.path,
+    );
+
+    if (!isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
+      throw new Error("Invalid program version identifiers");
+    }
+
     const clinicianProgram: TClinicianProgram = {
       programInfo: {
         ...currentProgram.programInfo,
@@ -153,10 +167,7 @@ export async function createModifiedClinicianProgramVersion(
       days,
       phases: phasesRead,
       creator: "clinician",
-      programIdentifiers: {
-        ...currentprogram.programVersionIdentifiers,
-        versions: version,
-      },
+      programVersionIdentifiers: programVersionIdentifiers,
     };
 
     return clinicianProgram;

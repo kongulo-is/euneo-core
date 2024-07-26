@@ -1,17 +1,19 @@
-import { DocumentReference, deleteField, doc } from "firebase/firestore";
-import { TClientPreferences, TClientWrite } from "../../types/clientTypes";
+import { deleteField, doc } from "firebase/firestore";
 import { db } from "../../firebase/db";
 import { updateDoc } from "../updateDoc";
 import { updateProfile } from "firebase/auth";
 import { auth } from "../../firebase/authApp";
-import { TGender } from "../../types/baseTypes";
-import { createClientRef } from "../../entities/client/client";
+import {
+  createClientRef,
+  TClientPreferences,
+  TGender,
+} from "../../entities/client/client";
 
 export const updateClientPreference = async (
   clientId: string,
   oldPreferences: TClientPreferences,
   preferenceKey: keyof TClientPreferences,
-  preferenceValue: TClientPreferences[keyof TClientPreferences]
+  preferenceValue: TClientPreferences[keyof TClientPreferences],
 ) => {
   const clientRef = createClientRef({ clients: clientId });
 
@@ -27,7 +29,7 @@ export async function updateClientSetup(
   clientId: string,
   name: string,
   birthDate: Date,
-  gender: TGender | ""
+  gender: TGender | "",
 ): Promise<boolean> {
   try {
     const clientRef = createClientRef({ clients: clientId });
@@ -80,7 +82,7 @@ export const _createDateString = (date: Date) => {
 
 export const changeCurrentProgram = async (
   clientId: string,
-  programId: string
+  programId: string,
 ) => {
   try {
     const clientRef = createClientRef({ clients: clientId });

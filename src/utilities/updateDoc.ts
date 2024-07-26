@@ -4,8 +4,6 @@ import {
   updateDoc as firestoreUpdateDoc,
 } from "firebase/firestore";
 
-import { TExerciseDayWrite } from "../types/programTypes";
-
 import { TProgramVersionWrite } from "../entities/program/version";
 import { TProgramWrite } from "../entities/program/program";
 import { TClientProgramWrite } from "../entities/client/clientProgram";
@@ -27,14 +25,14 @@ type AllWrites =
   | TProgramVersionWrite
   | TProgramWrite
   | TProgramDayWrite
-  | TExerciseDayWrite
+  | TExerciseWrite
   | TInvitationWrite
   | TProgramPhaseWrite
   | TExerciseWrite;
 
 export function updateDoc<T extends AllWrites>(
   ref: DocumentReference<any, T>,
-  data: UpdateData<Partial<T>>
+  data: UpdateData<Partial<T>>,
 ) {
   return firestoreUpdateDoc(ref, data);
 }

@@ -1,4 +1,4 @@
-import { TPhysicalActivity } from "../../types/baseTypes";
+export type TPhysicalActivity = "none" | "low" | "moderate" | "high";
 
 /**
  * @memberof TClientProgram

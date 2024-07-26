@@ -1,5 +1,5 @@
 import mixpanel from "mixpanel-browser";
-import { TConditionId } from "../types/baseTypes";
+import { TConditionId } from "../entities/global";
 
 mixpanel.init("797e64277a6a3f8fb37e98dc8c1ff223");
 

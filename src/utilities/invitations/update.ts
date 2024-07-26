@@ -1,15 +1,11 @@
-import { TInvitation } from "../../types/clinicianTypes";
 import { updateDoc } from "../updateDoc";
-import { createInvitationRef } from "../../entities/invitation/invitation";
+import { TInvitation } from "../../entities/invitation/invitation";
 
 export function updateInvitation(
-  updatedInvitation: TInvitation
+  // TODO: this is dumd, should take in ref and data to update
+  updatedInvitation: TInvitation,
 ): Promise<void> {
-  const invitationRef = createInvitationRef({
-    invitations: updatedInvitation.invitationId,
-  });
-
-  return updateDoc(invitationRef, {
+  return updateDoc(updatedInvitation.invitationRef, {
     date: updatedInvitation.date,
     code: updatedInvitation.code,
   });

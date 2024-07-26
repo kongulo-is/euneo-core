@@ -1,19 +1,36 @@
-import { addDoc, collection, doc } from "firebase/firestore";
-import { db } from "../../firebase/db";
-import { TClinicianClientRef } from "../../entities/clinician/clinicianClient";
+import { setDoc } from "firebase/firestore";
+import {
+  deserializeClinicianClientPath,
+  TClinicianClientRef,
+} from "../../entities/clinician/clinicianClient";
+import {
+  createInvitationRef,
+  deserializeInvitationPath,
+  TInvitation,
+  TInvitationRead,
+} from "../../entities/invitation/invitation";
 
 export async function createInvitation(
   clinicianClientRef: TClinicianClientRef,
   code: string,
-) {
+): Promise<TInvitation> {
   // Create invitation for client
-  const invitationsRef = collection(db, "invitations");
+  const invitationRef = createInvitationRef();
 
-  const invitationRef = await addDoc(invitationsRef, {
+  const invitation: TInvitationRead = {
     clinicianClientRef,
+    clinicianClientIdentifiers: deserializeClinicianClientPath(
+      clinicianClientRef.path,
+    ),
     code,
     date: new Date(),
-  });
+  };
 
-  return invitationRef.id;
+  await setDoc(invitationRef, invitation);
+
+  return {
+    ...invitation,
+    invitationRef,
+    invitationIdentifiers: deserializeInvitationPath(invitationRef.path),
+  };
 }

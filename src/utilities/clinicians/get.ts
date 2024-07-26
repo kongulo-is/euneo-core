@@ -2,7 +2,6 @@ import {
   collection,
   CollectionReference,
   doc,
-  DocumentData,
   DocumentReference,
   getDoc,
   getDocs,
@@ -11,16 +10,17 @@ import {
   Unsubscribe,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
-import { TClinician } from "../../types/clinicianTypes";
+import {
+  createClinicianCollectionRef,
+  TClinician,
+} from "../../entities/clinician/clinician";
 
 export async function getAllClinicians(): Promise<
   (TClinician & { uid: string })[]
 > {
   try {
-    const cliniciansRef = collection(
-      db,
-      "clinicians"
-    ) as CollectionReference<TClinician>;
+    // TODO: create a converter
+    const cliniciansRef = createClinicianCollectionRef();
 
     const cliniciansDoc = await getDocs(cliniciansRef);
 
@@ -38,10 +38,7 @@ export async function getAllClinicians(): Promise<
 
 export async function getAllCliniciansIds(): Promise<string[]> {
   try {
-    const cliniciansRef = collection(
-      db,
-      "clinicians"
-    ) as CollectionReference<TClinician>;
+    const cliniciansRef = createClinicianCollectionRef();
 
     const cliniciansDoc = await getDocs(cliniciansRef);
 
@@ -59,7 +56,7 @@ export async function getClinician(clinicianId: string): Promise<TClinician> {
     const clinicianRef = doc(
       db,
       "clinicians",
-      clinicianId
+      clinicianId,
     ) as DocumentReference<TClinician>;
 
     const clinicianDoc = await getDoc(clinicianRef);
@@ -77,13 +74,13 @@ export async function getClinician(clinicianId: string): Promise<TClinician> {
 
 export async function clinicianVideoPoolListener(
   clinicianId: string,
-  callback: (videos: { assetID: string; displayID: string }[]) => Promise<void>
+  callback: (videos: { assetID: string; displayID: string }[]) => Promise<void>,
 ): Promise<Unsubscribe> {
   const videoPoolCollectionRef = collection(
     db,
     "clinicians",
     clinicianId,
-    "videoPool"
+    "videoPool",
   ) as CollectionReference<{ assetID: string; displayID: string }>;
 
   const unsubscribe = onSnapshot(
@@ -97,14 +94,14 @@ export async function clinicianVideoPoolListener(
         // Collection is empty, call the callback with an empty array
         await callback([]);
       }
-    }
+    },
   );
 
   return unsubscribe;
 }
 
 export async function checkIfClinicianExists(
-  clinicianId: string
+  clinicianId: string,
 ): Promise<boolean> {
   try {
     const clinicianRef = doc(db, "clinicians", clinicianId);

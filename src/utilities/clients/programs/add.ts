@@ -1,5 +1,4 @@
-import { doc, setDoc, DocumentReference } from "firebase/firestore";
-import { db } from "../../../firebase/db";
+import { doc, setDoc } from "firebase/firestore";
 
 import { createPhase } from "../../programHelpers";
 import {
@@ -19,7 +18,7 @@ import {
   TClientProgram_ClinicianWithPrescription_Read,
   TClientProgram_Euneo,
   TClientProgram_Euneo_Read,
-  TClientProgramWrite,
+  TClientProgramRef,
 } from "../../../entities/client/clientProgram";
 import { createClientRef } from "../../../entities/client/client";
 import { TOutcomeMeasureId } from "../../../entities/outcomeMeasure/outcomeMeasure";
@@ -32,25 +31,17 @@ import { updateDoc } from "../../updateDoc";
  * @description used in app? //TODO: add description here what does this mean? how do I use it?
  */
 async function _addDaysToFirestore(
-  clientId: string,
-  clientProgramId: string,
+  clientProgramRef: TClientProgramRef,
   days: TClientProgramDay[],
-  firstDocIndex: number
+  firstDocIndex: number,
 ) {
-  const programRef = doc(
-    db,
-    "clients",
-    clientId,
-    "programs",
-    clientProgramId
-  ) as DocumentReference<TClientProgramWrite>;
   // Update days documents
   await Promise.all(
     days.map((day, i) => {
       const dayNumber = i + firstDocIndex;
-      const dayCol = doc(programRef, "days", dayNumber.toString());
+      const dayCol = doc(clientProgramRef, "days", dayNumber.toString());
       return setDoc(dayCol.withConverter(clientProgramDayConverter), day);
-    })
+    }),
   );
 }
 
@@ -62,7 +53,7 @@ export async function addClinicianProgramToClient(
   clientId: string,
   clientProgramRead: TClientProgram_ClinicianWithPrescription_Read,
   program: TClinicianProgram,
-  startPhase: TProgramPhaseKey = "p1"
+  startPhase: TProgramPhaseKey = "p1",
 ): Promise<TClientProgram_Clinician> {
   // Store the program in the Firestore database
   const clientProgramRef = createClientProgramRef({
@@ -76,7 +67,7 @@ export async function addClinicianProgramToClient(
     program,
     startPhase,
     new Date(),
-    program.phases[startPhase].length || 14
+    program.phases[startPhase].length || 14,
   );
 
   const clientClinicianProgram: TClientProgram_Clinician = {
@@ -84,7 +75,7 @@ export async function addClinicianProgramToClient(
     days: clientProgramDays,
     clientProgramRef: clientProgramRef,
     clientProgramIdentifiers: deserializeClientProgramPath(
-      clientProgramRef.path
+      clientProgramRef.path,
     ),
   };
 
@@ -97,7 +88,7 @@ export async function addClinicianProgramToClient(
       });
 
       return setDoc(dayRef, day);
-    })
+    }),
   );
 
   const clientRef = createClientRef({
@@ -117,7 +108,7 @@ export async function addEuneoProgramToClient(
   clientId: string,
   clientProgramRead: TClientProgram_Euneo_Read,
   program: TEuneoProgram,
-  phaseId: TProgramPhaseKey
+  phaseId: TProgramPhaseKey,
 ): Promise<TClientProgram_Euneo> {
   const { trainingDays, phases } = clientProgramRead;
 
@@ -129,7 +120,7 @@ export async function addEuneoProgramToClient(
     program,
     phaseId,
     new Date(),
-    phaseLength
+    phaseLength,
   );
 
   const clientProgramRef = createClientProgramRef({
@@ -146,7 +137,7 @@ export async function addEuneoProgramToClient(
     days: clientProgramDays,
     clientProgramRef: clientProgramRef,
     clientProgramIdentifiers: deserializeClientProgramPath(
-      clientProgramRef.path
+      clientProgramRef.path,
     ),
   };
 
@@ -164,7 +155,7 @@ export async function addEuneoProgramToClient(
       console.log("dayRef", dayRef.path);
 
       return setDoc(dayRef, day);
-    })
+    }),
   );
 
   const clientRef = createClientRef({
@@ -181,7 +172,7 @@ export async function addOutcomeMeasureToClientProgram(
   clientId: string,
   clientProgramId: string,
   outcomeMeasuresAnswers: Record<TOutcomeMeasureId, TOutcomeMeasureAnswers[]>,
-  newData: Record<Partial<TOutcomeMeasureId>, TOutcomeMeasureAnswers>
+  newData: Record<Partial<TOutcomeMeasureId>, TOutcomeMeasureAnswers>,
 ) {
   try {
     const clientProgramRef = createClientProgramRef({
@@ -217,7 +208,7 @@ export async function addPainLevelToClientProgram(
   clientId: string,
   clientProgramId: string,
   oldPainLevels: TPainLevel[],
-  newPainLevel: TPainLevel
+  newPainLevel: TPainLevel,
 ) {
   try {
     const clientProgramRef = createClientProgramRef({
@@ -245,14 +236,14 @@ export async function addPhaseToClientProgram(
   clientProgramId: string,
   newPhase: TClientProgramDay[],
   programPhases: TPhase[],
-  firstDocIndex: number
+  firstDocIndex: number,
 ) {
-  await _addDaysToFirestore(clientId, clientProgramId, newPhase, firstDocIndex);
-
   const clientProgramRef = createClientProgramRef({
     clients: clientId,
     programs: clientProgramId,
   });
+
+  await _addDaysToFirestore(clientProgramRef, newPhase, firstDocIndex);
 
   await updateDoc(clientProgramRef, {
     phases: programPhases,
@@ -260,12 +251,11 @@ export async function addPhaseToClientProgram(
 }
 
 export async function addContinuousDaysToClientProgram(
-  clientId: string,
-  clientProgramId: string,
+  clientProgramRef: TClientProgramRef,
   newDays: TClientProgramDay[],
-  firstDocIndex: number
+  firstDocIndex: number,
 ) {
-  await _addDaysToFirestore(clientId, clientProgramId, newDays, firstDocIndex);
+  await _addDaysToFirestore(clientProgramRef, newDays, firstDocIndex);
 }
 
 export async function updateTrainingDays(
@@ -273,7 +263,7 @@ export async function updateTrainingDays(
   clientProgramId: string,
   newDays: TClientProgramDay[],
   trainingDays: boolean[],
-  firstDocIndex: number
+  firstDocIndex: number,
 ) {
   const clientProgramRef = createClientProgramRef({
     clients: clientId,
@@ -285,5 +275,5 @@ export async function updateTrainingDays(
     trainingDays: trainingDays,
   });
 
-  await _addDaysToFirestore(clientId, clientProgramId, newDays, firstDocIndex);
+  await _addDaysToFirestore(clientProgramRef, newDays, firstDocIndex);
 }

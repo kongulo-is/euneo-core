@@ -1,4 +1,4 @@
-import { TConditionId } from "../types/baseTypes";
+import { TConditionId } from "../entities/global";
 
 export type TEuneoMixpanelData =
   | {

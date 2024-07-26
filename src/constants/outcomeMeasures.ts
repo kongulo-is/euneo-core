@@ -1,4 +1,4 @@
-import { TOutcomeMeasureId } from "../types/clinicianTypes";
+import { TOutcomeMeasureId } from "../entities/outcomeMeasure/outcomeMeasure";
 
 export type TOutcomeMeasure = {
   id: TOutcomeMeasureId;
@@ -60,7 +60,7 @@ export const outcomeMeasureOptions = Object.entries(outcomeMeasures).map(
   ([value, measure]) => ({
     value,
     label: measure.name,
-  })
+  }),
 );
 
 export const outcomeMeasureIdEnum = Object.keys(outcomeMeasures) as [

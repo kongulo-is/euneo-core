@@ -16,8 +16,8 @@ import { createClinicianClientRef } from "../../entities/clinician/clinicianClie
 
 export function getProgramCode(
   clinicianId: string,
-  clinicianClientId: string
-): Promise<TInvitation> {
+  clinicianClientId: string,
+): Promise<TInvitation | undefined> {
   const clinicianClientRef = createClinicianClientRef({
     clinicians: clinicianId,
     clients: clinicianClientId,
@@ -25,12 +25,12 @@ export function getProgramCode(
 
   // query the database for the invitation code
   const invitationRef = collection(db, "invitations").withConverter(
-    invitationConverter
+    invitationConverter,
   );
   const q = query(
     invitationRef,
     orderBy("date", "desc"), // assumes the field is named 'date' and we're sorting in descending order
-    where("clinicianClientRef", "==", clinicianClientRef)
+    where("clinicianClientRef", "==", clinicianClientRef),
   );
 
   return getDocs(q).then((querySnapshot) => {
@@ -47,6 +47,7 @@ export function getProgramCode(
 
       return invitation; // Assumes code is a string. Format it here if necessary.
     }
-    throw new Error("No invitation found");
+    console.error("No invitation found");
+    return;
   });
 }

@@ -1,11 +1,12 @@
 import { DocumentReference, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../../../firebase/db";
-import { TProgramPhaseKey, TProgramWrite } from "../../../types/programTypes";
 import {
   TProgramVersionRead,
   TProgramVersionWrite,
 } from "../../../entities/program/version";
 import { Collection } from "../../../entities/global";
+import { TProgramPhaseKey } from "../../../entities/program/programPhase";
+import { TProgramWrite } from "../../../entities/program/program";
 
 export async function removeClinicianProgramPhase(
   programVersionRef: DocumentReference<
@@ -30,6 +31,7 @@ export async function removeClinicianProgramPhase(
   }
 }
 
+// TODO: fix this function
 export async function removeClinicianProgramDay(
   clinicianId: string,
   clinicianProgramId: string,

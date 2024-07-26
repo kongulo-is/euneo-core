@@ -1,7 +1,6 @@
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase/db";
-import { TClient } from "../../types/clientTypes";
-import { clientConverter } from "../../entities/client/client";
+import { clientConverter, TClient } from "../../entities/client/client";
 
 /**
  * @description Used in app? //TODO: add description

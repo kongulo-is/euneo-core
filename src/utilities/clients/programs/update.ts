@@ -26,6 +26,7 @@ import { TPhase } from "../../../entities/client/phase";
 import {
   createClientProgramRef,
   TClientProgram,
+  TClientProgramRef,
   TClientProgramWrite,
 } from "../../../entities/client/clientProgram";
 import {
@@ -37,7 +38,7 @@ const _getNumberOfDaysToModifyAndRemove = (
   clientProgramDays: TClientProgramDay[],
   oldCurrentPhase: TProgramPhase,
   newCurrentPhase: TProgramPhase,
-  startDayIndex: number
+  startDayIndex: number,
 ) => {
   // If not finite phase, then we don't need to worry about removing days since the number of days does not change
   if (oldCurrentPhase.mode !== "finite" || newCurrentPhase.mode !== "finite") {
@@ -58,14 +59,14 @@ const _getNumberOfDaysToModifyAndRemove = (
 };
 
 // Helper function to update program fields
+// TODO: explain better, a function should only do 1 thing
 const _updateProgram = async (
-  clientId: string,
-  clientProgramId: string,
+  clientProgramRef: TClientProgramRef,
   clinicianClientRef: TClinicianClientRef,
   programVersionRef: TProgramVersionRef,
-  updatedPhases: TPhase[]
+  updatedPhases: TPhase[],
 ) => {
-  await updateProgramFields(clientId, clientProgramId, {
+  await updateClientProgramFields(clientProgramRef, {
     clinicianClientRef,
     programVersionRef,
     shouldRefetch: true,
@@ -82,7 +83,7 @@ export async function updateProgramDay(
   clientProgramId: string,
   dayId: string,
   exercises: { iteration: number }[],
-  adherence: number
+  adherence: number,
 ) {
   try {
     const dayRef = createClientProgramDayRef({
@@ -114,7 +115,7 @@ export async function updateProgramDayDate(
   clientId: string,
   clientProgramId: string,
   dayId: string,
-  newDate: Date
+  newDate: Date,
 ) {
   try {
     const clientProgramDayRef = createClientProgramDayRef({
@@ -140,17 +141,10 @@ export async function updateProgramDayDate(
 }
 
 // TODO: Fix this fucntion
-export async function updateProgramFields(
-  clientId: string,
-  clientProgramId: string,
-  fields: Partial<TClientProgramWrite>
+export async function updateClientProgramFields(
+  clientProgramRef: TClientProgramRef,
+  fields: Partial<TClientProgramWrite>,
 ) {
-  // TODO: take this ref in as field?
-  const clientProgramRef = createClientProgramRef({
-    clients: clientId,
-    programs: clientProgramId,
-  });
-
   return await updateDoc(clientProgramRef, {
     ...fields,
   })
@@ -161,7 +155,7 @@ export async function updateProgramFields(
 // TODO: Fix this fucntion
 export async function completeProgram(
   clientId: string,
-  clientProgramId: string
+  clientProgramId: string,
 ) {
   // TODO: take this ref in as field?
   const clientProgramRef = createClientProgramRef({
@@ -179,7 +173,7 @@ export async function completeProgram(
 // TODO: Fix this fucntion
 export async function removeRefetchFromProgram(
   clientId: string,
-  clientProgramId: string
+  clientProgramId: string,
 ) {
   // TODO: take this ref in as field?
   const clientProgramRef = createClientProgramRef({
@@ -205,7 +199,7 @@ export async function updateClientProgramVersion(
   program: TClinicianProgram,
   oldProgram: TProgram,
   clinicianClientId: string,
-  version: string
+  version: string,
 ) {
   try {
     // Destructure days and trainingDays from the client program
@@ -223,13 +217,7 @@ export async function updateClientProgramVersion(
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // TODO: find a smarter way to do this, use the refs in the program? and stop using as
-    const clinicianRef = doc(
-      db,
-      "clinicians",
-      clinicianId
-    ) as DocumentReference<TClinicianWrite>;
-
+    // TODO: should we take this in instead?
     const clinicianClientRef = createClinicianClientRef({
       clinicians: clinicianId,
       clients: clinicianClientId,
@@ -241,14 +229,18 @@ export async function updateClientProgramVersion(
       versions: version,
     });
 
+    const clientProgramRef = createClientProgramRef({
+      clients: clientId,
+      programs: clientProgram.clientProgramIdentifiers.programs,
+    });
+
     // If the last day in the client program is before today, update the program and exit
     if (days[days.length - 1].date < today) {
       await _updateProgram(
-        clientId,
-        clientProgram.clientProgramIdentifiers.programs,
+        clientProgramRef,
         clinicianClientRef,
         programVersionRef,
-        clientProgram.phases
+        clientProgram.phases,
       );
       return true;
     }
@@ -270,16 +262,15 @@ export async function updateClientProgramVersion(
         days,
         oldCurrentPhase,
         currentPhase,
-        currDayIndex
+        currDayIndex,
       );
 
     // If there are more days to remove than modify, remove the excess days
     if (numberOfDaysToRemove > numberOfDaysToModify) {
       await removeDaysFromClientProgram(
-        clientId,
-        clientProgram.clientProgramIdentifiers.programs,
+        clientProgram.clientProgramRef,
         startDocIndex,
-        numberOfDaysToRemove
+        numberOfDaysToRemove,
       );
     }
 
@@ -290,15 +281,14 @@ export async function updateClientProgramVersion(
       currentPhaseId,
       new Date(),
       numberOfDaysToModify,
-      currentPhase.days[startPhaseDayIndex] ? startPhaseDayIndex : 0
+      currentPhase.days[startPhaseDayIndex] ? startPhaseDayIndex : 0,
     );
 
     // Add the newly created days to the client program
     await addContinuousDaysToClientProgram(
-      clientId,
-      clientProgram.clientProgramIdentifiers.programs,
+      clientProgram.clientProgramRef,
       newDays,
-      startDocIndex
+      startDocIndex,
     );
 
     // Update the phases array with the new phase information
@@ -313,11 +303,10 @@ export async function updateClientProgramVersion(
 
     // Update the client program with the new phases
     await _updateProgram(
-      clientId,
-      clientProgram.clientProgramIdentifiers.programs,
+      clientProgramRef,
       clinicianClientRef,
       programVersionRef,
-      updatedPhases
+      updatedPhases,
     );
 
     return true;
@@ -336,17 +325,16 @@ export async function setClientProgramVersion<T extends TProgram>(
   clinicianId: string,
   clinicianClientId: string,
   version: string,
-  updatePrescription?: boolean
+  updatePrescription?: boolean,
 ) {
   try {
     // start by removing the current day and future days from the client's program
     const { days: newDays } = updatedClientProgram;
 
     addContinuousDaysToClientProgram(
-      clientId,
-      updatedClientProgram.clientProgramIdentifiers.programs,
+      updatedClientProgram.clientProgramRef,
       newDays,
-      0
+      0,
     );
 
     const programVersionRef = createProgramVersionRef({
@@ -355,35 +343,25 @@ export async function setClientProgramVersion<T extends TProgram>(
       versions: program.programVersionIdentifiers.versions,
     });
 
-    updateProgramFields(
-      clientId,
-      updatedClientProgram.clientProgramIdentifiers.programs,
-      {
-        phases: updatedClientProgram.phases,
-        clinicianClientRef: doc(
-          db,
-          "clinicians",
-          clinicianId,
-          "clients",
-          clinicianClientId
-        ) as DocumentReference<TClinicianClientWrite>,
-        programRef,
-        shouldRefetch: true,
-      }
-    );
+    const clinicianClientRef = createClinicianClientRef({
+      clinicians: clinicianId,
+      clients: clinicianClientId,
+    });
+
+    const clientProgramRef = createClientProgramRef({
+      clients: clientId,
+      programs: updatedClientProgram.clientProgramIdentifiers.programs,
+    });
+
+    updateClientProgramFields(clientProgramRef, {
+      phases: updatedClientProgram.phases,
+      clinicianClientRef,
+      programVersionRef,
+      shouldRefetch: true,
+    });
 
     if (updatePrescription) {
       // Update prescription program reference
-      const clinicanRef = doc(
-        db,
-        "clinicians",
-        clinicianId
-      ) as DocumentReference<TClinicianWrite>;
-      const clinicianClientRef = doc(
-        clinicanRef,
-        "clients",
-        clinicianClientId
-      ) as DocumentReference<TClinicianClientWrite>;
       updateDoc(clinicianClientRef, {
         "prescription.programVersionRef": programVersionRef,
       });
@@ -398,12 +376,9 @@ export async function setClientProgramVersion<T extends TProgram>(
 // Function that changes the phase a client is in
 export async function changeClientPhase(
   clientProgram: TClientProgram,
-  clientId: string,
   program: TProgram,
   newPhaseId: TProgramPhaseKey,
-  currentPhaseId: TProgramPhaseKey,
-  clinicianId: string,
-  clinicianClientId: string
+  clinicianClientRef: TClinicianClientRef,
 ) {
   try {
     const { days, trainingDays } = clientProgram;
@@ -432,10 +407,9 @@ export async function changeClientPhase(
     // Remove days from the client program if there are days to remove
     if (numOfDaysToRemove > 0) {
       await removeDaysFromClientProgram(
-        clientId,
-        clientProgram.clientProgramId,
+        clientProgram.clientProgramRef,
         startDocIndex,
-        numOfDaysToRemove
+        numOfDaysToRemove,
       );
     }
 
@@ -447,15 +421,14 @@ export async function changeClientPhase(
       newPhaseId,
       new Date(), // Start the new phase from today
       newPhase.length || 14, // Default length of the new phase to 14 days if not specified
-      0 // Start the new phase at day 0
+      0, // Start the new phase at day 0
     );
 
     // Add new days to the client program
     addContinuousDaysToClientProgram(
-      clientId,
-      clientProgram.clientProgramId,
+      clientProgram.clientProgramRef,
       newDays,
-      startDocIndex
+      startDocIndex,
     );
 
     // Copy the existing phases
@@ -482,15 +455,9 @@ export async function changeClientPhase(
     });
 
     // Update the client program with the new phases and reference to the clinician client
-    updateProgramFields(clientId, clientProgram.clientProgramId, {
+    updateClientProgramFields(clientProgram.clientProgramRef, {
       phases: updatedPhases,
-      clinicianClientRef: doc(
-        db,
-        "clinicians",
-        clinicianId,
-        "clients",
-        clinicianClientId
-      ) as DocumentReference<TClinicianClientWrite>,
+      clinicianClientRef,
       shouldRefetch: true, // Flag to indicate that the client program should be refetched
     });
 
