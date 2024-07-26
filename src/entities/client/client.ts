@@ -15,13 +15,15 @@ import { db } from "../../firebase/db";
 
 export type TGender = "male" | "female" | "other";
 
+export type TReminder = {
+  enabled: boolean;
+  hour?: number;
+  minute?: number;
+};
+
 export type TClientPreferences = {
   reminders: {
-    exercise?: {
-      enabled: boolean;
-      hour?: number;
-      minute?: number;
-    };
+    exercise?: TReminder;
   };
   showCompletedExercises: boolean;
 };
@@ -74,7 +76,7 @@ export function createClientRef({
 }
 
 export function hasCurrentClientProgram(
-  client: TClientRead,
+  client: TClientRead
 ): client is TClient_WithCurrentClientProgram_Read {
   return "currentClientProgramRef" in client;
 }
@@ -96,7 +98,7 @@ export const clientConverter = {
   // only needs to convert clientProgramRef to id
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TClientWrite>,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): TClientRead {
     const data = snapshot.data(options);
     let {
@@ -120,7 +122,7 @@ export const clientConverter = {
       ...(currentClientProgramRef && {
         currentClientProgramRef,
         currentClientProgramIdentifiers: deserializeClientProgramPath(
-          currentClientProgramRef.path,
+          currentClientProgramRef.path
         ),
       }),
     };

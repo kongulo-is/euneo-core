@@ -1,4 +1,5 @@
 export type TPhysicalActivity = "none" | "low" | "moderate" | "high";
+export type TMeasurementUnit = "metric" | "imperial";
 
 /**
  * @memberof TClientProgram
@@ -8,6 +9,6 @@ export type TClientPhysicalInformation = {
   athlete: boolean;
   height: number;
   weight: number;
-  unit: "metric" | "imperial";
+  unit: TMeasurementUnit;
   physicalActivity: TPhysicalActivity;
 };
