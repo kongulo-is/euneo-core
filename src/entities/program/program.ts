@@ -144,11 +144,11 @@ export function createProgramRef({
     : { programs: programs || "" };
 
   const path = serializeProgramIdentifiers(identifiers);
-  const programsCollection = collection(db, path);
 
   if (programs) {
-    return doc(programsCollection, programs).withConverter(programConverter);
+    return doc(db, path).withConverter(programConverter);
   }
+  const programsCollection = collection(db, path);
 
   return doc(programsCollection).withConverter(programConverter);
 }

@@ -60,7 +60,7 @@ const _getNumberOfDaysToModifyAndRemove = (
 
 // Helper function to update program fields
 // TODO: explain better, a function should only do 1 thing
-const _updateProgram = async (
+const _updateClientProgram = async (
   clientProgramRef: TClientProgramRef,
   clinicianClientRef: TClinicianClientRef,
   programVersionRef: TProgramVersionRef,
@@ -145,6 +145,8 @@ export async function updateClientProgramFields(
   clientProgramRef: TClientProgramRef,
   fields: Partial<TClientProgramWrite>,
 ) {
+  console.log("-> Before clientProgramRef", clientProgramRef);
+
   return await updateDoc(clientProgramRef, {
     ...fields,
   })
@@ -217,11 +219,22 @@ export async function updateClientProgramVersion(
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    console.log("-> before createing refs");
+
     // TODO: should we take this in instead?
     const clinicianClientRef = createClinicianClientRef({
       clinicians: clinicianId,
       clients: clinicianClientId,
     });
+
+    console.log("-> clinicianClientRef", clinicianClientRef);
+
+    console.log(
+      "-> before createing programVersionRef",
+      clinicianId,
+      program.programVersionIdentifiers.programs,
+      version,
+    );
 
     const programVersionRef = createProgramVersionRef({
       clinicians: clinicianId,
@@ -229,14 +242,20 @@ export async function updateClientProgramVersion(
       versions: version,
     });
 
+    console.log("-> programVersionRef", programVersionRef);
+
     const clientProgramRef = createClientProgramRef({
       clients: clientId,
       programs: clientProgram.clientProgramIdentifiers.programs,
     });
 
+    console.log("-> after createing refs");
+
     // If the last day in the client program is before today, update the program and exit
     if (days[days.length - 1].date < today) {
-      await _updateProgram(
+      console.log("-> before _updateClientProgram");
+
+      await _updateClientProgram(
         clientProgramRef,
         clinicianClientRef,
         programVersionRef,
@@ -301,8 +320,9 @@ export async function updateClientProgramVersion(
 
     updatedPhases.push({ key: currentPhaseId, value: currentPhaseLength });
 
+    console.log("-> before _updateClientProgram2");
     // Update the client program with the new phases
-    await _updateProgram(
+    await _updateClientProgram(
       clientProgramRef,
       clinicianClientRef,
       programVersionRef,

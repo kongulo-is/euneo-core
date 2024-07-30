@@ -143,14 +143,18 @@ export function createProgramVersionRef({
 }): DocumentReference<TProgramVersionRead, TProgramVersionWrite> {
   programRef = programRef || createProgramRef({ clinicians, programs });
 
+  console.log("-> programRef", programRef);
+
   const versionPath = `${programRef.path}/${Collection.Versions}`;
 
   const versionsCollection = collection(db, versionPath);
 
   // Return a document reference with a new ID if versionId is not provided
-  return versions
+  const programVersionRef = versions
     ? doc(versionsCollection, versions).withConverter(programVersionConverter)
     : doc(versionsCollection).withConverter(programVersionConverter);
+
+  return programVersionRef;
 }
 
 export const programVersionConverter = {

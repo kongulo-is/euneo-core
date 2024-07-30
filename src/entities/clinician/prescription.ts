@@ -4,6 +4,7 @@ import {
   TClientProgramIdentifiers,
   TClientProgramRead,
   TClientProgramWrite,
+  clientProgramConverter,
   deserializeClientProgramPath,
 } from "../client/clientProgram";
 
@@ -84,13 +85,19 @@ export const prescriptionConverter = {
   },
 
   fromFirestore(prescriptionWrite: TPrescriptionWrite): TPrescriptionRead {
-    const { programRef, clientProgramRef, ...rest } = prescriptionWrite;
+    const { programRef, ...rest } = prescriptionWrite;
 
-    const programVersionRef = prescriptionWrite.programVersionRef || programRef;
+    const programVersionRef = (
+      prescriptionWrite.programVersionRef || programRef
+    )?.withConverter(programVersionConverter);
 
     if (!programVersionRef) {
       throw new Error("Program version ref not found");
     }
+
+    const clientProgramRef = prescriptionWrite.clientProgramRef?.withConverter(
+      clientProgramConverter,
+    );
 
     let clientProgramIdentifiers: TClientProgramIdentifiers | undefined;
     if (clientProgramRef) {

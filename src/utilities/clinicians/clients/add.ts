@@ -53,6 +53,8 @@ export async function addPrescriptionToClinicianClient(
     const prescriptionConverted =
       prescriptionConverter.toFirestore(prescription);
 
+    console.log("!!!prescriptionConverted", prescriptionConverted);
+
     await updateDoc(clinicianClientRef, {
       prescription: prescriptionConverted,
     });
