@@ -7,6 +7,8 @@ import { updateDoc } from "../../updateDoc";
 import {
   prescriptionConverter,
   TPrescription,
+  TPrescriptionRead,
+  TPrescriptionWrite,
 } from "../../../entities/clinician/prescription";
 import { TClientProgramRef } from "../../../entities/client/clientProgram";
 
@@ -62,14 +64,24 @@ export async function updateClinicianClientPrescriptionStatus(
 ): Promise<void> {
   try {
     const clinicianClient = await getDoc(clinicianClientRef);
-    const prescription = {
-      ...clinicianClient.data()?.prescription,
-      clientProgramRef: clientProgramRef,
-      status: status,
-    };
+    const clinicianClientData = clinicianClient.data();
+    if (!clinicianClientData)
+      throw new Error("Clinician client data not found");
+    if (!("prescription" in clinicianClientData))
+      throw new Error("Prescription not found");
+
+    const { prescription } = clinicianClientData;
+    if (!prescription) throw new Error("Prescription not found");
+
+    const updatedPrescription: TPrescriptionWrite =
+      prescriptionConverter.toFirestore({
+        ...prescription,
+        clientProgramRef: clientProgramRef,
+        status: status,
+      });
 
     updateDoc(clinicianClientRef, {
-      prescription: prescription,
+      prescription: updatedPrescription,
     });
   } catch (error) {
     console.error("Error updating clinician client prescription: ", error, {

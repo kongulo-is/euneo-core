@@ -62,7 +62,7 @@ export type TProgramVersion = TProgramVersionRead & {
 export function isClinicianProgramVersionIdentifiers(
   identifiers:
     | TEuneoProgramVersionIdentifiers
-    | TClinicianProgramVersionIdentifiers,
+    | TClinicianProgramVersionIdentifiers
 ): identifiers is TClinicianProgramVersionIdentifiers {
   return (
     (identifiers as TClinicianProgramVersionIdentifiers)[
@@ -73,7 +73,7 @@ export function isClinicianProgramVersionIdentifiers(
 
 // Serialization function for TProgramIdentifiers
 export function serializeProgramVersionIdentifiers(
-  obj: TEuneoProgramVersionIdentifiers | TClinicianProgramVersionIdentifiers,
+  obj: TEuneoProgramVersionIdentifiers | TClinicianProgramVersionIdentifiers
 ): string {
   if ("clinicians" in obj) {
     return `${Collection.Clinicians}/${obj.clinicians}/${Collection.Programs}/${obj.programs}/${Collection.Versions}/${obj.versions}`;
@@ -84,7 +84,7 @@ export function serializeProgramVersionIdentifiers(
 
 // Deserialization function for TProgramIdentifiers
 export function deserializeProgramVersionPath(
-  path: string,
+  path: string
 ): TEuneoProgramVersionIdentifiers | TClinicianProgramVersionIdentifiers {
   const segments = path.split("/");
 
@@ -98,7 +98,7 @@ export function deserializeProgramVersionPath(
     const clinicianId = segments[cliniciansIndex + 1];
     const programsIndex = segments.indexOf(
       Collection.Programs,
-      cliniciansIndex,
+      cliniciansIndex
     );
     const programId = segments[programsIndex + 1];
     const versionsIndex = segments.indexOf(Collection.Versions, programsIndex);
@@ -164,21 +164,21 @@ export const programVersionConverter = {
           doc(
             db,
             "outcomeMeasures",
-            id,
-          ) as DocumentReference<TOutcomeMeasureWrite>,
+            id
+          ) as DocumentReference<TOutcomeMeasureWrite>
       ),
     };
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TProgramVersionWrite>,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): TProgramVersionRead {
     const data = snapshot.data(options);
     const { outcomeMeasureRefs, ...rest } = data;
     return {
       ...rest,
       outcomeMeasureIds: outcomeMeasureRefs.map(
-        (ref) => ref.id as TOutcomeMeasureId,
+        (ref) => ref.id as TOutcomeMeasureId
       ),
     };
   },

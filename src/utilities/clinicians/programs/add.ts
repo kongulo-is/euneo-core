@@ -33,7 +33,7 @@ export async function createClinicianProgram(
   phases: Record<TProgramPhaseKey, TProgramPhaseForm>,
   days: Record<TProgramDayKey, TProgramDayRead>,
   isSaved: boolean,
-  clinicianProgramId?: string, // used to overwrite the program (used when saving program)
+  clinicianProgramId?: string // used to overwrite the program (used when saving program)
 ): Promise<TClinicianProgram> {
   try {
     const programVersionRef = createProgramVersionRef({
@@ -47,7 +47,7 @@ export async function createClinicianProgram(
       programVersionRef.parent.parent!.withConverter(programConverter);
 
     const programVersionIdentifiers = deserializeProgramVersionPath(
-      programVersionRef.path,
+      programVersionRef.path
     );
 
     if (!isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
@@ -57,11 +57,11 @@ export async function createClinicianProgram(
     const programInfo = await _saveProgramInfo(
       programRef,
       programVersionRef,
-      isSaved,
+      isSaved
     );
     const versionInfo = await _saveVersionInfo(
       programVersionRef,
-      programVersionRead,
+      programVersionRead
     );
     await _saveDays(programVersionRef, days);
     const phasesRead = await _savePhases(programVersionRef, phases);
@@ -73,6 +73,7 @@ export async function createClinicianProgram(
       phases: phasesRead,
       creator: "clinician",
       programVersionIdentifiers,
+      programVersionRef: programVersionRef,
     };
 
     return clinicianProgram;

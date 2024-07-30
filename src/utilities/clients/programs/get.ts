@@ -23,6 +23,7 @@ import { clientProgramDayConverter } from "../../../entities/client/day";
 import { TOutcomeMeasureId } from "../../../entities/outcomeMeasure/outcomeMeasure";
 import { db } from "../../../firebase/db";
 
+// TODO: Fix thid function
 export async function getClientProgram(
   clientProgramRef: DocumentReference<TClientProgramRead, TClientProgramWrite>,
   maxNumberOfDays?: number,

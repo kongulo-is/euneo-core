@@ -171,6 +171,7 @@ export async function _getProgramFromRef(
     }
     return {
       programVersionIdentifiers,
+      programVersionRef,
       days,
       phases,
       programInfo,
@@ -183,6 +184,7 @@ export async function _getProgramFromRef(
     }
     return {
       programVersionIdentifiers,
+      programVersionRef,
       days,
       phases,
       programInfo,

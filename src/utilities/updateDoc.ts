@@ -32,7 +32,7 @@ type AllWrites =
 
 export function updateDoc<T extends AllWrites>(
   ref: DocumentReference<any, T>,
-  data: UpdateData<Partial<T>>,
+  data: UpdateData<Partial<T>>
 ) {
   return firestoreUpdateDoc(ref, data);
 }

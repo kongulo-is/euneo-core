@@ -25,7 +25,7 @@ import {
 
 // Function to find the highest number in the list of objects
 function _findHighestContinuousPhaseId(
-  list: [TProgramPhaseKey, TProgramPhaseForm][],
+  list: [TProgramPhaseKey, TProgramPhaseForm][]
 ): TProgramPhaseKey | null {
   let maxIdNumber = -Infinity;
 
@@ -51,7 +51,7 @@ export async function createNewClinicianProgramVersion(
   newVersion: string,
   phases: Record<TProgramPhaseKey, TProgramPhaseForm>,
   days: Record<TProgramDayKey, TProgramDayRead>,
-  clinicianProgramId: string,
+  clinicianProgramId: string
 ): Promise<TClinicianProgram> {
   try {
     const { programRef } = currentClinicianProgram.programInfo;
@@ -60,11 +60,11 @@ export async function createNewClinicianProgramVersion(
       TProgramVersionRead,
       TProgramVersionWrite
     > = doc(programRef, Collection.Versions, newVersion).withConverter(
-      programVersionConverter,
+      programVersionConverter
     );
 
     const programVersionIdentifiers = deserializeProgramVersionPath(
-      newProgramVersionRef.path,
+      newProgramVersionRef.path
     );
     if (!isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
       throw new Error("Invalid program identifiers");
@@ -109,7 +109,7 @@ export async function createNewClinicianProgramVersion(
       error,
       currentClinicianProgram,
       days,
-      clinicianProgramId,
+      clinicianProgramId
     );
   }
   throw new Error("Error updating clinician program");
@@ -120,7 +120,7 @@ export async function createModifiedClinicianProgramVersion(
   newProgramVersionRead: TProgramVersionRead,
   phases: Record<TProgramPhaseKey, TProgramPhaseForm>,
   days: Record<TProgramDayKey, TProgramDayRead>,
-  version: string,
+  version: string
 ): Promise<TClinicianProgram> {
   try {
     const { programRef } = currentProgram.programInfo;
@@ -144,7 +144,7 @@ export async function createModifiedClinicianProgramVersion(
     const phasesRead = await _savePhases(
       newProgramVersionRef,
       phases,
-      highestPhaseId,
+      highestPhaseId
     );
 
     const newProgramVersion: TProgramVersion = {
@@ -152,7 +152,7 @@ export async function createModifiedClinicianProgramVersion(
       programVersionRef: newProgramVersionRef,
     };
     const programVersionIdentifiers = deserializeProgramVersionPath(
-      newProgramVersionRef.path,
+      newProgramVersionRef.path
     );
 
     if (!isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
@@ -168,6 +168,7 @@ export async function createModifiedClinicianProgramVersion(
       phases: phasesRead,
       creator: "clinician",
       programVersionIdentifiers: programVersionIdentifiers,
+      programVersionRef: newProgramVersionRef,
     };
 
     return clinicianProgram;
@@ -177,7 +178,7 @@ export async function createModifiedClinicianProgramVersion(
       error,
       currentProgram,
       days,
-      days,
+      days
     );
   }
   throw new Error("Error updating clinician program");
@@ -190,7 +191,7 @@ export async function renameClinicianProgram(
   >,
   programName: string,
   conditionId: TConditionId | null,
-  variation: string,
+  variation: string
 ) {
   try {
     // Update condition and variation

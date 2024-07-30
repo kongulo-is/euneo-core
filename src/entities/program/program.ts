@@ -11,6 +11,7 @@ import {
   TEuneoProgramVersionIdentifiers,
   TProgramVersion,
   TProgramVersionRead,
+  TProgramVersionRef,
   TProgramVersionWrite,
 } from "./version";
 import { TProgramDay, TProgramDayKey } from "./programDay";
@@ -70,19 +71,19 @@ export type TClinicianProgramRead = TProgramBase & {
 export type TProgramRead = TEuneoProgramRead | TClinicianProgramRead;
 
 export function isClinicianProgram(
-  program: TProgramRead,
+  program: TProgramRead
 ): program is TClinicianProgramRead {
   return (program as TClinicianProgramRead).createdAt !== undefined;
 }
 
 export function isEuneoProgram(
-  program: TProgramRead,
+  program: TProgramRead
 ): program is TEuneoProgramRead {
   return (program as TEuneoProgramRead).isConsoleLive !== undefined;
 }
 
 export function isClinicianProgramIdentifiers(
-  identifiers: TProgramIdentifiers,
+  identifiers: TProgramIdentifiers
 ): identifiers is TClinicianProgramIdentifiers {
   return (
     (identifiers as TClinicianProgramIdentifiers)[Collection.Clinicians] !==
@@ -110,7 +111,7 @@ export function deserializeProgramPath(path: string): TProgramIdentifiers {
     const clinicianId = segments[cliniciansIndex + 1];
     const programsIndex = segments.indexOf(
       Collection.Programs,
-      cliniciansIndex,
+      cliniciansIndex
     );
     const programId = segments[programsIndex + 1];
 
@@ -194,7 +195,7 @@ export const programConverter = {
         >;
       }
     >,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): TProgramRead {
     const programWrite = snapshot.data(options);
     const { createdAt, lastUpdatedAt, currentVersion, ...rest } = programWrite;
@@ -238,6 +239,7 @@ export type TEuneoProgram = {
   versionInfo: TProgramVersion;
   // TODO: Move these to versionInfo?
   programVersionIdentifiers: TEuneoProgramVersionIdentifiers;
+  programVersionRef: TProgramVersionRef;
   days: Record<TProgramDayKey, TProgramDay>;
   phases: Record<TProgramPhaseKey, TProgramPhase>;
   creator: "euneo";
@@ -248,6 +250,7 @@ export type TClinicianProgram = {
   versionInfo: TProgramVersion;
   // TODO: Move these to versionInfo?
   programVersionIdentifiers: TClinicianProgramVersionIdentifiers;
+  programVersionRef: TProgramVersionRef;
   days: Record<TProgramDayKey, TProgramDay>;
   phases: Record<TProgramPhaseKey, TProgramPhase>;
   creator: "clinician";

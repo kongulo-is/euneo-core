@@ -13,7 +13,7 @@ export const updateClientPreference = async (
   clientId: string,
   oldPreferences: TClientPreferences,
   preferenceKey: keyof TClientPreferences,
-  preferenceValue: TClientPreferences[keyof TClientPreferences],
+  preferenceValue: TClientPreferences[keyof TClientPreferences]
 ) => {
   const clientRef = createClientRef({ clients: clientId });
 
@@ -29,7 +29,7 @@ export async function updateClientSetup(
   clientId: string,
   name: string,
   birthDate: Date,
-  gender: TGender | "",
+  gender: TGender | ""
 ): Promise<boolean> {
   try {
     const clientRef = createClientRef({ clients: clientId });
@@ -82,7 +82,7 @@ export const _createDateString = (date: Date) => {
 
 export const changeCurrentProgram = async (
   clientId: string,
-  programId: string,
+  programId: string
 ) => {
   try {
     const clientRef = createClientRef({ clients: clientId });

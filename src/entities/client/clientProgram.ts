@@ -204,13 +204,13 @@ export const clientProgramConverter = {
     const outcomeMeasuresAnswers = {} as Record<
       TOutcomeMeasureId,
       TOutcomeMeasureAnswerWrite[]
-    > | null;
+    >;
 
     if (program.outcomeMeasuresAnswers) {
       Object.keys(program.outcomeMeasuresAnswers).forEach((measureId) => {
         const measureAnswers =
           program.outcomeMeasuresAnswers![measureId as TOutcomeMeasureId];
-        outcomeMeasuresAnswers![measureId as TOutcomeMeasureId] =
+        outcomeMeasuresAnswers[measureId as TOutcomeMeasureId] =
           measureAnswers.map((answer) => ({
             ...answer,
             date: Timestamp.fromDate(answer.date),
