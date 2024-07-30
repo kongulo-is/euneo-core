@@ -27,6 +27,7 @@ import {
 } from "../../entities/program/version";
 import { TClinicianClientRef } from "../../entities/clinician/clinicianClient";
 import { invitationConverter } from "../../entities/invitation/invitation";
+import { prescriptionConverter } from "../../entities/clinician/prescription";
 
 /**
  * @description Get program from code in app
@@ -84,10 +85,15 @@ export async function getProgramFromCode(code: string): Promise<{
 
   // runtimeChecks.assertTClinicianProgram(program);
 
+  const presctiptionWrite = prescriptionConverter.toFirestore(
+    clinicianClientData.prescription
+  );
+
+  // TODO: Færa þetta þannig það sé kallað á í /prescription í core
   // update clinician clientProgramRef
   await updateDoc(clinicianClientRef, {
     prescription: {
-      ...clinicianClientData.prescription,
+      ...presctiptionWrite,
       status: "Accepted",
     },
   });
@@ -132,7 +138,6 @@ export async function getAllEuneoPrograms(
       return program;
     })
   );
-  console.log("PROGRAMS", programs);
 
   return programs;
 }
