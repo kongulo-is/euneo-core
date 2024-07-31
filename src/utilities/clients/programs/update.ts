@@ -73,7 +73,7 @@ const _updateClientProgram = async (
     phases: updatedPhases,
   });
   await updateDoc(clinicianClientRef, {
-    "prescription.programRef": programVersionRef,
+    "prescription.programVersionRef": programVersionRef,
   });
 };
 
