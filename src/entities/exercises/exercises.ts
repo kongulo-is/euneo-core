@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 import { Collection } from "../global";
 import { db } from "../../firebase/db";
+import { TClinicianRef } from "../clinician/clinician";
 
 export type TExerciseIdentifiers = {
   [Collection.Exercises]: string;
@@ -52,7 +53,7 @@ export type TExerciseWrite = {
   type: TExerciseType;
   editableFields: TExerciseField[];
   isConsoleLive: boolean;
-  clinicianId?: string;
+  clinicianRef?: TClinicianRef;
   createdAt?: Timestamp;
   isArchived?: boolean;
 };
@@ -84,7 +85,7 @@ type TExerciseRead = {
   type: TExerciseType;
   editableFields: TExerciseField[];
   isConsoleLive: boolean;
-  clinicianId?: string;
+  clinicianRef?: TClinicianRef;
   createdAt?: Date;
   isArchived?: boolean;
 };
@@ -120,7 +121,7 @@ export function deserializeExercisePath(path: string): TExerciseIdentifiers {
 }
 
 export function serializeExerciseIdentifiers(
-  obj: TExerciseIdentifiers
+  obj: TExerciseIdentifiers,
 ): string {
   try {
     return `${Collection.Exercises}/${obj.exercises}`;
@@ -145,7 +146,7 @@ export const exerciseConverter = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TExerciseWrite>,
-    options: SnapshotOptions
+    options: SnapshotOptions,
   ): TExerciseRead {
     const data = snapshot.data(options);
 
