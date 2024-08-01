@@ -14,7 +14,7 @@ if (env === "development") {
   console.log("Connecting to Firestore emulator");
 
   // Connect Firebase Auth to the local emulator
-  connectFirestoreEmulator(db, "192.168.1.239", 8080);
+  connectFirestoreEmulator(db, "localhost", 8080);
 }
 
 // console.log(
