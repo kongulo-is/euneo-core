@@ -49,10 +49,12 @@ export async function getAllEuneoAndClinicianExercises(
   try {
     const exerciseCollectionRef = createExerciseCollectionRef();
 
+    const clinicianRef = createClinicianRef(clinicianId);
+
     // Query for exercises with the specific clinicianId and ID starting with "EHE"
     const clinicianQueryRef = query(
       exerciseCollectionRef,
-      where("clinicianId", "==", clinicianId),
+      where("clinicianRef", "==", clinicianRef),
     );
 
     // Query for exercises without a clinicianId and ID starting with "EHE"
