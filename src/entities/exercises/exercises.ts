@@ -30,6 +30,14 @@ export type TExerciseType =
   | "Jumps"
   | "Taping";
 
+export type TExerciseSubtype =
+  | "Isometric"
+  | "SelfMassage"
+  | "StaticStretch"
+  | "AROM";
+
+export type TEquipment = "Weights" | "Box" | "Dowel" | "MassageBall";
+
 export type TExerciseField = "Sets" | "Reps" | "Time";
 
 export type TExerciseWrite = {
@@ -82,6 +90,10 @@ type TExerciseRead = {
   defaultReps: number | null;
   defaultTime: number | null;
   type: TExerciseType;
+  secondaryType?: TExerciseType | null; // new field
+  primarySubtype?: TExerciseSubtype | null; // new field
+  secondarySubtype?: TExerciseSubtype | null; // new field
+  equipments?: TEquipment[] | null; // new field
   editableFields: TExerciseField[];
   isConsoleLive: boolean;
   clinicianId?: string;
@@ -120,7 +132,7 @@ export function deserializeExercisePath(path: string): TExerciseIdentifiers {
 }
 
 export function serializeExerciseIdentifiers(
-  obj: TExerciseIdentifiers
+  obj: TExerciseIdentifiers,
 ): string {
   try {
     return `${Collection.Exercises}/${obj.exercises}`;
@@ -145,7 +157,7 @@ export const exerciseConverter = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TExerciseWrite>,
-    options: SnapshotOptions
+    options: SnapshotOptions,
   ): TExerciseRead {
     const data = snapshot.data(options);
 
