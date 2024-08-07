@@ -29,14 +29,14 @@ import {
 export async function addPrescriptionToClinicianClient(
   clinicianClientRef: TClinicianClientRef,
   prescription: TPrescription,
-  code: string,
+  code: string
 ) {
   try {
     console.log("clinicianClientRef", clinicianClientRef);
 
     // check if user has a current prescription
     const clinicianClientSnapshot = await getDoc(
-      clinicianClientRef.withConverter(clinicianClientConverter),
+      clinicianClientRef.withConverter(clinicianClientConverter)
     );
 
     const currentPrescription = clinicianClientSnapshot.data()?.prescription;
@@ -44,7 +44,7 @@ export async function addPrescriptionToClinicianClient(
       // store current prescription in past prescription sub collection if it was already started
       const pastPrescriptionRef = collection(
         clinicianClientRef,
-        "pastPrescriptions",
+        "pastPrescriptions"
       ) as CollectionReference<TPrescriptionRead, TPrescriptionWrite>;
       await addDoc(pastPrescriptionRef, currentPrescription);
     }
@@ -68,7 +68,7 @@ export async function addPrescriptionToClinicianClient(
       "Error adding prescription to clinician client",
       error,
       prescription,
-      clinicianClientRef.path,
+      clinicianClientRef.path
     );
 
     return false;
@@ -77,7 +77,7 @@ export async function addPrescriptionToClinicianClient(
 
 export async function createClinicianClient(
   clinicianId: string,
-  data: TClinicianClientRead,
+  data: TClinicianClientRead
 ): Promise<TClinicianClient> {
   try {
     const clinicianClientRef = createClinicianClientRef({
@@ -90,42 +90,12 @@ export async function createClinicianClient(
       ...data,
       clinicianClientRef,
       clinicianClientIdentifiers: deserializeClinicianClientPath(
-        clinicianClientRef.path,
+        clinicianClientRef.path
       ),
     };
   } catch (error) {
     console.error("Error adding clinician client:", error, {
       data,
-    });
-    throw error;
-  }
-}
-
-//TODO: TEMOPORARY FUNCTION
-export async function moveClinicianClientsToNewClinician(
-  clinicianId: string,
-): Promise<void> {
-  try {
-    // 1. get all clients from phsyios/clinicianId/clients
-    const physioRef = doc(db, "clinicians", clinicianId);
-    const clientsRef = collection(physioRef, "clients");
-    const clientsSnapshot = await getDocs(
-      clientsRef.withConverter(clinicianClientConverter),
-    );
-    const clients = clientsSnapshot.docs.map((client) => client.data());
-    // 2. add all clients to clinicians/clinicianId/clients
-    const clinicianRef = doc(db, "clinicians", clinicianId);
-    const clinicianClientsRef = collection(clinicianRef, "clients");
-    clients.forEach(async (client) => {
-      delete client.prescription;
-      await addDoc(
-        clinicianClientsRef.withConverter(clinicianClientConverter),
-        client,
-      );
-    });
-  } catch (error) {
-    console.error("Error moving clinician clients to new clinician:", error, {
-      clinicianId,
     });
     throw error;
   }
