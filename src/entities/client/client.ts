@@ -1,4 +1,5 @@
 import {
+  deleteField,
   doc,
   DocumentReference,
   QueryDocumentSnapshot,
@@ -12,6 +13,7 @@ import {
 } from "./clientProgram";
 import { Collection } from "../global";
 import { db } from "../../firebase/db";
+import { updateDoc } from "../../utilities/updateDoc";
 
 export type TGender = "male" | "female" | "other";
 
@@ -111,7 +113,18 @@ export const clientConverter = {
       preferences,
     } = data;
 
+
+    // TODO: remove this when all clients have updated programs, 
+    // TODO: https://www.notion.so/K-i-sem-m-ey-a-egar-stable-28f0c107f0a24b0693106f4992171392?pvs=4#061ee12014ae4da8bee674c101bb06f0
+    if (currentProgramRef) {
+      updateDoc(snapshot.ref.withConverter(clientConverter), {
+        currentClientProgramRef: currentProgramRef,
+        currentProgramRef: deleteField(),
+      });
+    }
     currentClientProgramRef = currentClientProgramRef || currentProgramRef;
+
+
 
     const client: TClientRead = {
       name,
