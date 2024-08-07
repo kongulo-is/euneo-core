@@ -15,5 +15,5 @@ const env = process.env.NODE_ENV;
 
 if (env === "development" && process.env.EXPO_PUBLIC_USE_EMULATOR === "true") {
   // Connect Firebase Auth to the local emulator
-  connectAuthEmulator(auth, "http://192.168.1.240:9099");
+  connectAuthEmulator(auth, "http://localhost:9099");
 }

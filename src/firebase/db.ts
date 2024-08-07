@@ -15,9 +15,13 @@ console.log(
   process.env.EXPO_PUBLIC_USE_EMULATOR
 );
 
-if (env === "development" && process.env.EXPO_PUBLIC_USE_EMULATOR === "true") {
+if (
+  env === "development" &&
+  (process.env.EXPO_PUBLIC_USE_EMULATOR === "true" ||
+    process.env.NEXT_PUBLIC_USE_EMULATOR === "true")
+) {
   console.log("Connecting to Firestore emulator");
 
   // Connect Firebase Auth to the local emulator
-  connectFirestoreEmulator(db, "192.168.1.240", 8080);
+  connectFirestoreEmulator(db, "localhost", 8080);
 }
