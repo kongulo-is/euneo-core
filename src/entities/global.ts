@@ -7,6 +7,7 @@ export enum Collection {
   Phases = "phases",
   Invitations = "invitations",
   Exercises = "exercises",
+  Videos = "videos",
 }
 
 export type TConditionId =

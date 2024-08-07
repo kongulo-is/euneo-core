@@ -16,22 +16,15 @@ export type TClinicianCollectionRef = CollectionReference<
 export type TClinicianRead = {
   email: string;
   name: string;
-  videoPool?: {
-    displayID: string;
-    assetID: string;
-  }[];
   isAdmin?: boolean;
 };
 
 export type TClinician = TClinicianRead;
+// TODO: vantar videopool?
 
 export type TClinicianWrite = {
   email: string;
   name: string;
-  videoPool?: {
-    displayID: string;
-    assetID: string;
-  }[];
 };
 
 export function createClinicianRef(clinicianId: string): TClinicianRef {

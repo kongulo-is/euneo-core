@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteField,
   doc,
   DocumentReference,
   QueryDocumentSnapshot,
@@ -18,6 +19,7 @@ import { TProgramDay, TProgramDayKey } from "./programDay";
 import { TProgramPhase, TProgramPhaseKey } from "./programPhase";
 import { db } from "../../firebase/db";
 import { Collection } from "../global";
+import { updateDoc } from "../../utilities/updateDoc";
 
 export type TProgramRef = DocumentReference<TProgramRead, TProgramWrite>;
 
@@ -199,6 +201,11 @@ export const programConverter = {
   ): TProgramRead {
     const programWrite = snapshot.data(options);
     const { createdAt, lastUpdatedAt, currentVersion, ...rest } = programWrite;
+
+
+  
+
+
     const clinicianProgram: TClinicianProgramRead = {
       createdAt: createdAt ? createdAt.toDate() : new Date(),
       lastUpdatedAt: lastUpdatedAt ? lastUpdatedAt.toDate() : new Date(),

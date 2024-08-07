@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 import { Collection } from "../global";
 import { db } from "../../firebase/db";
+import { TClinicianRef } from "../clinician/clinician";
 
 export type TExerciseIdentifiers = {
   [Collection.Exercises]: string;
@@ -60,7 +61,7 @@ export type TExerciseWrite = {
   type: TExerciseType;
   editableFields: TExerciseField[];
   isConsoleLive: boolean;
-  clinicianId?: string;
+  clinicianRef?: TClinicianRef;
   createdAt?: Timestamp;
   isArchived?: boolean;
 };
@@ -96,7 +97,7 @@ type TExerciseRead = {
   equipments?: TEquipment[] | null; // new field
   editableFields: TExerciseField[];
   isConsoleLive: boolean;
-  clinicianId?: string;
+  clinicianRef?: TClinicianRef;
   createdAt?: Date;
   isArchived?: boolean;
 };

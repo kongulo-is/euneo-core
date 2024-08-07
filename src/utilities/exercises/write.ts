@@ -18,6 +18,7 @@ import {
   TExercise,
   TExerciseWrite,
 } from "../../entities/exercises/exercises";
+import { createClinicianRef } from "../../entities/clinician/clinician";
 
 export async function getAllExercises(): Promise<Record<string, TExercise>> {
   try {
@@ -32,7 +33,7 @@ export async function getAllExercises(): Promise<Record<string, TExercise>> {
 
     // create a map of exercises
     const exercises = Object.fromEntries(
-      exercisesList.map((exercise) => [exercise.id, exercise])
+      exercisesList.map((exercise) => [exercise.id, exercise]),
     );
 
     return exercises;
@@ -43,15 +44,17 @@ export async function getAllExercises(): Promise<Record<string, TExercise>> {
 }
 
 export async function getAllEuneoAndClinicianExercises(
-  clinicianId: string
+  clinicianId: string,
 ): Promise<Record<string, TExercise>> {
   try {
     const exerciseCollectionRef = createExerciseCollectionRef();
 
+    const clinicianRef = createClinicianRef(clinicianId);
+
     // Query for exercises with the specific clinicianId and ID starting with "EHE"
     const clinicianQueryRef = query(
       exerciseCollectionRef,
-      where("clinicianId", "==", clinicianId)
+      where("clinicianRef", "==", clinicianRef),
     );
 
     // Query for exercises without a clinicianId and ID starting with "EHE"
@@ -60,7 +63,7 @@ export async function getAllEuneoAndClinicianExercises(
       where("isConsoleLive", "==", true),
       orderBy("__name__"),
       startAt("EHE"),
-      endAt("EHE\uf8ff")
+      endAt("EHE\uf8ff"),
     );
 
     // const developmentQueryRef = query(
@@ -92,7 +95,7 @@ export async function getAllEuneoAndClinicianExercises(
         ...doc.data(),
         exerciseRef: doc.ref,
         exerciseIdentifiers: deserializeExercisePath(doc.ref.path),
-      })
+      }),
     );
 
     // const developmentExercisesList = developmentExercisesSnap.docs.map((doc) =>
@@ -108,7 +111,7 @@ export async function getAllEuneoAndClinicianExercises(
 
     // Create a map of exercises
     const exercises = Object.fromEntries(
-      combinedExercisesList.map((exercise) => [exercise.id, exercise])
+      combinedExercisesList.map((exercise) => [exercise.id, exercise]),
     );
 
     return exercises;
@@ -138,14 +141,17 @@ export async function getExerciseById(id: string): Promise<TExercise> {
 
 export async function uploadExercise(
   exercise: TExerciseWrite,
-  clinicianId: string
+  clinicianId: string,
 ): Promise<string> {
   try {
     const randomId = Math.random().toString(36).substring(7);
-    const exerciseRef = doc(db, "exercises", "AAAAA-" + randomId);
+
+    const exerciseRef = createExerciseRef({ exercises: "AAAAA-" + randomId });
+    const clinicianRef = createClinicianRef(clinicianId);
     await setDoc(exerciseRef, {
       ...exercise,
-      clinicianId,
+      clinicianRef,
+      id: "AAAAA-" + randomId,
       createdAt: new Date(),
     });
     return exerciseRef.id;
@@ -157,7 +163,7 @@ export async function uploadExercise(
 
 export async function updateExerciseTimestampAndPreview(
   exerciseId: string,
-  time: number
+  time: number,
 ): Promise<string> {
   try {
     const exerciseRef = createExerciseRef({ exercises: exerciseId });

@@ -1,10 +1,12 @@
 import {
   collection,
+  deleteField,
   doc,
   DocumentReference,
   QueryDocumentSnapshot,
   SnapshotOptions,
   Timestamp,
+  updateDoc,
 } from "firebase/firestore";
 import { Collection, TConditionId } from "../global";
 import { TOutcomeMeasureId } from "../outcomeMeasure/outcomeMeasure";
@@ -285,7 +287,15 @@ export const clientProgramConverter = {
     // runtimeChecks.assertTClientProgram(clientProgram, true);
 
     // TODO: remove this when all client programs are stable
+    // https://www.notion.so/K-i-sem-m-ey-a-egar-stable-28f0c107f0a24b0693106f4992171392?pvs=4#b993e70051764bbbbba6fe6748f88e2b
     // This is done because deprecated client programs don't have a programVersionRef but a programRef
+    if (programRef) {
+
+      updateDoc(snapshot.ref.withConverter(clientProgramConverter), {
+        programVersionRef: programRef,
+        programRef: deleteField(),
+      });
+    }
     programVersionRef = programVersionRef || programRef;
 
     if (!programVersionRef) {

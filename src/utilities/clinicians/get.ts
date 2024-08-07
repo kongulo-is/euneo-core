@@ -76,11 +76,12 @@ export async function clinicianVideoPoolListener(
   clinicianId: string,
   callback: (videos: { assetID: string; displayID: string }[]) => Promise<void>,
 ): Promise<Unsubscribe> {
+  // TODO: fix as
   const videoPoolCollectionRef = collection(
     db,
     "clinicians",
     clinicianId,
-    "videoPool",
+    "videos",
   ) as CollectionReference<{ assetID: string; displayID: string }>;
 
   const unsubscribe = onSnapshot(
