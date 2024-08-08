@@ -35,7 +35,14 @@ export type TExerciseSubtype =
   | "Isometric"
   | "SelfMassage"
   | "StaticStretch"
-  | "AROM";
+  | "AROM"
+  | "StaticStretch"
+  | "DynamicStretch"
+  | "Eccentric"
+  | "FoamRolling"
+  | "MassageBall"
+  | "PROM"
+  | "Plyometrics";
 
 export type TEquipment = "Weights" | "Box" | "Dowel" | "MassageBall";
 
@@ -133,7 +140,7 @@ export function deserializeExercisePath(path: string): TExerciseIdentifiers {
 }
 
 export function serializeExerciseIdentifiers(
-  obj: TExerciseIdentifiers,
+  obj: TExerciseIdentifiers
 ): string {
   try {
     return `${Collection.Exercises}/${obj.exercises}`;
@@ -158,7 +165,7 @@ export const exerciseConverter = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TExerciseWrite>,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): TExerciseRead {
     const data = snapshot.data(options);
 
