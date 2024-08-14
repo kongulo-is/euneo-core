@@ -60,7 +60,7 @@ export const completeCurrentProgram = async (clientId: string) => {
     const clientRef = createClientRef({ clients: clientId });
 
     await updateDoc(clientRef, {
-      currentProgramRef: deleteField(),
+      currentClientProgramRef: deleteField(),
     });
   } catch (error) {
     console.error("Error completing current program: ", error, {
@@ -90,7 +90,7 @@ export const changeCurrentProgram = async (
     const programRef = doc(db, "clients", clientId, "programs", programId);
 
     await updateDoc(clientRef, {
-      currentProgramRef: programRef,
+      currentClientProgramRef: programRef,
     });
     return true;
   } catch (error) {
