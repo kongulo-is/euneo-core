@@ -13,7 +13,13 @@ export const auth = initializeAuth(app, {
 
 const env = process.env.NODE_ENV;
 
-if (env === "development" && process.env.EXPO_PUBLIC_USE_EMULATOR === "true") {
+if (
+  env === "development" &&
+  (process.env.EXPO_PUBLIC_USE_EMULATOR === "true" ||
+    process.env.NEXT_PUBLIC_USE_EMULATOR === "true")
+) {
+  console.log("🔥 Connecting to Firestore emulator auth app");
+
   // Connect Firebase Auth to the local emulator
   connectAuthEmulator(auth, "http://localhost:9099");
 }

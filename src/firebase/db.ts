@@ -12,7 +12,7 @@ const env = process.env.NODE_ENV;
 
 console.log(
   "process.env.EXPO_PUBLIC_USE_EMULATOR",
-  process.env.EXPO_PUBLIC_USE_EMULATOR,
+  process.env.EXPO_PUBLIC_USE_EMULATOR
 );
 
 if (
@@ -20,7 +20,7 @@ if (
   (process.env.EXPO_PUBLIC_USE_EMULATOR === "true" ||
     process.env.NEXT_PUBLIC_USE_EMULATOR === "true")
 ) {
-  console.log("Connecting to Firestore emulator");
+  console.log("🔥 Connecting to Firestore emulator");
 
   // Connect Firebase Auth to the local emulator
   connectFirestoreEmulator(db, "localhost", 8080);
