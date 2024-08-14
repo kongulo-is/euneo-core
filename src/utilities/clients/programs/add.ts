@@ -33,7 +33,7 @@ import { updateDoc } from "../../updateDoc";
 async function _addDaysToFirestore(
   clientProgramRef: TClientProgramRef,
   days: TClientProgramDay[],
-  firstDocIndex: number,
+  firstDocIndex: number
 ) {
   // Update days documents
   await Promise.all(
@@ -41,7 +41,7 @@ async function _addDaysToFirestore(
       const dayNumber = i + firstDocIndex;
       const dayCol = doc(clientProgramRef, "days", dayNumber.toString());
       return setDoc(dayCol.withConverter(clientProgramDayConverter), day);
-    }),
+    })
   );
 }
 
@@ -53,7 +53,7 @@ export async function addClinicianProgramToClient(
   clientId: string,
   clientProgramRead: TClientProgram_ClinicianWithPrescription_Read,
   program: TClinicianProgram,
-  startPhase: TProgramPhaseKey = "p1",
+  startPhase: TProgramPhaseKey = "p1"
 ): Promise<TClientProgram_Clinician> {
   // Store the program in the Firestore database
   const clientProgramRef = createClientProgramRef({
@@ -67,7 +67,7 @@ export async function addClinicianProgramToClient(
     program,
     startPhase,
     new Date(),
-    program.phases[startPhase].length || 14,
+    program.phases[startPhase].length || 14
   );
 
   const clientClinicianProgram: TClientProgram_Clinician = {
@@ -75,7 +75,7 @@ export async function addClinicianProgramToClient(
     days: clientProgramDays,
     clientProgramRef: clientProgramRef,
     clientProgramIdentifiers: deserializeClientProgramPath(
-      clientProgramRef.path,
+      clientProgramRef.path
     ),
   };
 
@@ -88,14 +88,14 @@ export async function addClinicianProgramToClient(
       });
 
       return setDoc(dayRef, day);
-    }),
+    })
   );
 
   const clientRef = createClientRef({
     clients: clientId,
   });
 
-  updateDoc(clientRef, { currentProgramRef: clientProgramRef });
+  updateDoc(clientRef, { currentClientProgramRef: clientProgramRef });
 
   return clientClinicianProgram;
 }
@@ -108,7 +108,7 @@ export async function addEuneoProgramToClient(
   clientId: string,
   clientProgramRead: TClientProgram_Euneo_Read,
   program: TEuneoProgram,
-  phaseId: TProgramPhaseKey,
+  phaseId: TProgramPhaseKey
 ): Promise<TClientProgram_Euneo> {
   const { trainingDays, phases } = clientProgramRead;
 
@@ -120,7 +120,7 @@ export async function addEuneoProgramToClient(
     program,
     phaseId,
     new Date(),
-    phaseLength,
+    phaseLength
   );
 
   const clientProgramRef = createClientProgramRef({
@@ -137,7 +137,7 @@ export async function addEuneoProgramToClient(
     days: clientProgramDays,
     clientProgramRef: clientProgramRef,
     clientProgramIdentifiers: deserializeClientProgramPath(
-      clientProgramRef.path,
+      clientProgramRef.path
     ),
   };
 
@@ -155,14 +155,14 @@ export async function addEuneoProgramToClient(
       console.log("dayRef", dayRef.path);
 
       return setDoc(dayRef, day);
-    }),
+    })
   );
 
   const clientRef = createClientRef({
     clients: clientId,
   });
 
-  updateDoc(clientRef, { currentProgramRef: clientProgramRef });
+  updateDoc(clientRef, { currentClientProgramRef: clientProgramRef });
 
   return clientEuenoProgram;
 }
@@ -172,7 +172,7 @@ export async function addOutcomeMeasureToClientProgram(
   clientId: string,
   clientProgramId: string,
   outcomeMeasuresAnswers: Record<TOutcomeMeasureId, TOutcomeMeasureAnswers[]>,
-  newData: Record<Partial<TOutcomeMeasureId>, TOutcomeMeasureAnswers>,
+  newData: Record<Partial<TOutcomeMeasureId>, TOutcomeMeasureAnswers>
 ) {
   try {
     const clientProgramRef = createClientProgramRef({
@@ -208,7 +208,7 @@ export async function addPainLevelToClientProgram(
   clientId: string,
   clientProgramId: string,
   oldPainLevels: TPainLevel[],
-  newPainLevel: TPainLevel,
+  newPainLevel: TPainLevel
 ) {
   try {
     const clientProgramRef = createClientProgramRef({
@@ -236,7 +236,7 @@ export async function addPhaseToClientProgram(
   clientProgramId: string,
   newPhase: TClientProgramDay[],
   programPhases: TPhase[],
-  firstDocIndex: number,
+  firstDocIndex: number
 ) {
   const clientProgramRef = createClientProgramRef({
     clients: clientId,
@@ -253,7 +253,7 @@ export async function addPhaseToClientProgram(
 export async function addContinuousDaysToClientProgram(
   clientProgramRef: TClientProgramRef,
   newDays: TClientProgramDay[],
-  firstDocIndex: number,
+  firstDocIndex: number
 ) {
   await _addDaysToFirestore(clientProgramRef, newDays, firstDocIndex);
 }
@@ -263,7 +263,7 @@ export async function updateTrainingDays(
   clientProgramId: string,
   newDays: TClientProgramDay[],
   trainingDays: boolean[],
-  firstDocIndex: number,
+  firstDocIndex: number
 ) {
   const clientProgramRef = createClientProgramRef({
     clients: clientId,
