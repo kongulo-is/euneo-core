@@ -21,6 +21,19 @@ export type TExerciseCollectionRef = CollectionReference<
   TExerciseWrite
 >;
 
+export type TExerciseArea =
+  | "FootAndAnkle"
+  | "Hip"
+  | "Knee"
+  | "PelvicFloor"
+  | "Core"
+  | "LowerBack"
+  | "UpperBack"
+  | "Neck"
+  | "Shoulder"
+  | "Elbow"
+  | "WristAndHand";
+
 export type TExerciseType =
   | "Strength"
   | "Planks"
@@ -102,6 +115,8 @@ type TExerciseRead = {
   primarySubtype?: TExerciseSubtype | null; // new field
   secondarySubtype?: TExerciseSubtype | null; // new field
   equipments?: TEquipment[] | null; // new field
+  area?: TExerciseArea | null; // new field
+  secondaryArea?: TExerciseArea | null; // new field
   editableFields: TExerciseField[];
   isConsoleLive: boolean;
   clinicianRef?: TClinicianRef;
