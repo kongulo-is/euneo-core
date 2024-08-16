@@ -144,15 +144,11 @@ export async function addEuneoProgramToClient(
   await Promise.all(
     clientProgramDays.map((day, i) => {
       // TODO: move this to a function inside days folder? this is also used in the function above
-      console.log("Day", day, i);
-
       const dayRef = createClientProgramDayRef({
         clients: clientId,
         programs: clientEuenoProgram.clientProgramIdentifiers.programs,
         days: i.toString(),
       });
-
-      console.log("dayRef", dayRef.path);
 
       return setDoc(dayRef, day);
     })

@@ -32,8 +32,6 @@ export async function addPrescriptionToClinicianClient(
   code: string
 ) {
   try {
-    console.log("clinicianClientRef", clinicianClientRef);
-
     // check if user has a current prescription
     const clinicianClientSnapshot = await getDoc(
       clinicianClientRef.withConverter(clinicianClientConverter)
@@ -52,8 +50,6 @@ export async function addPrescriptionToClinicianClient(
     // change the clinician client's prescription
     const prescriptionConverted =
       prescriptionConverter.toFirestore(prescription);
-
-    console.log("!!!prescriptionConverted", prescriptionConverted);
 
     await updateDoc(clinicianClientRef, {
       prescription: prescriptionConverted,

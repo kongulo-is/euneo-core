@@ -123,8 +123,6 @@ export async function getAllEuneoPrograms(
 
   const programsData = programsSnap.docs.map((doc) => doc.data());
 
-  console.log("PROGRAMS DATA", programsData);
-
   const programs = Promise.all(
     programsData.map(async (p) => {
       const { currentVersionRef } = p;
