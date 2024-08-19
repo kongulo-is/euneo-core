@@ -97,7 +97,7 @@ export function createClinicianClientRef({
 }: {
   clinicians: string;
   clients?: string;
-}): DocumentReference<TClinicianClientRead, TClinicianClientWrite> {
+}): TClinicianClientRef {
   const path = `${Collection.Clinicians}/${clinicians}/${Collection.Clients}`;
   const clientsCollection = collection(db, path);
 
