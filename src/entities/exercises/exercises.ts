@@ -23,8 +23,8 @@ export type TExerciseCollectionRef = CollectionReference<
 
 export type TExerciseArea =
   | "FootAndAnkle"
-  | "Hip"
   | "Knee"
+  | "Hip"
   | "PelvicFloor"
   | "Core"
   | "LowerBack"
@@ -34,30 +34,46 @@ export type TExerciseArea =
   | "Elbow"
   | "WristAndHand";
 
+/**
+ * @Stretch is deprecated
+ * @Planks is deprecated
+ */
 export type TExerciseType =
   | "Strength"
-  | "Planks"
   | "Mobility"
-  | "Stretch"
   | "Release"
   | "Balance"
+  | "Aerobic" //new
   | "Jumps"
-  | "Taping";
+  | "Taping"
+  | "Planks" //!deprecated
+  | "Stretch"; //!deprecated
 
 export type TExerciseSubtype =
+  | "Eccentric"
   | "Isometric"
-  | "SelfMassage"
-  | "StaticStretch"
-  | "AROM"
+  | "Plyometrics"
   | "StaticStretch"
   | "DynamicStretch"
-  | "Eccentric"
-  | "FoamRolling"
-  | "MassageBall"
+  | "AROM"
   | "PROM"
-  | "Plyometrics";
+  | "SelfMassage"
+  | "FoamRolling"
+  | "MassageBall";
 
-export type TEquipment = "Weights" | "Box" | "Dowel" | "MassageBall";
+export type TEquipment =
+  | "ResistanceBand"
+  | "MassageBall"
+  | "ExerciseBall"
+  | "Weights"
+  | "FoamRoller"
+  | "Bench"
+  | "Kettlebell"
+  | "BalancePad"
+  | "Sandbag"
+  | "SkippingRope"
+  | "Dowel"
+  | "Box";
 
 export type TExerciseField = "Sets" | "Reps" | "Time";
 
@@ -111,17 +127,19 @@ type TExerciseRead = {
   defaultReps: number | null;
   defaultTime: number | null;
   type: TExerciseType;
-  secondaryType?: TExerciseType | null; // new field
-  primarySubtype?: TExerciseSubtype | null; // new field
-  secondarySubtype?: TExerciseSubtype | null; // new field
-  equipments?: TEquipment[] | null; // new field
-  area?: TExerciseArea | null; // new field
-  secondaryArea?: TExerciseArea | null; // new field
   editableFields: TExerciseField[];
   isConsoleLive: boolean;
   clinicianRef?: TClinicianRef;
   createdAt?: Date;
   isArchived?: boolean;
+  // New exercise fields
+  primaryArea?: TExerciseArea | null; // new field //TODO: this should be mandatory
+  secondaryArea?: TExerciseArea | null; // new field
+  primaryType?: TExerciseType | null; // new field (new "type" field) //TODO: this should be mandatory
+  secondaryType?: TExerciseType | null; // new field
+  primarySubtype?: TExerciseSubtype | null; // new field
+  secondarySubtype?: TExerciseSubtype | null; // new field
+  equipments?: TEquipment[] | null; // new field
 };
 
 export type TExercise = TExerciseRead & {
