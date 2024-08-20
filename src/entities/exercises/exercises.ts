@@ -22,17 +22,17 @@ export type TExerciseCollectionRef = CollectionReference<
 >;
 
 export type TExerciseArea =
-  | "FootAndAnkle"
+  | "Foot and ankle"
   | "Knee"
   | "Hip"
-  | "PelvicFloor"
+  | "Pelvic floor"
   | "Core"
-  | "LowerBack"
-  | "UpperBack"
+  | "Lower back"
+  | "Upper back"
   | "Neck"
   | "Shoulder"
   | "Elbow"
-  | "WristAndHand";
+  | "Wrist and hand";
 
 /**
  * @Stretch is deprecated
@@ -53,25 +53,25 @@ export type TExerciseSubtype =
   | "Eccentric"
   | "Isometric"
   | "Plyometrics"
-  | "StaticStretch"
-  | "DynamicStretch"
+  | "Static stretch"
+  | "Dynamic stretch"
   | "AROM"
   | "PROM"
-  | "SelfMassage"
-  | "FoamRolling"
-  | "MassageBall";
+  | "Self massage"
+  | "Foam rolling"
+  | "Massage ball";
 
 export type TEquipment =
-  | "ResistanceBand"
-  | "MassageBall"
-  | "ExerciseBall"
+  | "Resistance band"
+  | "Massage ball"
+  | "Exercise ball"
   | "Weights"
-  | "FoamRoller"
+  | "Foam roller"
   | "Bench"
   | "Kettlebell"
-  | "BalancePad"
+  | "Balance pad"
   | "Sandbag"
-  | "SkippingRope"
+  | "Skipping rope"
   | "Dowel"
   | "Box";
 
