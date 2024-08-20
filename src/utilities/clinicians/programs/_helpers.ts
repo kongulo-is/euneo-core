@@ -128,7 +128,7 @@ export async function _savePhases(
       await setDoc(
         doc(phasesRef.withConverter(programPhaseConverter), phaseId),
         phaseRead,
-        { merge: true },
+        // { merge: true },
       );
 
       phasesRead[phaseId] = phaseRead;
