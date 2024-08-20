@@ -141,6 +141,8 @@ type TExerciseRead = {
   secondarySubtype?: TExerciseSubtype | null; // new field
   equipmentNeeded?: TEquipment[] | null; // new field
   equipmentShown?: TEquipment[] | null; // new field
+  targetedMuscles?: string[] | null; // new field
+  primaryInvolvedMuscleGroups?: string[] | null; // new field
 };
 
 export type TExercise = TExerciseRead & {
