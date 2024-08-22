@@ -73,19 +73,19 @@ export type TClinicianProgramRead = TProgramBase & {
 export type TProgramRead = TEuneoProgramRead | TClinicianProgramRead;
 
 export function isClinicianProgram(
-  program: TProgramRead
+  program: TProgramRead,
 ): program is TClinicianProgramRead {
   return (program as TClinicianProgramRead).createdAt !== undefined;
 }
 
 export function isEuneoProgram(
-  program: TProgramRead
+  program: TProgramRead,
 ): program is TEuneoProgramRead {
   return (program as TEuneoProgramRead).isConsoleLive !== undefined;
 }
 
 export function isClinicianProgramIdentifiers(
-  identifiers: TProgramIdentifiers
+  identifiers: TProgramIdentifiers,
 ): identifiers is TClinicianProgramIdentifiers {
   return (
     (identifiers as TClinicianProgramIdentifiers)[Collection.Clinicians] !==
@@ -113,7 +113,7 @@ export function deserializeProgramPath(path: string): TProgramIdentifiers {
     const clinicianId = segments[cliniciansIndex + 1];
     const programsIndex = segments.indexOf(
       Collection.Programs,
-      cliniciansIndex
+      cliniciansIndex,
     );
     const programId = segments[programsIndex + 1];
 
@@ -157,17 +157,20 @@ export function createProgramRef({
 
 export const programConverter = {
   toFirestore(program: TProgramRead): TProgramWrite {
+    const createdAt =
+      "createdAt" in program
+        ? Timestamp.fromDate(program.createdAt)
+        : undefined;
+    const lastUpdatedAt =
+      "lastUpdatedAt" in program
+        ? Timestamp.fromDate(program.lastUpdatedAt)
+        : createdAt;
+
     const programWrite: TProgramWrite = {
       currentVersionRef: program.currentVersionRef,
       // Convert dates to Timestamps if they exist
-      createdAt:
-        "createdAt" in program
-          ? Timestamp.fromDate(program.createdAt)
-          : undefined,
-      lastUpdatedAt:
-        "lastUpdatedAt" in program
-          ? Timestamp.fromDate(program.lastUpdatedAt)
-          : undefined,
+      createdAt: createdAt,
+      lastUpdatedAt: lastUpdatedAt,
       isConsoleLive:
         "isConsoleLive" in program ? program.isConsoleLive : undefined,
       isLive: "isLive" in program ? program.isLive : undefined,
@@ -197,18 +200,18 @@ export const programConverter = {
         >;
       }
     >,
-    options: SnapshotOptions
+    options: SnapshotOptions,
   ): TProgramRead {
     const programWrite = snapshot.data(options);
     const { createdAt, lastUpdatedAt, currentVersion, ...rest } = programWrite;
 
-
-  
-
-
     const clinicianProgram: TClinicianProgramRead = {
       createdAt: createdAt ? createdAt.toDate() : new Date(),
-      lastUpdatedAt: lastUpdatedAt ? lastUpdatedAt.toDate() : new Date(),
+      lastUpdatedAt: lastUpdatedAt
+        ? lastUpdatedAt.toDate()
+        : createdAt
+          ? createdAt.toDate()
+          : new Date(),
       isSaved: rest.isSaved ?? false,
       isArchived: rest.isArchived ?? false,
       currentVersionRef: currentVersion ?? programWrite.currentVersionRef, // TODO: remove currentVersion when all clients have updated programs, this is for users with deprecated programs
