@@ -50,14 +50,13 @@ async function _fetchClientProgram({
     const clientProgram = await getClientProgram(
       prescription.clientProgramRef,
       maxNumberOfDays,
-      skipMaintenanceData,
+      skipMaintenanceData
     );
 
     if (!clientProgram) {
       throw new Error("Client program data is undefined");
     }
 
-    console.log("Fetched client program:", clientProgram);
     return clientProgram;
   } catch (error) {
     console.error("Error fetching client program:", error);
@@ -67,17 +66,17 @@ async function _fetchClientProgram({
 
 export async function getClinicianClientPastPrescriptions(
   clinicianId: string,
-  clinicianClientId: string,
+  clinicianClientId: string
 ) {
   try {
     // get all past prescriptions in pastPrescription subcollection under /clinicians/{clinicianId}/clients/{clinicianClientId}/pastPrescriptions
     const clinicianClientPastPrescriptionsRef = collection(
       doc(db, "clinicians", clinicianId, "clients", clinicianClientId),
-      "pastPrescriptions",
+      "pastPrescriptions"
     ) as CollectionReference<TPrescriptionWrite>;
     const q = query(
       clinicianClientPastPrescriptionsRef,
-      orderBy("prescriptionDate", "desc"),
+      orderBy("prescriptionDate", "desc")
     );
     const snapshot = await getDocs(q);
 
@@ -94,7 +93,7 @@ export async function getClinicianClientPastPrescriptions(
       {
         clinicianId,
         clinicianClientId,
-      },
+      }
     );
   }
 }
@@ -105,11 +104,11 @@ export async function getClinicianClient(
     TClinicianClientRead,
     TClinicianClientWrite
   >,
-  skipMaintenanceData: boolean = false,
+  skipMaintenanceData: boolean = false
 ): Promise<TClinicianClient> {
   try {
     const clientSnap = await getDoc(
-      clinicianClientRef.withConverter(clinicianClientConverter),
+      clinicianClientRef.withConverter(clinicianClientConverter)
     );
 
     const clientData = clientSnap.data();
@@ -120,13 +119,11 @@ export async function getClinicianClient(
       skipMaintenanceData,
     });
 
-    console.log("clientProgramDATA", clientProgram);
-
     return {
       ...clientData,
       clinicianClientRef,
       clinicianClientIdentifiers: deserializeClinicianClientPath(
-        clinicianClientRef.path,
+        clinicianClientRef.path
       ),
       ...(clientProgram && !isEmptyObject(clientProgram) && { clientProgram }),
     };
@@ -140,14 +137,14 @@ export async function getClinicianClient(
 
 // Get all clinician clients
 export async function getClinicianClients(
-  clinicianId: string,
+  clinicianId: string
 ): Promise<TClinicianClient[]> {
   try {
     // Get clients data form clinician collection
     const clinicianRef = doc(db, "clinicians", clinicianId);
     const clientsRef = collection(clinicianRef, "clients");
     const q = query(clientsRef, orderBy("date", "desc")).withConverter(
-      clinicianClientConverter,
+      clinicianClientConverter
     );
 
     const snapshot = await getDocs(q);
@@ -172,7 +169,7 @@ export async function getClinicianClients(
             ...clientData,
             clinicianClientRef,
             clinicianClientIdentifiers: deserializeClinicianClientPath(
-              c.ref.path,
+              c.ref.path
             ),
             ...(clientProgram &&
               !isEmptyObject(clientProgram) && { clientProgram }),
@@ -183,15 +180,13 @@ export async function getClinicianClients(
           console.error("Error getting clients data:", error, c);
           throw new Error(error as any);
         }
-      }),
+      })
     ).catch((err) => {
       console.log("Error getting clients");
 
       console.error(err);
       return [];
     });
-
-    console.log("clientsData in getAllCliniciansClients", clientsData);
 
     return clientsData;
   } catch (error) {
