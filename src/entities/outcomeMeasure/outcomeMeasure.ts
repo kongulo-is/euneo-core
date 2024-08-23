@@ -10,7 +10,8 @@ export type TOutcomeMeasureId =
   | "hoos"
   | "koos"
   | "lefs"
-  | "spadi";
+  | "spadi"
+  | "wosi";
 
 export type TSectionGroupBase = {
   title: string;
