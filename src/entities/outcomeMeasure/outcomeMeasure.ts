@@ -9,7 +9,8 @@ export type TOutcomeMeasureId =
   | "pgq"
   | "hoos"
   | "koos"
-  | "lefs";
+  | "lefs"
+  | "spadi";
 
 export type TSectionGroup = {
   title: string;
@@ -53,7 +54,7 @@ export const outcomeMeasureConverter = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TOutcomeMeasureWrite>,
-    options: SnapshotOptions
+    options: SnapshotOptions,
   ): TOutcomeMeasure {
     const data = snapshot.data(options);
 
