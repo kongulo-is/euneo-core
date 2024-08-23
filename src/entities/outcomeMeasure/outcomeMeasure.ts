@@ -34,6 +34,7 @@ export type TOutcomeMeasureBase = {
   expectedTime: string;
   higherIsBetter: boolean;
   sections: TOutcomeMeasureSection[];
+  isConsoleLive: boolean;
 };
 
 export type TOutcomeMeasure = TOutcomeMeasureBase & {
@@ -53,7 +54,7 @@ export const outcomeMeasureConverter = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TOutcomeMeasureWrite>,
-    options: SnapshotOptions
+    options: SnapshotOptions,
   ): TOutcomeMeasure {
     const data = snapshot.data(options);
 
