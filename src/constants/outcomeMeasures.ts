@@ -58,6 +58,11 @@ export const outcomeMeasures: OutcomeMeasures = {
     name: "Lower Extremity Functional Scale",
     acronym: "LEFS",
   },
+  spadi: {
+    id: "spadi",
+    name: "Shoulder Pain and Disability Index",
+    acronym: "SPADI",
+  },
 };
 
 export const outcomeMeasureOptions = Object.entries(outcomeMeasures).map(
