@@ -31,11 +31,11 @@ export async function getClinicianProgramWithDays(
     TProgramVersionWrite
   >,
 
-  excludeMaintenance: boolean = false
+  excludeMaintenance: boolean = false,
 ): Promise<TClinicianProgram> {
   const clinicianProgram = await _getProgramFromRef(
     programVersionRef,
-    excludeMaintenance
+    excludeMaintenance,
   );
 
   if (clinicianProgram.creator !== "clinician") {
@@ -61,7 +61,7 @@ export async function getClinicianProgramWithDays(
 }
 
 export async function getClinicianProgramsWithSubcollections(
-  clinicianId: string
+  clinicianId: string,
 ): Promise<TClinicianProgram[]> {
   try {
     const clinicianRef = doc(db, "clinicians", clinicianId);
@@ -69,7 +69,7 @@ export async function getClinicianProgramsWithSubcollections(
 
     const programsQuery = query(programsRef, where("isSaved", "==", true));
     const programsSnap = await getDocs(
-      programsQuery.withConverter(programConverter)
+      programsQuery.withConverter(programConverter),
     );
 
     const programsData = programsSnap.docs.map((doc) => doc.data());
@@ -80,11 +80,12 @@ export async function getClinicianProgramsWithSubcollections(
         const program = await _getProgramFromRef(currentVersionRef, true);
         if (program.creator !== "clinician") {
           throw new Error(
-            "Program is not a clinician program, invalid program"
+            "Program is not a clinician program, invalid program",
           );
         }
+
         return program;
-      })
+      }),
     );
   } catch (error) {
     console.error("Error fetching clinician programs:", error);

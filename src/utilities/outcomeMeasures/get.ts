@@ -20,13 +20,15 @@ export async function getAllOutcomeMeasures(): Promise<
   try {
     const outcomeMeasuresRef = collection(
       db,
-      "outcomeMeasures"
+      "outcomeMeasures",
     ) as CollectionReference<TOutcomeMeasureWrite>;
     const outcomeMeasuresSnapshot = await getDocs(
-      outcomeMeasuresRef.withConverter(outcomeMeasureConverter)
+      outcomeMeasuresRef.withConverter(outcomeMeasureConverter),
     );
     const outcomeMeasures = Object.fromEntries(
-      outcomeMeasuresSnapshot.docs.map((doc) => [doc.id, doc.data()])
+      outcomeMeasuresSnapshot.docs
+        .filter((doc) => doc.id !== "spadi") // TODO: TEMPORARY FIX until isConsoleLive is added to outcome measures in database
+        .map((doc) => [doc.id, doc.data()]),
     );
 
     return outcomeMeasures;
@@ -37,16 +39,16 @@ export async function getAllOutcomeMeasures(): Promise<
 }
 
 export async function getOutcomeMeasure(
-  outcomeMeasureId: TOutcomeMeasureId
+  outcomeMeasureId: TOutcomeMeasureId,
 ): Promise<TOutcomeMeasure> {
   try {
     const outcomeMeasureRef = doc(
       db,
       "outcomeMeasures",
-      outcomeMeasureId
+      outcomeMeasureId,
     ) as DocumentReference<TOutcomeMeasureWrite>;
     const outcomeMeasureSnapshot = await getDoc(
-      outcomeMeasureRef.withConverter(outcomeMeasureConverter)
+      outcomeMeasureRef.withConverter(outcomeMeasureConverter),
     );
 
     const outcomeMeasureData = outcomeMeasureSnapshot.data();

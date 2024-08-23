@@ -91,6 +91,7 @@ export async function _savePhases(
       let phaseRead: TProgramPhaseRead;
       if (phase.mode === "finite" && phase.length && phase.nextPhase) {
         phaseRead = {
+          name: phase.name || "",
           days: phase.days.map(
             (day) =>
               doc(
@@ -110,6 +111,7 @@ export async function _savePhases(
         }
 
         phaseRead = {
+          name: phase.name || "",
           days: phase.days.map(
             (day) =>
               doc(
@@ -128,7 +130,7 @@ export async function _savePhases(
       await setDoc(
         doc(phasesRef.withConverter(programPhaseConverter), phaseId),
         phaseRead,
-        { merge: true },
+        // { merge: true },
       );
 
       phasesRead[phaseId] = phaseRead;
