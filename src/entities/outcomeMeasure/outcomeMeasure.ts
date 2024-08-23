@@ -9,13 +9,24 @@ export type TOutcomeMeasureId =
   | "pgq"
   | "hoos"
   | "koos"
-  | "lefs";
+  | "lefs"
+  | "spadi";
 
-export type TSectionGroup = {
+export type TSectionGroupBase = {
   title: string;
-  options: { option: string; value: number | null }[];
   questions: string[];
 };
+
+export type TOptionsGroup = TSectionGroupBase & {
+  options: { option: string; value: number | null }[];
+};
+
+export type TRatingGroup = TSectionGroupBase & {
+  options: number[];
+  optionExplanation: string;
+};
+
+export type TSectionGroup = TOptionsGroup | TRatingGroup;
 
 export type TOutcomeMeasureSection = {
   sectionName: string;
