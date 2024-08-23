@@ -35,6 +35,7 @@ export type TOutcomeMeasureBase = {
   expectedTime: string;
   higherIsBetter: boolean;
   sections: TOutcomeMeasureSection[];
+  isConsoleLive: boolean;
 };
 
 export type TOutcomeMeasure = TOutcomeMeasureBase & {

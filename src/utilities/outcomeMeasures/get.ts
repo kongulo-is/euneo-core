@@ -5,6 +5,8 @@ import {
   DocumentReference,
   getDoc,
   getDocs,
+  query,
+  where,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
 import {
@@ -22,13 +24,13 @@ export async function getAllOutcomeMeasures(): Promise<
       db,
       "outcomeMeasures",
     ) as CollectionReference<TOutcomeMeasureWrite>;
-    const outcomeMeasuresSnapshot = await getDocs(
-      outcomeMeasuresRef.withConverter(outcomeMeasureConverter),
-    );
+
+    const q = query(outcomeMeasuresRef, where("isConsoleLive", "==", true));
+
+    const snapshot = await getDocs(q.withConverter(outcomeMeasureConverter));
+
     const outcomeMeasures = Object.fromEntries(
-      outcomeMeasuresSnapshot.docs
-        .filter((doc) => doc.id !== "spadi") // TODO: TEMPORARY FIX until isConsoleLive is added to outcome measures in database
-        .map((doc) => [doc.id, doc.data()]),
+      snapshot.docs.map((doc) => [doc.id, doc.data()]),
     );
 
     return outcomeMeasures;
