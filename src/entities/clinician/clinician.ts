@@ -17,6 +17,7 @@ export type TClinicianRead = {
   email: string;
   name: string;
   isAdmin?: boolean;
+  favouriteExercises?: string[];
 };
 
 export type TClinician = TClinicianRead;
@@ -25,6 +26,7 @@ export type TClinician = TClinicianRead;
 export type TClinicianWrite = {
   email: string;
   name: string;
+  favouriteExercises?: string[];
 };
 
 export function createClinicianRef(clinicianId: string): TClinicianRef {
