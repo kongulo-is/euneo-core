@@ -94,12 +94,22 @@ export type TExerciseWrite = {
   defaultSets: number | null;
   defaultReps: number | null;
   defaultTime: number | null;
-  type: TExerciseType;
+  type?: TExerciseType;
   editableFields: TExerciseField[];
   isConsoleLive: boolean;
   clinicianRef?: TClinicianRef;
   createdAt?: Timestamp;
   isArchived?: boolean;
+  primaryArea?: TExerciseArea | null; // new field //TODO: this should be mandatory
+  secondaryArea?: TExerciseArea | null; // new field
+  primaryType?: TExerciseType | null; // new field (new "type" field) //TODO: this should be mandatory
+  secondaryType?: TExerciseType | null; // new field
+  primarySubtype?: TExerciseSubtype | null; // new field
+  secondarySubtype?: TExerciseSubtype | null; // new field
+  equipmentNeeded?: TEquipment[] | null; // new field
+  equipmentShown?: TEquipment[] | null; // new field
+  targetedMuscles?: string[] | null; // new field
+  primaryInvolvedMuscleGroups?: string[] | null; // new field
 };
 
 /**
@@ -109,7 +119,7 @@ export type TExerciseWrite = {
  * @param displayID url video
  * @param assetID id of video in mux
  */
-type TExerciseRead = {
+export type TExerciseRead = {
   id: string;
   variation: string;
   description: string;
@@ -126,7 +136,7 @@ type TExerciseRead = {
   defaultSets: number | null;
   defaultReps: number | null;
   defaultTime: number | null;
-  type: TExerciseType;
+  type?: TExerciseType;
   editableFields: TExerciseField[];
   isConsoleLive: boolean;
   clinicianRef?: TClinicianRef;
@@ -153,7 +163,7 @@ export type TExercise = TExerciseRead & {
 export function createExerciseRef({
   exercises,
 }: {
-  exercises: string;
+  exercises?: string;
 }): DocumentReference<TExerciseRead, TExerciseWrite> {
   const path = `${Collection.Exercises}/${exercises}`;
   return doc(db, path).withConverter(exerciseConverter);

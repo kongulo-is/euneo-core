@@ -8,6 +8,8 @@ import {
   endAt,
   startAt,
   orderBy,
+  addDoc,
+  collection,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
 import { updateDoc } from "../updateDoc";
@@ -15,10 +17,12 @@ import {
   createExerciseCollectionRef,
   createExerciseRef,
   deserializeExercisePath,
+  exerciseConverter,
   TExercise,
   TExerciseWrite,
 } from "../../entities/exercises/exercises";
 import { createClinicianRef } from "../../entities/clinician/clinician";
+import { Collection } from "../../entities/global";
 
 export async function getAllExercises(): Promise<Record<string, TExercise>> {
   try {
@@ -33,7 +37,7 @@ export async function getAllExercises(): Promise<Record<string, TExercise>> {
 
     // create a map of exercises
     const exercises = Object.fromEntries(
-      exercisesList.map((exercise) => [exercise.id, exercise]),
+      exercisesList.map((exercise) => [exercise.id, exercise])
     );
 
     return exercises;
@@ -44,7 +48,7 @@ export async function getAllExercises(): Promise<Record<string, TExercise>> {
 }
 
 export async function getAllEuneoAndClinicianExercises(
-  clinicianId: string,
+  clinicianId: string
 ): Promise<Record<string, TExercise>> {
   try {
     const exerciseCollectionRef = createExerciseCollectionRef();
@@ -54,7 +58,7 @@ export async function getAllEuneoAndClinicianExercises(
     // Query for exercises with the specific clinicianId and ID starting with "EHE"
     const clinicianQueryRef = query(
       exerciseCollectionRef,
-      where("clinicianRef", "==", clinicianRef),
+      where("clinicianRef", "==", clinicianRef)
     );
 
     // Query for exercises without a clinicianId and ID starting with "EHE"
@@ -63,26 +67,15 @@ export async function getAllEuneoAndClinicianExercises(
       where("isConsoleLive", "==", true),
       orderBy("__name__"),
       startAt("EHE"),
-      endAt("EHE\uf8ff"),
+      endAt("EHE\uf8ff")
     );
 
-    // const developmentQueryRef = query(
-    //   exercisesRef.withConverter(exerciseConverter),
-    //   orderBy("__name__"),
-    //   startAt("AA"),
-    //   endAt("AA\uf8ff")
-    // );
-
     // Fetch both sets of exercises
-    const [
-      clinicianExercisesSnap,
-      noClinicianExercisesSnap,
-      // developmentExercisesSnap,
-    ] = await Promise.all([
-      getDocs(clinicianQueryRef),
-      getDocs(noClinicianQueryRef),
-      // getDocs(developmentQueryRef),
-    ]);
+    const [clinicianExercisesSnap, noClinicianExercisesSnap] =
+      await Promise.all([
+        getDocs(clinicianQueryRef),
+        getDocs(noClinicianQueryRef),
+      ]);
 
     const clinicianExercisesList = clinicianExercisesSnap.docs.map((doc) => ({
       ...doc.data(),
@@ -95,23 +88,18 @@ export async function getAllEuneoAndClinicianExercises(
         ...doc.data(),
         exerciseRef: doc.ref,
         exerciseIdentifiers: deserializeExercisePath(doc.ref.path),
-      }),
+      })
     );
-
-    // const developmentExercisesList = developmentExercisesSnap.docs.map((doc) =>
-    //   doc.data()
-    // );
 
     // Combine both lists
     const combinedExercisesList = [
       ...clinicianExercisesList,
       ...noClinicianExercisesList,
-      // ...developmentExercisesList,
     ];
 
     // Create a map of exercises
     const exercises = Object.fromEntries(
-      combinedExercisesList.map((exercise) => [exercise.id, exercise]),
+      combinedExercisesList.map((exercise) => [exercise.id, exercise])
     );
 
     return exercises;
@@ -141,19 +129,18 @@ export async function getExerciseById(id: string): Promise<TExercise> {
 
 export async function uploadExercise(
   exercise: TExerciseWrite,
-  clinicianId: string,
+  clinicianId: string
 ): Promise<string> {
   try {
-    const randomId = Math.random().toString(36).substring(7);
-
-    const exerciseRef = createExerciseRef({ exercises: "AAAAA-" + randomId });
+    const exerciseRef = createExerciseCollectionRef();
     const clinicianRef = createClinicianRef(clinicianId);
-    await setDoc(exerciseRef, {
+    await addDoc(exerciseRef, {
       ...exercise,
       clinicianRef,
-      id: "AAAAA-" + randomId,
       createdAt: new Date(),
+      id: exerciseRef.id,
     });
+
     return exerciseRef.id;
   } catch (error) {
     console.error("Error uploading exercise:", error);
@@ -163,7 +150,7 @@ export async function uploadExercise(
 
 export async function updateExerciseTimestampAndPreview(
   exerciseId: string,
-  time: number,
+  time: number
 ): Promise<string> {
   try {
     const exerciseRef = createExerciseRef({ exercises: exerciseId });
