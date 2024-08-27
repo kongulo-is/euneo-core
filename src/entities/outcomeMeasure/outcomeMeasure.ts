@@ -25,6 +25,7 @@ export type TOptionsGroup = TSectionGroupBase & {
 export type TRatingGroup = TSectionGroupBase & {
   options: number[];
   optionExplanation: string;
+  isSkippable?: boolean | null;
 };
 
 export type TSectionGroup = TOptionsGroup | TRatingGroup;
@@ -66,7 +67,7 @@ export const outcomeMeasureConverter = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TOutcomeMeasureWrite>,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): TOutcomeMeasure {
     const data = snapshot.data(options);
 
