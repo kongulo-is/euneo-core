@@ -1,5 +1,13 @@
-import { doc, setDoc } from "firebase/firestore";
+import {
+  arrayRemove,
+  arrayUnion,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
 import { db } from "../../firebase/db";
+import { createClinicianRef } from "../../entities/clinician/clinician";
 
 export async function createClinician(
   clinicianId: string,
@@ -17,5 +25,50 @@ export async function createClinician(
       name,
     });
     return false;
+  }
+}
+
+export async function addFavouriteExerciseToClinician(
+  clinicianId: string,
+  favouriteExerciseId: string
+): Promise<string[]> {
+  try {
+    const clinicianRef = createClinicianRef(clinicianId);
+
+    // Use arrayUnion to add the favouriteExerciseId to the list
+    await updateDoc(clinicianRef, {
+      favouriteExercises: arrayUnion(favouriteExerciseId),
+    });
+
+    const updatedDoc = await getDoc(clinicianRef);
+
+    const updatedList = updatedDoc.data()?.favouriteExercises || [];
+    return updatedList;
+  } catch (error) {
+    console.log("Could not favourite exercise.", error);
+    return [];
+  }
+}
+
+export async function removeFavouriteExerciseFromClinician(
+  clinicianId: string,
+  favouriteExerciseId: string
+): Promise<string[]> {
+  try {
+    const clinicianRef = createClinicianRef(clinicianId);
+
+    // Use arrayRemove to remove the favouriteExerciseId from the list
+    await updateDoc(clinicianRef, {
+      favouriteExercises: arrayRemove(favouriteExerciseId),
+    });
+    const updatedDoc = await getDoc(clinicianRef);
+
+    const updatedList = updatedDoc.data()?.favouriteExercises || [];
+
+    return updatedList;
+  } catch (error) {
+    console.log("Could not remove favourite exercise.", error);
+
+    return [];
   }
 }
