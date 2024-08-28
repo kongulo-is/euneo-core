@@ -42,7 +42,6 @@ async function _fetchClientProgram({
     !("clientProgramRef" in prescription) ||
     !prescription.clientProgramRef
   ) {
-    console.log("There is no client program", clientData);
     return;
   }
 

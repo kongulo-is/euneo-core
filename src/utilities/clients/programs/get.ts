@@ -99,8 +99,6 @@ export async function getClientProgram(
       ),
     };
 
-    console.log("clientProgramWithDays", clientProgram);
-
     return clientProgram;
   } catch (error) {
     console.error("Error fetching client program:", error, clientProgramRef);
