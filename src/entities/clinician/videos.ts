@@ -1,4 +1,6 @@
 import {
+  collection,
+  CollectionReference,
   doc,
   DocumentReference,
   QueryDocumentSnapshot,
@@ -19,13 +21,13 @@ export type TVClinicianideoRef = DocumentReference<
 >;
 
 export type TClinicianVideoRead = {
-  displayID: string;
+  displayID?: string;
   assetID: string;
   date: Date;
 };
 
 export type TClinicianVideoWrite = {
-  displayID: string;
+  displayID?: string;
   assetID: string;
   date: Timestamp;
 };
@@ -44,15 +46,23 @@ export function createClinicianVideoRef({
     Collection.Clinicians,
     clinicians,
     Collection.Videos,
-    videos,
+    videos
   ).withConverter(clinicianVideoConverter);
+}
+
+export function createClinicianVideosCollectionRef(): CollectionReference<
+  TClinicianVideoRead,
+  TClinicianVideoWrite
+> {
+  return collection(db, Collection.Clinicians, Collection.Videos).withConverter(
+    clinicianVideoConverter
+  );
 }
 
 export const clinicianVideoConverter = {
   toFirestore(video: TClinicianVideoRead): TClinicianVideoWrite {
     const data: TClinicianVideoWrite = {
-      displayID: video.displayID,
-      assetID: video.assetID,
+      ...video,
       date: Timestamp.fromDate(video.date),
     };
 
@@ -60,7 +70,7 @@ export const clinicianVideoConverter = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TClinicianVideoWrite>,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): TClinicianVideoRead {
     const data = snapshot.data(options);
     const video: TClinicianVideoRead = {
