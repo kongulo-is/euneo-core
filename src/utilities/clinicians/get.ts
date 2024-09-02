@@ -14,6 +14,11 @@ import {
   createClinicianCollectionRef,
   TClinician,
 } from "../../entities/clinician/clinician";
+import {
+  createClinicianVideosCollectionRef,
+  TClinicianVideo,
+} from "../../entities/clinician/videos";
+import { addVideoToClinician, waitForVideoToBeProcessed } from "./videos/add";
 
 export async function getAllClinicians(): Promise<
   (TClinician & { uid: string })[]
@@ -56,7 +61,7 @@ export async function getClinician(clinicianId: string): Promise<TClinician> {
     const clinicianRef = doc(
       db,
       "clinicians",
-      clinicianId,
+      clinicianId
     ) as DocumentReference<TClinician>;
 
     const clinicianDoc = await getDoc(clinicianRef);
@@ -74,35 +79,44 @@ export async function getClinician(clinicianId: string): Promise<TClinician> {
 
 export async function clinicianVideoPoolListener(
   clinicianId: string,
-  callback: (videos: { assetID: string; displayID: string }[]) => Promise<void>,
+  callback: (videos: TClinicianVideo[]) => Promise<void>
 ): Promise<Unsubscribe> {
-  // TODO: fix as
-  const videoPoolCollectionRef = collection(
-    db,
-    "clinicians",
-    clinicianId,
-    "videos",
-  ) as CollectionReference<{ assetID: string; displayID: string }>;
+  const videoPoolCollectionRef =
+    createClinicianVideosCollectionRef(clinicianId);
 
   const unsubscribe = onSnapshot(
     videoPoolCollectionRef,
-    async (snapshot: QuerySnapshot<{ assetID: string; displayID: string }>) => {
+    async (snapshot: QuerySnapshot<TClinicianVideo>) => {
       if (!snapshot.empty) {
-        const clinicianData = snapshot.docs.map((doc) => doc.data());
+        console.log("SNAPCHANGE");
+
+        const clinicianData = snapshot.docs.map((doc) => {
+          let video = doc.data();
+          console.log("video", video);
+
+          if (!video.displayID) {
+            // video is still processing
+            // try to get the displayID
+            waitForVideoToBeProcessed(video, clinicianId);
+          }
+          return video;
+        });
+
         // Collection has documents, call the callback to handle the data
+
         await callback(clinicianData);
       } else {
         // Collection is empty, call the callback with an empty array
         await callback([]);
       }
-    },
+    }
   );
 
   return unsubscribe;
 }
 
 export async function checkIfClinicianExists(
-  clinicianId: string,
+  clinicianId: string
 ): Promise<boolean> {
   try {
     const clinicianRef = doc(db, "clinicians", clinicianId);

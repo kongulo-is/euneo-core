@@ -50,13 +50,15 @@ export function createClinicianVideoRef({
   ).withConverter(clinicianVideoConverter);
 }
 
-export function createClinicianVideosCollectionRef(): CollectionReference<
-  TClinicianVideoRead,
-  TClinicianVideoWrite
-> {
-  return collection(db, Collection.Clinicians, Collection.Videos).withConverter(
-    clinicianVideoConverter
-  );
+export function createClinicianVideosCollectionRef(
+  clinicians: string
+): CollectionReference<TClinicianVideoRead, TClinicianVideoWrite> {
+  return collection(
+    db,
+    Collection.Clinicians,
+    clinicians,
+    Collection.Videos
+  ).withConverter(clinicianVideoConverter);
 }
 
 export const clinicianVideoConverter = {
