@@ -26,11 +26,16 @@ import {
   TProgramVersionWrite,
 } from "../../entities/program/version";
 import { TClinicianClientRef } from "../../entities/clinician/clinicianClient";
-import { invitationConverter } from "../../entities/invitation/invitation";
+import {
+  deserializeInvitationPath,
+  invitationConverter,
+  TInvitation,
+} from "../../entities/invitation/invitation";
 import { prescriptionConverter } from "../../entities/clinician/prescription";
 
 /**
  * @description Get program from code in app
+ * @deprecated Breaking this function down into smaller functions
  */
 // TODO: Fix function
 export async function getProgramFromCode(code: string): Promise<{
