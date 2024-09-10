@@ -44,10 +44,10 @@ async function _fetchProgramVersion(
   programVersionRef: DocumentReference<
     TProgramVersionRead,
     TProgramVersionWrite
-  >,
+  >
 ): Promise<TProgramVersion> {
   const programSnap = await getDoc(
-    programVersionRef.withConverter(programVersionConverter),
+    programVersionRef.withConverter(programVersionConverter)
   );
 
   if (!programSnap.exists()) {
@@ -62,7 +62,7 @@ async function _fetchProgramVersion(
 
 // TODO: is this function not already defined somewhere else?
 async function _fetchProgramBase(
-  programRef: DocumentReference<TProgramRead, TProgramWrite>,
+  programRef: DocumentReference<TProgramRead, TProgramWrite>
 ): Promise<TProgramInfo> {
   const programSnap = await getDoc(programRef.withConverter(programConverter));
 
@@ -76,24 +76,24 @@ async function _fetchProgramBase(
 
 // TODO: is this function not already defined somewhere else? add description?
 export async function _fetchDays(
-  programRef: DocumentReference<TProgramVersionRead, TProgramVersionWrite>,
+  programRef: DocumentReference<TProgramVersionRead, TProgramVersionWrite>
 ): Promise<Record<TProgramDayKey, TProgramDay>> {
   const daySnapshots = await getDocs(
-    collection(programRef, "days").withConverter(programDayConverter),
+    collection(programRef, "days").withConverter(programDayConverter)
   );
 
   return Object.fromEntries(
-    daySnapshots.docs.map((doc) => [doc.id, doc.data()]),
+    daySnapshots.docs.map((doc) => [doc.id, doc.data()])
   );
 }
 
 // TODO: is this function not already defined somewhere else? add description?
 export async function _fetchPhases(
   programRef: DocumentReference<TProgramVersionRead, TProgramVersionWrite>,
-  excludeMaintenancePhases: boolean = false,
+  excludeMaintenancePhases: boolean = false
 ): Promise<Record<TProgramPhaseKey, TProgramPhaseRead>> {
   const phaseSnapshots = await getDocs(
-    collection(programRef, "phases").withConverter(programPhaseConverter),
+    collection(programRef, "phases").withConverter(programPhaseConverter)
   );
 
   const sortedPhaseDocs = phaseSnapshots.docs.sort((a, b) => {
@@ -107,7 +107,7 @@ export async function _fetchPhases(
     const phases = Object.fromEntries(
       sortedPhaseDocs
         .filter((doc) => !doc.id.includes("m"))
-        .map((doc) => [doc.id, doc.data()]),
+        .map((doc) => [doc.id, doc.data()])
     );
 
     return phases;
@@ -126,7 +126,7 @@ export async function _fetchPhases(
         highestPhaseId = phaseNumber;
       }
       return [doc.id, doc.data()];
-    }),
+    })
   );
 
   // Add maintenance phase if there isn't one already
@@ -148,51 +148,56 @@ export async function _getProgramFromRef(
     TProgramVersionRead,
     TProgramVersionWrite
   >,
-  excludeMaintenancePhases: boolean = false,
+  excludeMaintenancePhases: boolean = false
 ): Promise<TProgram> {
-  const programVersionIdentifiers = deserializeProgramVersionPath(
-    programVersionRef.path,
-  );
+  try {
+    const programVersionIdentifiers = deserializeProgramVersionPath(
+      programVersionRef.path
+    );
 
-  let programRef: DocumentReference<TProgramRead, TProgramWrite> =
-    programVersionRef.parent.parent!.withConverter(programConverter);
+    let programRef: DocumentReference<TProgramRead, TProgramWrite> =
+      programVersionRef.parent.parent!.withConverter(programConverter);
 
-  const [programInfo, versionInfo, phases, days] = await Promise.all([
-    _fetchProgramBase(programRef),
-    _fetchProgramVersion(programVersionRef),
-    _fetchPhases(programVersionRef, excludeMaintenancePhases),
-    _fetchDays(programVersionRef),
-  ]);
+    const [programInfo, versionInfo, phases, days] = await Promise.all([
+      _fetchProgramBase(programRef),
+      _fetchProgramVersion(programVersionRef),
+      _fetchPhases(programVersionRef, excludeMaintenancePhases),
+      _fetchDays(programVersionRef),
+    ]);
 
-  // Adjust the returned type based on the program type
-  if (isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
-    if (!isClinicianProgram(programInfo)) {
-      throw new Error(
-        "Program is not a clinician program, invalid program info",
-      );
+    // Adjust the returned type based on the program type
+    if (isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
+      if (!isClinicianProgram(programInfo)) {
+        throw new Error(
+          "Program is not a clinician program, invalid program info"
+        );
+      }
+      return {
+        programVersionIdentifiers,
+        programVersionRef,
+        days,
+        phases,
+        programInfo,
+        versionInfo,
+        creator: "clinician",
+      };
+    } else {
+      if (!isEuneoProgram(programInfo)) {
+        throw new Error("Program is not a euneo program, invalid program info");
+      }
+      return {
+        programVersionIdentifiers,
+        programVersionRef,
+        days,
+        phases,
+        programInfo,
+        versionInfo,
+        creator: "euneo",
+      };
     }
-    return {
-      programVersionIdentifiers,
-      programVersionRef,
-      days,
-      phases,
-      programInfo,
-      versionInfo,
-      creator: "clinician",
-    };
-  } else {
-    if (!isEuneoProgram(programInfo)) {
-      throw new Error("Program is not a euneo program, invalid program info");
-    }
-    return {
-      programVersionIdentifiers,
-      programVersionRef,
-      days,
-      phases,
-      programInfo,
-      versionInfo,
-      creator: "euneo",
-    };
+  } catch (error) {
+    console.error("Error fetching program: ", error);
+    return {} as TProgram;
   }
 }
 
@@ -207,7 +212,7 @@ export function createPhase(
   phaseId: TProgramPhaseKey,
   date?: Date,
   length?: number,
-  startDayIndex?: number,
+  startDayIndex?: number
 ): TClientProgramDay[] {
   // Get the phase from the program using the phaseId
   const phase = program.phases[phaseId];

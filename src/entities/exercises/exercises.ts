@@ -110,6 +110,7 @@ export type TExerciseWrite = {
   equipmentShown?: TEquipment[] | null; // new field
   targetedMuscles?: string[] | null; // new field
   primaryInvolvedMuscleGroups?: string[] | null; // new field
+  primaryInvolvedMuscles?: string[] | null; // new field
 };
 
 /**
@@ -153,6 +154,7 @@ export type TExerciseRead = {
   equipmentShown?: TEquipment[] | null; // new field
   targetedMuscles?: string[] | null; // new field
   primaryInvolvedMuscleGroups?: string[] | null; // new field
+  primaryInvolvedMuscles?: string[] | null; // new field
 };
 
 export type TExercise = TExerciseRead & {
