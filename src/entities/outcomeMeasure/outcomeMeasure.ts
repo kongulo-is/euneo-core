@@ -52,7 +52,7 @@ export type TOutcomeMeasureId =
 type TConditionalOption = {
   option: string;
   value: string; // a, b, c...
-  subQuestionId: string;
+  subQuestion: TQuestion;
 };
 
 type TConditionalQuestion = {
@@ -72,14 +72,13 @@ type TQuestion = {
   title: string;
   higherIsBetter: boolean;
   type: "option" | "rating" | "boolean" | "multiple-choice";
-  options: TOption[];
+  options: TOption[] | number[]; // if rating type, number[] is the range of options (example: 1-10)
   optionExplanation: string;
   isSkippable?: boolean | null;
   maxPoints?: number | null;
 };
 
 type TGroup = {
-  id: string; // g1, g2, g3...
   title: string; // group title / description
   questionIds: string[]; // q1, q2, q3... ()
 };
@@ -91,6 +90,7 @@ type TConditionalSectionQuestion = {
 
 type TSection = {
   name: string;
+  id: string; // s1, s2, s3...
   groups: TGroup[]; // g1, g2, g3...
   conditionalSectionQuestion?: TConditionalSectionQuestion | null;
 };
@@ -105,9 +105,10 @@ export type TOutcomeMeasureBase = {
   maxPoints?: number | null; // total points
   scoringMethod?: "points" | "percentage" | null;
   formula?: string | null; //? maybe add this
+  questions: TQuestion[] | TConditionalQuestion[];
 
   // Only used if there is a custom scoring order (questions are not scored in the same order as displayed)
-  scoringSections?: {
+  customScoringSections?: {
     name: string;
     description: string;
     questionsIds: string[];
