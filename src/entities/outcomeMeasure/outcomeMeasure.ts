@@ -92,6 +92,10 @@ type TSection = {
   name: string;
   id: string; // s1, s2, s3...
   groups: TGroup[]; // g1, g2, g3...
+  results?: {
+    title: string;
+    description: string;
+  } | null;
   conditionalSectionQuestion?: TConditionalSectionQuestion | null;
 };
 
