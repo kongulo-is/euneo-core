@@ -4,7 +4,6 @@ import { TOutcomeMeasureId } from "../outcomeMeasure/outcomeMeasure";
 export type TOutcomeMeasureAnswerWrite = {
   date: Timestamp;
   outcomeMeasureId: TOutcomeMeasureId;
-  // type: string | "foot&ankle";
   sections: TOutcomeMeasureAnswerSection[];
 };
 
@@ -16,7 +15,6 @@ export type TOutcomeMeasureAnswerWrite = {
 export type TOutcomeMeasureAnswers = {
   date: Date;
   outcomeMeasureId: TOutcomeMeasureId;
-  // type: string | "foot&ankle";
   sections: TOutcomeMeasureAnswerSection[];
 };
 
@@ -28,6 +26,11 @@ export type TOutcomeMeasureAnswers = {
  */
 export type TOutcomeMeasureAnswerSection = {
   sectionName: string;
-  score: number;
-  answers: (number | null)[];
+  // score: number;
+  answers: {
+    questionId: string;
+    conditionalOption?: string; // a, b, c...
+    value: number | number[] | null;
+    type: "option" | "rating" | "boolean" | "multiple-choice" | "conditional";
+  }[];
 };
