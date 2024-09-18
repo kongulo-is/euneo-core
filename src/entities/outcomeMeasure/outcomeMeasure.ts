@@ -109,7 +109,6 @@ export type TOutcomeMeasureBase = {
   maxPoints?: number | null; // total points
   scoringMethod?: "points" | "percentage" | null;
   formula?: string | null; //? maybe add this
-  questions: TQuestion[] | TConditionalQuestion[];
 
   // Only used if there is a custom scoring order (questions are not scored in the same order as displayed)
   customScoringSections?: {
@@ -120,16 +119,24 @@ export type TOutcomeMeasureBase = {
 };
 
 export type TOutcomeMeasure = TOutcomeMeasureBase & {
+  questions: Record<string, TQuestion | TConditionalQuestion>;
   id: TOutcomeMeasureId;
 };
 
-export type TOutcomeMeasureWrite = TOutcomeMeasureBase;
+export type TOutcomeMeasureWrite = TOutcomeMeasureBase & {
+  questions: (TQuestion | TConditionalQuestion)[];
+};
 
 export const outcomeMeasureConverter = {
   toFirestore(measure: TOutcomeMeasure): TOutcomeMeasureWrite {
     const { id, ...rest } = measure;
+
+    // convert questions of type record to array
+    const questions = Object.values(measure.questions);
+
     const data: TOutcomeMeasureWrite = {
       ...rest,
+      questions,
     };
 
     return data;
@@ -142,6 +149,9 @@ export const outcomeMeasureConverter = {
 
     const measure: TOutcomeMeasure = {
       ...data,
+      questions: Object.fromEntries(
+        data.questions.map((question) => [question.id, question])
+      ),
       id: snapshot.id as TOutcomeMeasureId,
     };
 
