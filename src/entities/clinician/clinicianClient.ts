@@ -58,7 +58,7 @@ export type TClinicianClient = TClinicianClientBase & {
 
 // Serialization Functions
 export function serializeClinicianClientIdentifiers(
-  obj: TClinicianClientIdentifiers,
+  obj: TClinicianClientIdentifiers
 ): string {
   try {
     return `${Collection.Clinicians}/${obj.clinicians}/${Collection.Clients}/${obj.clients}`;
@@ -70,7 +70,7 @@ export function serializeClinicianClientIdentifiers(
 
 // Deserialization Functions
 export function deserializeClinicianClientPath(
-  path: string,
+  path: string
 ): TClinicianClientIdentifiers {
   try {
     const [_clinicians, clinicianId, _clients, clientId] = path.split("/");
@@ -110,12 +110,10 @@ export function createClinicianClientRef({
 
 export const clinicianClientConverter = {
   toFirestore(clinicianClient: TClinicianClientRead): TClinicianClientWrite {
-    console.log("IS THIS CALLED");
-
     let prescription: TPrescriptionWrite | undefined;
     if (clinicianClient.prescription) {
       prescription = prescriptionConverter.toFirestore(
-        clinicianClient.prescription,
+        clinicianClient.prescription
       );
     }
 
@@ -134,7 +132,7 @@ export const clinicianClientConverter = {
 
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TClinicianClientWrite>,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): TClinicianClientRead {
     const clinicianClientWrite = snapshot.data(options);
 
@@ -142,7 +140,7 @@ export const clinicianClientConverter = {
 
     if (clinicianClientWrite.prescription) {
       prescription = prescriptionConverter.fromFirestore(
-        clinicianClientWrite.prescription,
+        clinicianClientWrite.prescription
       );
     }
 

@@ -10,12 +10,6 @@ export const db = initializeFirestore(app, {
 
 const env = process.env.NODE_ENV;
 
-console.log(
-  "process.env.EXPO_PUBLIC_USE_EMULATOR",
-  process.env.EXPO_PUBLIC_USE_EMULATOR,
-  process.env.NEXT_PUBLIC_USE_EMULATOR,
-);
-
 if (
   env === "development" &&
   (process.env.EXPO_PUBLIC_USE_EMULATOR === "true" ||

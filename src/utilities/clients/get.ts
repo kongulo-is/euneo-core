@@ -29,7 +29,6 @@ export async function getClient(clientId: string): Promise<TClient> {
   const clientDoc = await getDoc(clientRef.withConverter(clientConverter));
 
   const clientData = clientDoc.data();
-  console.log("clientData", clientData);
   if (!clientData) {
     throw new Error("No client found");
   }

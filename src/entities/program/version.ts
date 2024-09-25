@@ -143,8 +143,6 @@ export function createProgramVersionRef({
 }): DocumentReference<TProgramVersionRead, TProgramVersionWrite> {
   programRef = programRef || createProgramRef({ clinicians, programs });
 
-  console.log("-> programRef", programRef);
-
   const versionPath = `${programRef.path}/${Collection.Versions}`;
 
   const versionsCollection = collection(db, versionPath);

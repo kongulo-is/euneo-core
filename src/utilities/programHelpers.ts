@@ -51,8 +51,6 @@ async function _fetchProgramVersion(
   );
 
   if (!programSnap.exists()) {
-    console.log("prograversion, ", programVersionRef);
-
     throw new Error("Program does not exist.");
   }
   const programVersion = programSnap.data();
@@ -102,15 +100,19 @@ export async function _fetchPhases(
     return aId - bId;
   });
 
+  // If first phase is continuous, we return without checking maintenance
+  if (sortedPhaseDocs[0].data().mode === "continuous") {
+    return Object.fromEntries(
+      sortedPhaseDocs.map((doc) => [doc.id, doc.data()])
+    );
+  }
   // Return only non-maintenance phases if excludeMaintenancePhases is true
   if (excludeMaintenancePhases) {
-    const phases = Object.fromEntries(
+    return Object.fromEntries(
       sortedPhaseDocs
         .filter((doc) => !doc.id.includes("m"))
         .map((doc) => [doc.id, doc.data()])
     );
-
-    return phases;
   }
 
   let highestPhaseId = 0;
