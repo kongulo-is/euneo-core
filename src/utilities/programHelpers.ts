@@ -133,9 +133,10 @@ export async function _fetchPhases(
   if (!hasMaintainancePhase) {
     const lastPhase = phases[`p${highestPhaseId}`];
     phases["m1"] = {
+      name: "Maintenance phase",
       daysDeprecated: lastPhase.daysDeprecated,
       days: lastPhase.days,
-      mode: "continuous",
+      mode: "maintenance",
       finalPhase: true,
     };
   }
