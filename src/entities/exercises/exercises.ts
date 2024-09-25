@@ -73,7 +73,8 @@ export type TEquipment =
   | "Sandbag"
   | "Skipping rope"
   | "Dowel"
-  | "Box";
+  | "Box"
+  | "None";
 
 export type TExerciseField = "Sets" | "Reps" | "Time";
 
@@ -219,10 +220,17 @@ export const exerciseConverter = {
 
     const date = data.createdAt && data.createdAt.toDate();
 
+    const equipmentNeeded = data.equipmentNeeded
+      ? data.equipmentNeeded.length > 0
+        ? data.equipmentNeeded
+        : (["None"] as TEquipment[])
+      : undefined;
+
     const exercise: TExerciseRead = {
       ...data,
       id: snapshot.id,
       createdAt: date,
+      equipmentNeeded,
     };
 
     return exercise;
