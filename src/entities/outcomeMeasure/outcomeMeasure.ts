@@ -55,48 +55,64 @@ type TConditionalOption = {
   subQuestion: TQuestion;
 };
 
-type TConditionalQuestion = {
+type TOption = {
+  option: string;
+  value: number | null;
+};
+
+export type TConditionalQuestion = {
   id: string; // q1, q2, q3...
   title: string;
   optionsWithSubQuestions: TConditionalOption[];
   type: "conditional";
 };
 
-type TOption = {
-  option: string;
-  value: number | null;
+type TRatingQuestion = TQuestionBase & {
+  type: "rating";
+  options: number[];
 };
 
-type TQuestion = {
+type TOptionQuestion = TQuestionBase & {
+  type: "option";
+  options: TOption[];
+};
+
+type TMultipleChoiceQuestion = TQuestionBase & {
+  type: "multiple-choice";
+  options: TOption[];
+  // maxPoints?: number | null;
+};
+
+type TQuestionBase = {
   id: string; // q1, q2, q3...
   title: string;
   higherIsBetter: boolean;
-  type: "option" | "rating" | "boolean" | "multiple-choice";
-  options: TOption[] | number[]; // if rating type, number[] is the range of options (example: 1-10)
   optionExplanation: string;
   isSkippable?: boolean | null;
   maxPoints?: number | null;
 };
 
-type TGroup = {
+export type TQuestion =
+  | TOptionQuestion
+  | TMultipleChoiceQuestion
+  | TRatingQuestion;
+
+// export type TConditionalQuestion
+
+export type TSectionGroup = {
   title: string; // group title / description
   questionIds: string[]; // q1, q2, q3... ()
 };
 
-type TConditionalSectionQuestion = {
-  title: string;
-  options: { option: string; value: boolean }[];
-};
-
-type TSection = {
-  name: string;
+export type TOutcomeMeasureSection = {
+  sectionName: string;
   id: string; // s1, s2, s3...
-  groups: TGroup[]; // g1, g2, g3...
+  groups: TSectionGroup[]; // g1, g2, g3...
   results?: {
     title: string;
     description: string;
   } | null;
-  conditionalSectionQuestion?: TConditionalSectionQuestion | null;
+  conditionalSectionQuestionId?: string; // also sqx (section question id)
 };
 
 export type TOutcomeMeasureBase = {
@@ -104,7 +120,7 @@ export type TOutcomeMeasureBase = {
   acronym: string;
   instructions: string;
   expectedTime: string;
-  sections: TSection[]; // sections
+  sections: TOutcomeMeasureSection[]; // sections
   isConsoleLive: boolean;
   maxPoints?: number | null; // total points
   scoringMethod?: "points" | "percentage" | null;

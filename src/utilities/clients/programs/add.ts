@@ -1,4 +1,4 @@
-import { doc, setDoc } from "firebase/firestore";
+import { arrayUnion, doc, FieldValue, setDoc } from "firebase/firestore";
 
 import { createPhase } from "../../programHelpers";
 import {
@@ -167,8 +167,8 @@ export async function addEuneoProgramToClient(
 export async function addOutcomeMeasureToClientProgram(
   clientId: string,
   clientProgramId: string,
-  outcomeMeasuresAnswers: Record<TOutcomeMeasureId, TOutcomeMeasureAnswers[]>,
-  newData: Record<Partial<TOutcomeMeasureId>, TOutcomeMeasureAnswers>
+  // outcomeMeasuresAnswers: Record<TOutcomeMeasureId, TOutcomeMeasureAnswers[]>,
+  newOutcomeMeasure: TOutcomeMeasureAnswers
 ) {
   try {
     const clientProgramRef = createClientProgramRef({
@@ -176,20 +176,21 @@ export async function addOutcomeMeasureToClientProgram(
       programs: clientProgramId,
     });
 
-    const newOutcomeMeasuresAnswers = { ...outcomeMeasuresAnswers };
-    Object.entries(newData).forEach(([key, answers]) => {
-      const measureId = key as TOutcomeMeasureId;
-      const oldMeasureAnswers = outcomeMeasuresAnswers[measureId];
-      if (oldMeasureAnswers) {
-        newOutcomeMeasuresAnswers[measureId] = [...oldMeasureAnswers, answers];
-      } else {
-        newOutcomeMeasuresAnswers[measureId] = [answers];
-      }
-    });
+    // const newOutcomeMeasuresAnswers = { ...outcomeMeasuresAnswers };
+    // Object.entries(newOutcomeMeasure).forEach(([key, answers]) => {
+    //   const measureId = key as TOutcomeMeasureId;
+    //   const oldMeasureAnswers = outcomeMeasuresAnswers[measureId];
+    //   if (oldMeasureAnswers) {
+    //     newOutcomeMeasuresAnswers[measureId] = [...oldMeasureAnswers, answers];
+    //   } else {
+    //     newOutcomeMeasuresAnswers[measureId] = [answers];
+    //   }
+    // });
 
-    // Update the user's painLevel array in firestore
+    // Using Firestore's FieldValue.arrayUnion() to append new outcome measure
     await updateDoc(clientProgramRef, {
-      outcomeMeasuresAnswers: newOutcomeMeasuresAnswers,
+      [`outcomeMeasuresAnswers.${newOutcomeMeasure.outcomeMeasureId}`]:
+        arrayUnion(newOutcomeMeasure), // Append the new outcome measure
     });
 
     return true;

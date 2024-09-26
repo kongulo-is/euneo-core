@@ -11,7 +11,7 @@ import {
 import { Collection, TConditionId } from "../global";
 import { TOutcomeMeasureId } from "../outcomeMeasure/outcomeMeasure";
 import {
-  TOutcomeMeasureAnswerWrite,
+  TOutcomeMeasureAnswersWrite,
   TOutcomeMeasureAnswers,
 } from "./outcomeMeasureAnswer";
 import { TPainLevel, TPainLevelWrite } from "./painLevel";
@@ -51,7 +51,7 @@ export type TClientProgramWrite = {
   conditionId: TConditionId | null;
   outcomeMeasuresAnswers: Record<
     TOutcomeMeasureId,
-    TOutcomeMeasureAnswerWrite[]
+    TOutcomeMeasureAnswersWrite[]
   > | null;
   painLevels: TPainLevelWrite[];
   physicalInformation: TClientPhysicalInformation;
@@ -203,10 +203,10 @@ export const clientProgramConverter = {
     // TODO: enable runtime checks?
     // runtimeChecks.assertTClientProgram(program, true); // Assertion done here if needed
 
-    const outcomeMeasuresAnswers = {} as Record<
+    const outcomeMeasuresAnswers: Record<
       TOutcomeMeasureId,
-      TOutcomeMeasureAnswerWrite[]
-    >;
+      TOutcomeMeasureAnswersWrite[]
+    > = {} as Record<TOutcomeMeasureId, TOutcomeMeasureAnswersWrite[]>;
 
     if (program.outcomeMeasuresAnswers) {
       Object.keys(program.outcomeMeasuresAnswers).forEach((measureId) => {
@@ -290,7 +290,6 @@ export const clientProgramConverter = {
     // https://www.notion.so/K-i-sem-m-ey-a-egar-stable-28f0c107f0a24b0693106f4992171392?pvs=4#b993e70051764bbbbba6fe6748f88e2b
     // This is done because deprecated client programs don't have a programVersionRef but a programRef
     if (programRef) {
-
       updateDoc(snapshot.ref.withConverter(clientProgramConverter), {
         programVersionRef: programRef,
         programRef: deleteField(),
