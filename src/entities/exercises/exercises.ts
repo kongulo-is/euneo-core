@@ -101,8 +101,8 @@ export type TExerciseWrite = {
   clinicianRef?: TClinicianRef;
   createdAt?: Timestamp;
   isArchived?: boolean;
-  primaryArea?: TExerciseArea | null; // new field //TODO: this should be mandatory
-  secondaryArea?: TExerciseArea | null; // new field
+  primaryArea?: TExerciseArea[] | null; // new field //TODO: this should be mandatory
+  secondaryArea?: TExerciseArea[] | null; // new field
   primaryType?: TExerciseType | null; // new field (new "type" field) //TODO: this should be mandatory
   secondaryType?: TExerciseType | null; // new field
   primarySubtype?: TExerciseSubtype | null; // new field
@@ -145,8 +145,8 @@ export type TExerciseRead = {
   createdAt?: Date;
   isArchived?: boolean;
   // New exercise fields
-  primaryArea?: TExerciseArea | null; // new field //TODO: this should be mandatory
-  secondaryArea?: TExerciseArea | null; // new field
+  primaryArea?: TExerciseArea[] | null; // new field //TODO: this should be mandatory
+  secondaryArea?: TExerciseArea[] | null; // new field
   primaryType?: TExerciseType | null; // new field (new "type" field) //TODO: this should be mandatory
   secondaryType?: TExerciseType | null; // new field
   primarySubtype?: TExerciseSubtype | null; // new field
