@@ -74,6 +74,7 @@ export type TEquipment =
   | "Skipping rope"
   | "Dowel"
   | "Box"
+  | "Tape"
   | "None";
 
 export type TExerciseField = "Sets" | "Reps" | "Time";

@@ -18,6 +18,8 @@ import {
   programConverter,
 } from "../entities/program/program";
 import {
+  TClinicianProgramVersionIdentifiers,
+  TEuneoProgramVersionIdentifiers,
   TProgramVersion,
   TProgramVersionRead,
   TProgramVersionWrite,
@@ -193,6 +195,68 @@ export async function _getProgramFromRef(
         programVersionRef,
         days,
         phases,
+        programInfo,
+        versionInfo,
+        creator: "euneo",
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching program: ", error);
+    return {} as TProgram;
+  }
+}
+
+export async function _getProgramDetailsFromRef(
+  programVersionRef: DocumentReference<
+    TProgramVersionRead,
+    TProgramVersionWrite
+  >
+): Promise<{
+  programVersionIdentifiers:
+    | TEuneoProgramVersionIdentifiers
+    | TClinicianProgramVersionIdentifiers;
+  programVersionRef: DocumentReference<
+    TProgramVersionRead,
+    TProgramVersionWrite
+  >;
+  programInfo: TProgramInfo;
+  versionInfo: TProgramVersion;
+  creator: "euneo" | "clinician";
+}> {
+  try {
+    const programVersionIdentifiers = deserializeProgramVersionPath(
+      programVersionRef.path
+    );
+
+    let programRef: DocumentReference<TProgramRead, TProgramWrite> =
+      programVersionRef.parent.parent!.withConverter(programConverter);
+
+    const [programInfo, versionInfo] = await Promise.all([
+      _fetchProgramBase(programRef),
+      _fetchProgramVersion(programVersionRef),
+    ]);
+
+    // Adjust the returned type based on the program type
+    if (isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
+      if (!isClinicianProgram(programInfo)) {
+        throw new Error(
+          "Program is not a clinician program, invalid program info"
+        );
+      }
+      return {
+        programVersionIdentifiers,
+        programVersionRef,
+        programInfo,
+        versionInfo,
+        creator: "clinician",
+      };
+    } else {
+      if (!isEuneoProgram(programInfo)) {
+        throw new Error("Program is not a euneo program, invalid program info");
+      }
+      return {
+        programVersionIdentifiers,
+        programVersionRef,
         programInfo,
         versionInfo,
         creator: "euneo",

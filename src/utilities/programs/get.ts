@@ -9,7 +9,10 @@ import {
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
 
-import { _getProgramFromRef } from "../programHelpers";
+import {
+  _getProgramDetailsFromRef,
+  _getProgramFromRef,
+} from "../programHelpers";
 import { updateDoc } from "../updateDoc";
 import {
   TClinicianProgram,
@@ -182,6 +185,21 @@ export async function getProgram(
     programVersionRef,
     excludeMaintenance
   );
+
+  return program;
+}
+
+/**
+ * @description Use this function if it does not matter which program type it is
+ * @returns TProgram
+ */
+export async function getProgramDetails(
+  programVersionRef: DocumentReference<
+    TProgramVersionRead,
+    TProgramVersionWrite
+  >
+) {
+  const program = await _getProgramDetailsFromRef(programVersionRef);
 
   return program;
 }
