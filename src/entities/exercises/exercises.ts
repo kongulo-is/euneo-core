@@ -65,7 +65,7 @@ export type TEquipment =
   | "Resistance band"
   | "Massage ball"
   | "Exercise ball"
-  | "Weights"
+  | "Weight/s"
   | "Foam roller"
   | "Bench"
   | "Kettlebell"
