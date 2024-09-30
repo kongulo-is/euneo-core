@@ -205,7 +205,12 @@ export async function _getProgramFromRef(
     return {} as TProgram;
   }
 }
-
+/**
+ *
+ * @param programVersionRef
+ * @returns
+ * TODO: this was a quick fix
+ */
 export async function _getProgramDetailsFromRef(
   programVersionRef: DocumentReference<
     TProgramVersionRead,

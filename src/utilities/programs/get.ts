@@ -192,6 +192,7 @@ export async function getProgram(
 /**
  * @description Use this function if it does not matter which program type it is
  * @returns TProgram
+ * TODO: this was a quick fix
  */
 export async function getProgramDetails(
   programVersionRef: DocumentReference<
