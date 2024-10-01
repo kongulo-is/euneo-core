@@ -41,5 +41,13 @@ export const updateExerciseDetails = async (
   exerciseRef: TExerciseRef,
   exerciseDetails: Partial<TExerciseRead>
 ) => {
+  // delete all props in exerciseDetail that are undefined
+  (Object.keys(exerciseDetails) as Array<keyof TExerciseRead>).forEach((key) => {
+    if (exerciseDetails[key] === undefined) {
+      delete exerciseDetails[key];
+    }
+  });
+  
+
   await updateDoc(exerciseRef, exerciseDetails);
 };
