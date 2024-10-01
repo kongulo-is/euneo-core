@@ -225,13 +225,15 @@ export const exerciseConverter = {
       ? data.equipmentNeeded.length > 0
         ? data.equipmentNeeded
         : (["None"] as TEquipment[])
-      : undefined;
+      : [];
 
     const exercise: TExerciseRead = {
       ...data,
       id: snapshot.id,
       createdAt: date,
       equipmentNeeded,
+      // Added this for edit exercises
+      primaryArea: data.primaryArea ? data.primaryArea : [],
     };
 
     return exercise;
