@@ -13,42 +13,6 @@ export type TOutcomeMeasureId =
   | "spadi"
   | "wosi";
 
-// export type TSectionGroupBase = {
-//   title: string;
-//   questions: string[];
-// };
-
-// export type TOptionsGroup = TSectionGroupBase & {
-//   options: { option: string; value: number | null }[];
-// };
-
-// export type TRatingGroup = TSectionGroupBase & {
-//   options: number[];
-//   optionExplanation: string;
-//   isSkippable?: boolean | null;
-// };
-// export type TSectionGroup = TOptionsGroup | TRatingGroup;
-
-// export type TOutcomeMeasureSection = {
-//   sectionName: string;
-//   results: {
-//     title: string;
-//     description: string;
-//   };
-//   athlete: boolean;
-//   groups: {
-//     questions: {
-//       title: string;
-//       higherIsBetter: boolean;
-//       options: string[];
-//     }[];
-//     options: { option: string; value: number | null } | number[];
-//     title: string; // group title / description
-//     optionExplanation: string;
-//     isSkippable?: boolean | null;
-//   }[];
-// };
-
 type TConditionalOption = {
   option: string;
   value: string; // a, b, c...
