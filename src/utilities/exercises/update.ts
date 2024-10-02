@@ -2,6 +2,8 @@ import { updateDoc } from "../updateDoc";
 import {
   createExerciseRef,
   TExercise,
+  TExerciseRead,
+  TExerciseRef,
 } from "../../entities/exercises/exercises";
 
 export async function makeExercisesConsoleLive(
@@ -23,9 +25,9 @@ export async function makeExercisesConsoleLive(
   }
 }
 
-export async function archiveExercise(exercise: TExercise) {
+export async function archiveExercise(exerciseRef: TExerciseRef) {
   try {
-    await updateDoc(exercise.exerciseRef, {
+    await updateDoc(exerciseRef, {
       isArchived: true,
     });
     return true;
@@ -34,3 +36,18 @@ export async function archiveExercise(exercise: TExercise) {
     return false;
   }
 }
+
+export const updateExerciseDetails = async (
+  exerciseRef: TExerciseRef,
+  exerciseDetails: Partial<TExerciseRead>
+) => {
+  // delete all props in exerciseDetail that are undefined
+  (Object.keys(exerciseDetails) as Array<keyof TExerciseRead>).forEach((key) => {
+    if (exerciseDetails[key] === undefined) {
+      delete exerciseDetails[key];
+    }
+  });
+  
+
+  await updateDoc(exerciseRef, exerciseDetails);
+};

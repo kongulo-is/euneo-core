@@ -18,6 +18,8 @@ import {
   programConverter,
 } from "../entities/program/program";
 import {
+  TClinicianProgramVersionIdentifiers,
+  TEuneoProgramVersionIdentifiers,
   TProgramVersion,
   TProgramVersionRead,
   TProgramVersionWrite,
@@ -51,8 +53,6 @@ async function _fetchProgramVersion(
   );
 
   if (!programSnap.exists()) {
-    console.log("prograversion, ", programVersionRef);
-
     throw new Error("Program does not exist.");
   }
   const programVersion = programSnap.data();
@@ -102,15 +102,19 @@ export async function _fetchPhases(
     return aId - bId;
   });
 
+  // If first phase is continuous, we return without checking maintenance
+  if (sortedPhaseDocs[0].data().mode === "continuous") {
+    return Object.fromEntries(
+      sortedPhaseDocs.map((doc) => [doc.id, doc.data()])
+    );
+  }
   // Return only non-maintenance phases if excludeMaintenancePhases is true
   if (excludeMaintenancePhases) {
-    const phases = Object.fromEntries(
+    return Object.fromEntries(
       sortedPhaseDocs
         .filter((doc) => !doc.id.includes("m"))
         .map((doc) => [doc.id, doc.data()])
     );
-
-    return phases;
   }
 
   let highestPhaseId = 0;
@@ -133,9 +137,10 @@ export async function _fetchPhases(
   if (!hasMaintainancePhase) {
     const lastPhase = phases[`p${highestPhaseId}`];
     phases["m1"] = {
+      name: "Maintenance phase",
       daysDeprecated: lastPhase.daysDeprecated,
       days: lastPhase.days,
-      mode: "continuous",
+      mode: "maintenance",
       finalPhase: true,
     };
   }
@@ -190,6 +195,73 @@ export async function _getProgramFromRef(
         programVersionRef,
         days,
         phases,
+        programInfo,
+        versionInfo,
+        creator: "euneo",
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching program: ", error);
+    return {} as TProgram;
+  }
+}
+/**
+ *
+ * @param programVersionRef
+ * @returns
+ * TODO: this was a quick fix
+ */
+export async function _getProgramDetailsFromRef(
+  programVersionRef: DocumentReference<
+    TProgramVersionRead,
+    TProgramVersionWrite
+  >
+): Promise<{
+  programVersionIdentifiers:
+    | TEuneoProgramVersionIdentifiers
+    | TClinicianProgramVersionIdentifiers;
+  programVersionRef: DocumentReference<
+    TProgramVersionRead,
+    TProgramVersionWrite
+  >;
+  programInfo: TProgramInfo;
+  versionInfo: TProgramVersion;
+  creator: "euneo" | "clinician";
+}> {
+  try {
+    const programVersionIdentifiers = deserializeProgramVersionPath(
+      programVersionRef.path
+    );
+
+    let programRef: DocumentReference<TProgramRead, TProgramWrite> =
+      programVersionRef.parent.parent!.withConverter(programConverter);
+
+    const [programInfo, versionInfo] = await Promise.all([
+      _fetchProgramBase(programRef),
+      _fetchProgramVersion(programVersionRef),
+    ]);
+
+    // Adjust the returned type based on the program type
+    if (isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
+      if (!isClinicianProgram(programInfo)) {
+        throw new Error(
+          "Program is not a clinician program, invalid program info"
+        );
+      }
+      return {
+        programVersionIdentifiers,
+        programVersionRef,
+        programInfo,
+        versionInfo,
+        creator: "clinician",
+      };
+    } else {
+      if (!isEuneoProgram(programInfo)) {
+        throw new Error("Program is not a euneo program, invalid program info");
+      }
+      return {
+        programVersionIdentifiers,
+        programVersionRef,
         programInfo,
         versionInfo,
         creator: "euneo",

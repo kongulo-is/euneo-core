@@ -181,9 +181,7 @@ export async function getClinicianClients(
         }
       })
     ).catch((err) => {
-      console.log("Error getting clients");
-
-      console.error(err);
+      console.error("Error getting clients ", err);
       return [];
     });
 

@@ -108,7 +108,8 @@ export async function addEuneoProgramToClient(
   clientId: string,
   clientProgramRead: TClientProgram_Euneo_Read,
   program: TEuneoProgram,
-  phaseId: TProgramPhaseKey
+  phaseId: TProgramPhaseKey,
+  startDay: Date = new Date()
 ): Promise<TClientProgram_Euneo> {
   const { trainingDays, phases } = clientProgramRead;
 
@@ -119,7 +120,7 @@ export async function addEuneoProgramToClient(
     trainingDays,
     program,
     phaseId,
-    new Date(),
+    startDay,
     phaseLength
   );
 
@@ -128,9 +129,6 @@ export async function addEuneoProgramToClient(
   });
 
   await setDoc(clientProgramRef, clientProgramRead);
-
-  let d = new Date();
-  d.setHours(0, 0, 0, 0);
 
   const clientEuenoProgram: TClientProgram_Euneo = {
     ...clientProgramRead,

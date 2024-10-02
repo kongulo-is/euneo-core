@@ -65,7 +65,7 @@ export type TEquipment =
   | "Resistance band"
   | "Massage ball"
   | "Exercise ball"
-  | "Weights"
+  | "Weight/s"
   | "Foam roller"
   | "Bench"
   | "Kettlebell"
@@ -73,7 +73,9 @@ export type TEquipment =
   | "Sandbag"
   | "Skipping rope"
   | "Dowel"
-  | "Box";
+  | "Box"
+  | "Tape"
+  | "None";
 
 export type TExerciseField = "Sets" | "Reps" | "Time";
 
@@ -100,8 +102,8 @@ export type TExerciseWrite = {
   clinicianRef?: TClinicianRef;
   createdAt?: Timestamp;
   isArchived?: boolean;
-  primaryArea?: TExerciseArea | null; // new field //TODO: this should be mandatory
-  secondaryArea?: TExerciseArea | null; // new field
+  primaryArea?: TExerciseArea[] | null; // new field //TODO: this should be mandatory
+  secondaryArea?: TExerciseArea[] | null; // new field
   primaryType?: TExerciseType | null; // new field (new "type" field) //TODO: this should be mandatory
   secondaryType?: TExerciseType | null; // new field
   primarySubtype?: TExerciseSubtype | null; // new field
@@ -111,6 +113,7 @@ export type TExerciseWrite = {
   targetedMuscles?: string[] | null; // new field
   primaryInvolvedMuscleGroups?: string[] | null; // new field
   primaryInvolvedMuscles?: string[] | null; // new field
+  creator: "Euneo Health" | "You"; // new field
 };
 
 /**
@@ -144,8 +147,8 @@ export type TExerciseRead = {
   createdAt?: Date;
   isArchived?: boolean;
   // New exercise fields
-  primaryArea?: TExerciseArea | null; // new field //TODO: this should be mandatory
-  secondaryArea?: TExerciseArea | null; // new field
+  primaryArea?: TExerciseArea[] | null; // new field //TODO: this should be mandatory
+  secondaryArea?: TExerciseArea[] | null; // new field
   primaryType?: TExerciseType | null; // new field (new "type" field) //TODO: this should be mandatory
   secondaryType?: TExerciseType | null; // new field
   primarySubtype?: TExerciseSubtype | null; // new field
@@ -155,6 +158,7 @@ export type TExerciseRead = {
   targetedMuscles?: string[] | null; // new field
   primaryInvolvedMuscleGroups?: string[] | null; // new field
   primaryInvolvedMuscles?: string[] | null; // new field
+  creator: "Euneo Health" | "You"; // new field
 };
 
 export type TExercise = TExerciseRead & {
@@ -219,10 +223,19 @@ export const exerciseConverter = {
 
     const date = data.createdAt && data.createdAt.toDate();
 
+    const equipmentNeeded = data.equipmentNeeded
+      ? data.equipmentNeeded.length > 0
+        ? data.equipmentNeeded
+        : (["None"] as TEquipment[])
+      : [];
+
     const exercise: TExerciseRead = {
       ...data,
       id: snapshot.id,
       createdAt: date,
+      equipmentNeeded,
+      // Added this for edit exercises
+      primaryArea: data.primaryArea ? data.primaryArea : [],
     };
 
     return exercise;

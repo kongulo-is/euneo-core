@@ -88,12 +88,8 @@ export async function clinicianVideoPoolListener(
     videoPoolCollectionRef,
     async (snapshot: QuerySnapshot<TClinicianVideo>) => {
       if (!snapshot.empty) {
-        console.log("SNAPCHANGE");
-
         const clinicianData = snapshot.docs.map((doc) => {
           let video = doc.data();
-          console.log("video", video);
-
           if (!video.displayID) {
             // video is still processing
             // try to get the displayID

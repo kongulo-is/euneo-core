@@ -94,8 +94,6 @@ export async function updateProgramDay(
       days: dayId,
     });
 
-    console.log("dayRef", dayRef);
-
     updateDoc(dayRef, {
       adherence: adherence,
       exercises: exercises.map((e) => e.iteration),
@@ -147,8 +145,6 @@ export async function updateClientProgramFields(
   clientProgramRef: TClientProgramRef,
   fields: Partial<TClientProgramWrite>
 ) {
-  console.log("-> Before clientProgramRef", clientProgramRef);
-
   return await updateDoc(clientProgramRef, {
     ...fields,
   })
@@ -288,7 +284,6 @@ export async function changeClientProgramMode(
       key: currentPhaseId,
       value: currentPhase.length,
     });
-    console.log("-> before _updateClientProgram2");
     // Update the client program with the new phases
     await _updateClientProgram(
       clientProgramRef,
@@ -364,8 +359,6 @@ export async function updateClientProgramVersion(
 
     // If the last day in the client program is before today, update the program and exit
     if (days[days.length - 1].date < today) {
-      console.log("-> before _updateClientProgram");
-
       await _updateClientProgram(
         clientProgramRef,
         clinicianClientRef,
@@ -431,7 +424,6 @@ export async function updateClientProgramVersion(
 
     updatedPhases.push({ key: currentPhaseId, value: currentPhaseLength });
 
-    console.log("-> before _updateClientProgram2");
     // Update the client program with the new phases
     await _updateClientProgram(
       clientProgramRef,
