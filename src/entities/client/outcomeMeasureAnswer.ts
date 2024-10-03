@@ -14,7 +14,7 @@ export type TSectionScoring = {
   maxPoints: number;
   scoredPoints: number;
   percentScore: number;
-  // questionIds: TQuestionId[];
+  questionIds: TQuestionId[]; // questionIds of questions in section, not nessecaraly in the same order as displayed
 };
 
 export type TOutcomeMeasureAnswers = {
@@ -24,7 +24,8 @@ export type TOutcomeMeasureAnswers = {
   scoredPoints?: number; // sum of all answered questions points
   maxPoints?: number; // max points of all answered questions or maxPoint given from OM.
   percentScore?: number; // scoredPoints / maxPoints
-  sectionsScoring?: TSectionScoring[];
+  sectionScorings?: TSectionScoring[];
+  customScoring?: boolean; // if true, questionIds are not scored in the same order as displayed
 };
 
 export type TOutcomeMeasureAnswer =
@@ -43,7 +44,6 @@ type TOutcomeMeasureConditionalAnswer = TOutcomeMeasureAnswerBase & {
 
 type TOutcomeMeasureAnswerBase = {
   value?: number | number[] | null;
-  // questionId: string;
 };
 
 //TODO: converters...
