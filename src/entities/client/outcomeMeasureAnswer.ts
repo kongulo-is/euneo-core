@@ -9,6 +9,14 @@ export type TOutcomeMeasureAnswersWrite = {
   answers: Record<TQuestionId, TOutcomeMeasureAnswer>;
 };
 
+export type TSectionScoring = {
+  sectionName: string;
+  maxPoints: number;
+  scoredPoints: number;
+  percentScore: number;
+  // questionIds: TQuestionId[];
+};
+
 export type TOutcomeMeasureAnswers = {
   date: Date;
   outcomeMeasureId: TOutcomeMeasureId;
@@ -16,12 +24,7 @@ export type TOutcomeMeasureAnswers = {
   scoredPoints?: number; // sum of all answered questions points
   maxPoints?: number; // max points of all answered questions or maxPoint given from OM.
   percentScore?: number; // scoredPoints / maxPoints
-  sectionsScoring?: {
-    sectionName: string;
-    maxPoints?: number;
-    scoredPoints?: number;
-    percentScore?: number;
-  };
+  sectionsScoring?: TSectionScoring[];
 };
 
 export type TOutcomeMeasureAnswer =
