@@ -112,7 +112,7 @@ export type TExerciseWrite = {
   targetedMuscles?: string[] | null; // new field
   primaryInvolvedMuscleGroups?: string[] | null; // new field
   primaryInvolvedMuscles?: string[] | null; // new field
-  creator: "Euneo Health" | "You"; // new field
+  creator: "Euneo Health" | string; // new field. "Euneo Health" or {clinicianId}
 };
 
 /**
@@ -156,7 +156,7 @@ export type TExerciseRead = {
   targetedMuscles?: string[] | null; // new field
   primaryInvolvedMuscleGroups?: string[] | null; // new field
   primaryInvolvedMuscles?: string[] | null; // new field
-  creator: "Euneo Health" | "You"; // new field
+  creator: "Euneo Health" | string; // new field. "Euneo Health" or {clinicianId}
 };
 
 export type TExercise = TExerciseRead & {
