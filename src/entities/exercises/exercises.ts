@@ -101,7 +101,6 @@ export type TExerciseWrite = {
   isConsoleLive: boolean;
   clinicianRef?: TClinicianRef;
   createdAt?: Timestamp;
-  isArchived?: boolean;
   primaryArea?: TExerciseArea[] | null; // new field //TODO: this should be mandatory
   secondaryArea?: TExerciseArea[] | null; // new field
   primaryType?: TExerciseType | null; // new field (new "type" field) //TODO: this should be mandatory
@@ -145,7 +144,6 @@ export type TExerciseRead = {
   isConsoleLive: boolean;
   clinicianRef?: TClinicianRef;
   createdAt?: Date;
-  isArchived?: boolean;
   // New exercise fields
   primaryArea?: TExerciseArea[] | null; // new field //TODO: this should be mandatory
   secondaryArea?: TExerciseArea[] | null; // new field
