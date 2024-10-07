@@ -9,6 +9,7 @@ import {
 import { db } from "../../firebase/db";
 import { createClinicianRef } from "../../entities/clinician/clinician";
 
+// TODO: Add description
 export async function createClinician(
   clinicianId: string,
   email: string,
