@@ -51,7 +51,7 @@ type TQuestionBase = {
   id: string; // q1, q2, q3...
   title: string;
   higherIsBetter: boolean;
-  optionExplanation: string;
+  optionExplanation?: string;
   isSkippable?: boolean | null;
   maxPoints?: number | null;
 };
@@ -71,7 +71,7 @@ export type TSectionGroup = {
 export type TOutcomeMeasureSection = {
   sectionName: string;
   id: string; // s1, s2, s3...
-  groups: TSectionGroup[]; // g1, g2, g3...
+  groups: TSectionGroup[];
   results?: {
     title: string;
     description: string;
@@ -87,7 +87,7 @@ export type TOutcomeMeasureBase = {
   sections: TOutcomeMeasureSection[]; // sections
   isConsoleLive: boolean;
   maxPoints?: number | null; // total points
-  scoringMethod?: "points" | "percentage" | null;
+  scoringMethod?: "points" | "percentage" | "adjusted" | null;
   formula?: string | null; //? maybe add this
 
   // Only used if there is a custom scoring order (questions are not scored in the same order as displayed)

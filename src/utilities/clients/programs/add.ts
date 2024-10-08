@@ -165,40 +165,36 @@ export async function addEuneoProgramToClient(
 export async function addOutcomeMeasureToClientProgram(
   clientId: string,
   clientProgramId: string,
-  // outcomeMeasuresAnswers: Record<TOutcomeMeasureId, TOutcomeMeasureAnswers[]>,
   newOutcomeMeasure: TOutcomeMeasureAnswers
 ) {
   try {
+    // Ensure newOutcomeMeasure is defined and has the necessary fields
+    if (!newOutcomeMeasure || !newOutcomeMeasure.outcomeMeasureId) {
+      throw new Error("Invalid outcome measure: Missing necessary fields.");
+    }
+
     const clientProgramRef = createClientProgramRef({
       clients: clientId,
       programs: clientProgramId,
     });
 
-    // const newOutcomeMeasuresAnswers = { ...outcomeMeasuresAnswers };
-    // Object.entries(newOutcomeMeasure).forEach(([key, answers]) => {
-    //   const measureId = key as TOutcomeMeasureId;
-    //   const oldMeasureAnswers = outcomeMeasuresAnswers[measureId];
-    //   if (oldMeasureAnswers) {
-    //     newOutcomeMeasuresAnswers[measureId] = [...oldMeasureAnswers, answers];
-    //   } else {
-    //     newOutcomeMeasuresAnswers[measureId] = [answers];
-    //   }
-    // });
+    console.log("newOutcomeMeasure: ", newOutcomeMeasure);
 
     // Using Firestore's FieldValue.arrayUnion() to append new outcome measure
-    await updateDoc(clientProgramRef, {
+    const res = await updateDoc(clientProgramRef, {
       [`outcomeMeasuresAnswers.${newOutcomeMeasure.outcomeMeasureId}`]:
         arrayUnion(newOutcomeMeasure), // Append the new outcome measure
     });
 
+    console.log("res: ", res);
+
     return true;
   } catch (error) {
-    console.log(error);
+    console.error("Error adding outcome measure to client program:", error);
 
     return false;
   }
 }
-
 export async function addPainLevelToClientProgram(
   clientId: string,
   clientProgramId: string,
