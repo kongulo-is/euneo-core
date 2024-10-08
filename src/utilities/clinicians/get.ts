@@ -11,6 +11,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
 import {
+  clinicianConverter,
   createClinicianCollectionRef,
   TClinician,
 } from "../../entities/clinician/clinician";
@@ -24,10 +25,11 @@ export async function getAllClinicians(): Promise<
   (TClinician & { uid: string })[]
 > {
   try {
-    // TODO: create a converter
     const cliniciansRef = createClinicianCollectionRef();
 
-    const cliniciansDoc = await getDocs(cliniciansRef);
+    const cliniciansDoc = await getDocs(
+      cliniciansRef.withConverter(clinicianConverter)
+    );
 
     const clinicians = cliniciansDoc.docs.map((clinician) => ({
       uid: clinician.id,
@@ -64,7 +66,9 @@ export async function getClinician(clinicianId: string): Promise<TClinician> {
       clinicianId
     ) as DocumentReference<TClinician>;
 
-    const clinicianDoc = await getDoc(clinicianRef);
+    const clinicianDoc = await getDoc(
+      clinicianRef.withConverter(clinicianConverter)
+    );
 
     const clinician = clinicianDoc.data();
 

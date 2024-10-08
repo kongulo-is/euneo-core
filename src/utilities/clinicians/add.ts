@@ -7,17 +7,36 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
-import { createClinicianRef } from "../../entities/clinician/clinician";
+import {
+  clinicianConverter,
+  createClinicianRef,
+} from "../../entities/clinician/clinician";
 
-// TODO: Add description
+/**
+ * @description Creates a new clinician document
+ * @param clinicianId The id of the new clinician
+ * @param email The email of the new clinician
+ * @param name The name of the new clinician
+ * @returns A boolean indicating whether the operation was successful
+ */
 export async function createClinician(
   clinicianId: string,
   email: string,
   name: string
 ): Promise<boolean> {
   try {
-    const clinicianRef = doc(db, "clinicians", clinicianId);
-    await setDoc(clinicianRef, { email, name });
+    const clinicianRef = createClinicianRef(clinicianId);
+    const giftExpiresDate = new Date();
+    giftExpiresDate.setDate(giftExpiresDate.getDate() + 60);
+    giftExpiresDate.setHours(23, 59, 59, 59);
+    await setDoc(clinicianRef.withConverter(clinicianConverter), {
+      email,
+      name,
+      subscriptionGifts: {
+        remaining: 10,
+        expires: giftExpiresDate,
+      },
+    });
     return true;
   } catch (error) {
     console.error("Error creating clinician:", error, {

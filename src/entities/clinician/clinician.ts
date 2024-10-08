@@ -3,8 +3,21 @@ import {
   CollectionReference,
   doc,
   DocumentReference,
+  QueryDocumentSnapshot,
+  SnapshotOptions,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
+
+export type TSubscriptionGifts = {
+  remaining: number;
+  expires: Date;
+};
+
+export type TSubscriptionGiftsWrite = {
+  remaining: number;
+  expires: Timestamp;
+};
 
 export type TClinicianRef = DocumentReference<TClinicianRead, TClinicianWrite>;
 
@@ -18,6 +31,7 @@ export type TClinicianRead = {
   name: string;
   isAdmin?: boolean;
   favouriteExercises?: string[];
+  subscriptionGifts?: TSubscriptionGifts;
 };
 
 export type TClinician = TClinicianRead;
@@ -26,7 +40,9 @@ export type TClinician = TClinicianRead;
 export type TClinicianWrite = {
   email: string;
   name: string;
+  isAdmin?: boolean;
   favouriteExercises?: string[];
+  subscriptionGifts?: TSubscriptionGiftsWrite;
 };
 
 export function createClinicianRef(clinicianId: string): TClinicianRef {
@@ -37,4 +53,59 @@ export function createClinicianCollectionRef(): TClinicianCollectionRef {
   return collection(db, "clinicians") as TClinicianCollectionRef;
 }
 
-// TODO: create a converter
+export function canGiftClients(
+  subscriptionGifts: TSubscriptionGifts | undefined
+): boolean {
+  if (!subscriptionGifts) return false;
+
+  const { remaining, expires } = subscriptionGifts;
+
+  if (remaining === 0) return false;
+  if (expires < new Date()) return false;
+  return true;
+}
+
+export const clinicianConverter = {
+  toFirestore(clinician: TClinicianRead): TClinicianWrite {
+    const clinicianWrite: TClinicianWrite = {
+      email: clinician.email,
+      name: clinician.name,
+      ...(clinician.isAdmin && { isAdmin: clinician.isAdmin }),
+      ...(clinician.favouriteExercises && {
+        favouriteExercises: clinician.favouriteExercises,
+      }),
+      ...(clinician.subscriptionGifts && {
+        subscriptionGifts: {
+          remaining: clinician.subscriptionGifts.remaining,
+          expires: Timestamp.fromDate(clinician.subscriptionGifts.expires),
+        },
+      }),
+    };
+
+    return clinicianWrite;
+  },
+
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<TClinicianWrite>,
+    options: SnapshotOptions
+  ): TClinicianRead {
+    const clinicianWrite = snapshot.data(options);
+
+    const clinicianClient: TClinicianRead = {
+      email: clinicianWrite.email,
+      name: clinicianWrite.name,
+      ...(clinicianWrite.isAdmin && { isAdmin: clinicianWrite.isAdmin }),
+      ...(clinicianWrite.favouriteExercises && {
+        favouriteExercises: clinicianWrite.favouriteExercises,
+      }),
+      ...(clinicianWrite.subscriptionGifts && {
+        subscriptionGifts: {
+          remaining: clinicianWrite.subscriptionGifts.remaining,
+          expires: clinicianWrite.subscriptionGifts.expires.toDate(),
+        },
+      }),
+    };
+
+    return clinicianClient;
+  },
+};

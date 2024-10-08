@@ -29,6 +29,7 @@ export type TPrescriptionWrite = {
   prescriptionDate: Timestamp;
   status: TPrescriptionStatus;
   clientProgramRef?: DocumentReference<TClientProgramRead, TClientProgramWrite>;
+  gifted?: boolean;
   /**
    * @deprecated Use programVersionRef instead
    */
@@ -45,6 +46,7 @@ export type TPrescriptionBase = {
   programVersionIdentifiers:
     | TEuneoProgramVersionIdentifiers
     | TClinicianProgramVersionIdentifiers;
+  gifted?: boolean;
 };
 
 export type TPrescriptionRead =
@@ -66,9 +68,7 @@ export const prescriptionConverter = {
       TProgramVersionWrite
     > = doc(
       db,
-      serializeProgramVersionIdentifiers(
-        prescription.programVersionIdentifiers,
-      ),
+      serializeProgramVersionIdentifiers(prescription.programVersionIdentifiers)
     ).withConverter(programVersionConverter);
 
     const prescriptionWrite: TPrescriptionWrite = {
@@ -79,6 +79,7 @@ export const prescriptionConverter = {
       ...("clientProgramRef" in prescription && {
         clientProgramRef: prescription.clientProgramRef,
       }),
+      ...("gifted" in prescription && { gifted: prescription.gifted }),
     };
 
     return prescriptionWrite;
@@ -96,7 +97,7 @@ export const prescriptionConverter = {
     }
 
     const clientProgramRef = prescriptionWrite.clientProgramRef?.withConverter(
-      clientProgramConverter,
+      clientProgramConverter
     );
 
     let clientProgramIdentifiers: TClientProgramIdentifiers | undefined;
@@ -119,6 +120,7 @@ export const prescriptionConverter = {
         clientProgramIdentifiers,
         clientProgramRef,
       }),
+      ...("gifted" in rest && { gifted: rest.gifted }),
     };
 
     return prescription;
