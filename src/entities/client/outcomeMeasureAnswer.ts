@@ -38,11 +38,11 @@ export type TOutcomeMeasureAnswer =
   | TOutcomeMeasureStandardAnswer
   | TOutcomeMeasureConditionalAnswer;
 
-type TOutcomeMeasureStandardAnswer = TOutcomeMeasureAnswerBase & {
+export type TOutcomeMeasureStandardAnswer = TOutcomeMeasureAnswerBase & {
   type: "option" | "rating" | "multiple-choice";
 };
 
-type TOutcomeMeasureConditionalAnswer = TOutcomeMeasureAnswerBase & {
+export type TOutcomeMeasureConditionalAnswer = TOutcomeMeasureAnswerBase & {
   conditionalValue?: string; // a, b, c...
   type: "conditional";
   subtype?: "option" | "rating" | "multiple-choice";
