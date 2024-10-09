@@ -13,13 +13,13 @@ export type TOutcomeMeasureId =
   | "spadi"
   | "wosi";
 
-type TConditionalOption = {
+export type TConditionalOption = {
   option: string;
   value: string; // a, b, c...
   subQuestion: TQuestion;
 };
 
-type TOption = {
+export type TOption = {
   option: string;
   value: number | null;
 };
@@ -76,7 +76,12 @@ export type TOutcomeMeasureSection = {
     title: string;
     description: string;
   } | null;
-  conditionalSectionQuestionId?: string; // also sqx (section question id)
+  conditionalSectionQuestion?: TConditionalSectionQuestion | null;
+};
+
+type TConditionalSectionQuestion = {
+  description: string;
+  questionId: string;
 };
 
 export type TOutcomeMeasureBase = {
@@ -88,7 +93,6 @@ export type TOutcomeMeasureBase = {
   isConsoleLive: boolean;
   maxPoints?: number | null; // total points
   scoringMethod?: "points" | "percentage" | "adjusted" | null;
-  formula?: string | null; //? maybe add this
 
   // Only used if there is a custom scoring order (questions are not scored in the same order as displayed)
   customScoringSections?: {

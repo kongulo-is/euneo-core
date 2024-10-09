@@ -3,35 +3,32 @@ import { TOutcomeMeasureId } from "../outcomeMeasure/outcomeMeasure";
 
 type TQuestionId = string;
 
-export type TOutcomeMeasureAnswersWrite = {
-  date: Timestamp;
+type TOutcomeMeasureAnswersBase = {
   outcomeMeasureId: TOutcomeMeasureId;
-  answers: Record<TQuestionId, TOutcomeMeasureAnswer>;
+  answers: Record<TQuestionId, TOutcomeMeasureAnswer | null>;
   scoredPoints: number; // sum of all answered questions points
   maxPoints: number; // max points of all answered questions or maxPoint given from OM.
-  percentScore: number; // scoredPoints / maxPoints
+  percentageScore: number; // scoredPoints / maxPoints
   sectionScorings: TSectionScoring[];
   customScoring?: boolean;
+  scoringMethod?: "points" | "percentage" | "adjusted" | null;
+};
+
+export type TOutcomeMeasureAnswersWrite = TOutcomeMeasureAnswersBase & {
+  date: Timestamp;
 };
 
 export type TSectionScoring = {
   sectionName: string;
   maxPoints: number;
   scoredPoints: number;
-  percentScore: number;
+  percentageScore: number;
   questionIds: TQuestionId[]; // questionIds of questions in section, not nessecaraly in the same order as displayed
   skipped: boolean;
 };
 
-export type TOutcomeMeasureAnswers = {
+export type TOutcomeMeasureAnswers = TOutcomeMeasureAnswersBase & {
   date: Date;
-  outcomeMeasureId: TOutcomeMeasureId;
-  answers: Record<TQuestionId, TOutcomeMeasureAnswer | null>;
-  scoredPoints: number; // sum of all answered questions points
-  maxPoints: number; // max points of all answered questions or maxPoint given from OM.
-  percentScore: number; // scoredPoints / maxPoints
-  sectionScorings: TSectionScoring[];
-  customScoring?: boolean; // if true, questionIds are not scored in the same order as displayed
 };
 
 export type TOutcomeMeasureAnswer =
