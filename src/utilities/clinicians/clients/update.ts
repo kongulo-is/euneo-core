@@ -59,8 +59,8 @@ export async function changeClinicianClientPrescription(
  */
 export async function updateClinicianClientPrescriptionStatus(
   clinicianClientRef: TClinicianClientRef,
-  clientProgramRef: TClientProgramRef,
-  status: TPrescription["status"]
+  status: TPrescription["status"],
+  clientProgramRef?: TClientProgramRef
 ): Promise<void> {
   try {
     const clinicianClient = await getDoc(clinicianClientRef);
@@ -76,7 +76,7 @@ export async function updateClinicianClientPrescriptionStatus(
     const updatedPrescription: TPrescriptionWrite =
       prescriptionConverter.toFirestore({
         ...prescription,
-        clientProgramRef: clientProgramRef,
+        ...(clientProgramRef && { clientProgramRef: clientProgramRef }),
         status: status,
       });
 
