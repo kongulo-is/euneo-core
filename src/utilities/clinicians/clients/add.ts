@@ -29,7 +29,8 @@ import {
 export async function addPrescriptionToClinicianClient(
   clinicianClientRef: TClinicianClientRef,
   prescription: TPrescription,
-  code: string
+  code: string,
+  clinicianName: string
 ) {
   try {
     // check if user has a current prescription
@@ -56,7 +57,12 @@ export async function addPrescriptionToClinicianClient(
     });
 
     // send invitation to client and return the invitation id
-    const invitationId = await createInvitation(clinicianClientRef, code);
+    const invitationId = await createInvitation(
+      clinicianClientRef,
+      code,
+      clinicianName,
+      prescription.oneMonthFree
+    );
 
     return invitationId;
   } catch (error) {

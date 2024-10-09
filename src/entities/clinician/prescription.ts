@@ -29,7 +29,7 @@ export type TPrescriptionWrite = {
   prescriptionDate: Timestamp;
   status: TPrescriptionStatus;
   clientProgramRef?: DocumentReference<TClientProgramRead, TClientProgramWrite>;
-  gifted?: boolean;
+  oneMonthFree?: boolean;
   /**
    * @deprecated Use programVersionRef instead
    */
@@ -46,7 +46,7 @@ export type TPrescriptionBase = {
   programVersionIdentifiers:
     | TEuneoProgramVersionIdentifiers
     | TClinicianProgramVersionIdentifiers;
-  gifted?: boolean;
+  oneMonthFree?: boolean;
 };
 
 export type TPrescriptionRead =
@@ -79,7 +79,9 @@ export const prescriptionConverter = {
       ...("clientProgramRef" in prescription && {
         clientProgramRef: prescription.clientProgramRef,
       }),
-      ...("gifted" in prescription && { gifted: prescription.gifted }),
+      ...("oneMonthFree" in prescription && {
+        oneMonthFree: prescription.oneMonthFree,
+      }),
     };
 
     return prescriptionWrite;
@@ -120,7 +122,7 @@ export const prescriptionConverter = {
         clientProgramIdentifiers,
         clientProgramRef,
       }),
-      ...("gifted" in rest && { gifted: rest.gifted }),
+      ...("oneMonthFree" in rest && { oneMonthFree: rest.oneMonthFree }),
     };
 
     return prescription;
