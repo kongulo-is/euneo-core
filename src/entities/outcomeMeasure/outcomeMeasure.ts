@@ -47,10 +47,19 @@ type TMultipleChoiceQuestion = TQuestionBase & {
   // maxPoints?: number | null;
 };
 
+export type TInputQuestion = TQuestionBase & {
+  type: "input";
+  options?: TOption[];
+  inputType: "number" | "year" | "text";
+  min?: number;
+  max?: number;
+  placeHolder?: string;
+};
+
 type TQuestionBase = {
   id: string; // q1, q2, q3...
   title: string;
-  higherIsBetter: boolean;
+  higherIsBetter?: boolean;
   optionExplanation?: string;
   isSkippable?: boolean | null;
   maxPoints?: number | null;
@@ -59,7 +68,8 @@ type TQuestionBase = {
 export type TQuestion =
   | TOptionQuestion
   | TMultipleChoiceQuestion
-  | TRatingQuestion;
+  | TRatingQuestion
+  | TInputQuestion;
 
 // export type TConditionalQuestion
 

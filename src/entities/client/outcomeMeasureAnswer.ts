@@ -34,19 +34,26 @@ export type TOutcomeMeasureAnswers = TOutcomeMeasureAnswersBase & {
 export type TOutcomeMeasureAnswer =
   | TOutcomeMeasureStandardAnswer
   | TOutcomeMeasureConditionalAnswer;
+// | TOutcomeMeasureInputAnswer;
 
 export type TOutcomeMeasureStandardAnswer = TOutcomeMeasureAnswerBase & {
-  type: "option" | "rating" | "multiple-choice";
+  type: "option" | "rating" | "multiple-choice" | "input";
 };
+
+// export type TOutcomeMeasureInputAnswer = TOutcomeMeasureAnswerBase & {
+//   type: "input";
+//   input?: string | null;
+// };
 
 export type TOutcomeMeasureConditionalAnswer = TOutcomeMeasureAnswerBase & {
   conditionalValue?: string; // a, b, c...
   type: "conditional";
-  subtype?: "option" | "rating" | "multiple-choice";
+  subtype?: "option" | "rating" | "multiple-choice" | "input";
 };
 
 type TOutcomeMeasureAnswerBase = {
   value?: number | number[] | null;
+  input?: string | null;
 };
 
 //TODO: converters...
