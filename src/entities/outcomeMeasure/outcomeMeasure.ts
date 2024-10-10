@@ -84,6 +84,8 @@ type TConditionalSectionQuestion = {
   questionId: string;
 };
 
+export type TScoringMethod = "points" | "percentage" | "adjusted";
+
 export type TOutcomeMeasureBase = {
   name: string;
   acronym: string;
@@ -92,7 +94,8 @@ export type TOutcomeMeasureBase = {
   sections: TOutcomeMeasureSection[]; // sections
   isConsoleLive: boolean;
   maxPoints?: number | null; // total points
-  scoringMethod?: "points" | "percentage" | "adjusted" | null;
+  scoringMethod?: TScoringMethod | null;
+  formula?: string | null; //? maybe add this
 
   // Only used if there is a custom scoring order (questions are not scored in the same order as displayed)
   customScoringSections?: {
