@@ -21,9 +21,9 @@ export async function getAllOutcomeMeasures(): Promise<
 > {
   try {
     // TODO: UNCOMMENT when new oms are added and live...
-    const visaa = await getOutcomeMeasure("visa-a");
+    const visaa = await getOutcomeMeasure("csi");
 
-    return { "visa-a": visaa };
+    return { csi: visaa };
 
     const outcomeMeasuresRef = collection(
       db,
