@@ -29,6 +29,7 @@ export type TConditionalQuestion = {
   title: string;
   optionsWithSubQuestions: TConditionalOption[];
   type: "conditional";
+  isSkippable?: boolean;
 };
 
 type TRatingQuestion = TQuestionBase & {
@@ -71,8 +72,6 @@ export type TQuestion =
   | TRatingQuestion
   | TInputQuestion;
 
-// export type TConditionalQuestion
-
 export type TSectionGroup = {
   title: string; // group title / description
   questionIds: string[]; // q1, q2, q3... ()
@@ -94,7 +93,7 @@ type TConditionalSectionQuestion = {
   questionId: string;
 };
 
-export type TScoringMethod = "points" | "percentage" | "adjusted";
+export type TScoringMethod = "points" | "percentage" | "adjusted" | null;
 
 export type TOutcomeMeasureBase = {
   name: string;

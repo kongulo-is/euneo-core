@@ -40,11 +40,6 @@ export type TOutcomeMeasureStandardAnswer = TOutcomeMeasureAnswerBase & {
   type: "option" | "rating" | "multiple-choice" | "input";
 };
 
-// export type TOutcomeMeasureInputAnswer = TOutcomeMeasureAnswerBase & {
-//   type: "input";
-//   input?: string | null;
-// };
-
 export type TOutcomeMeasureConditionalAnswer = TOutcomeMeasureAnswerBase & {
   conditionalValue?: string; // a, b, c...
   type: "conditional";
