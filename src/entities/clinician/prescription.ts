@@ -29,7 +29,6 @@ export type TPrescriptionWrite = {
   prescriptionDate: Timestamp;
   status: TPrescriptionStatus;
   clientProgramRef?: DocumentReference<TClientProgramRead, TClientProgramWrite>;
-  oneMonthFree?: boolean;
   /**
    * @deprecated Use programVersionRef instead
    */
@@ -46,7 +45,6 @@ export type TPrescriptionBase = {
   programVersionIdentifiers:
     | TEuneoProgramVersionIdentifiers
     | TClinicianProgramVersionIdentifiers;
-  oneMonthFree?: boolean;
 };
 
 export type TPrescriptionRead =
@@ -78,9 +76,6 @@ export const prescriptionConverter = {
       status: prescription.status,
       ...("clientProgramRef" in prescription && {
         clientProgramRef: prescription.clientProgramRef,
-      }),
-      ...("oneMonthFree" in prescription && {
-        oneMonthFree: prescription.oneMonthFree,
       }),
     };
 
@@ -122,7 +117,6 @@ export const prescriptionConverter = {
         clientProgramIdentifiers,
         clientProgramRef,
       }),
-      ...("oneMonthFree" in rest && { oneMonthFree: rest.oneMonthFree }),
     };
 
     return prescription;

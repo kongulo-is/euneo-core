@@ -10,6 +10,7 @@ import { db } from "../../firebase/db";
 import {
   clinicianConverter,
   createClinicianRef,
+  createSubscriptionGifts,
 } from "../../entities/clinician/clinician";
 
 /**
@@ -26,16 +27,10 @@ export async function createClinician(
 ): Promise<boolean> {
   try {
     const clinicianRef = createClinicianRef(clinicianId);
-    const giftExpiresDate = new Date();
-    giftExpiresDate.setDate(giftExpiresDate.getDate() + 60);
-    giftExpiresDate.setHours(23, 59, 59, 59);
     await setDoc(clinicianRef.withConverter(clinicianConverter), {
       email,
       name,
-      subscriptionGifts: {
-        remaining: 10,
-        expires: giftExpiresDate,
-      },
+      subscriptionGifts: createSubscriptionGifts(),
     });
     return true;
   } catch (error) {

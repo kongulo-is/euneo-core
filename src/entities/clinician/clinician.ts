@@ -53,6 +53,17 @@ export function createClinicianCollectionRef(): TClinicianCollectionRef {
   return collection(db, "clinicians") as TClinicianCollectionRef;
 }
 
+export function createSubscriptionGifts(): TSubscriptionGifts {
+  const giftsExpireDate = new Date();
+  giftsExpireDate.setDate(giftsExpireDate.getDate() + 59);
+  giftsExpireDate.setHours(23, 59, 59, 59);
+
+  return {
+    remaining: 10,
+    expires: giftsExpireDate,
+  };
+}
+
 export function canGiftClients(
   subscriptionGifts: TSubscriptionGifts | undefined
 ): boolean {
@@ -61,7 +72,7 @@ export function canGiftClients(
   const { remaining, expires } = subscriptionGifts;
 
   if (remaining === 0) return false;
-  if (expires < new Date()) return false;
+  if (expires <= new Date()) return false;
   return true;
 }
 
