@@ -55,7 +55,7 @@ export function createClinicianCollectionRef(): TClinicianCollectionRef {
 
 export function createSubscriptionGifts(): TSubscriptionGifts {
   const giftsExpireDate = new Date();
-  giftsExpireDate.setDate(giftsExpireDate.getDate() + 59);
+  giftsExpireDate.setDate(giftsExpireDate.getDate() + 29);
   giftsExpireDate.setHours(23, 59, 59, 59);
 
   return {
