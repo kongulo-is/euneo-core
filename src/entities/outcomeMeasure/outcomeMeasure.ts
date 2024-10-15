@@ -30,6 +30,7 @@ export type TConditionalQuestion = {
   optionsWithSubQuestions: TConditionalOption[];
   type: "conditional";
   isSkippable?: boolean;
+  excludeScore?: boolean; // when a quesiton is not used in total score calculation
 };
 
 type TRatingQuestion = TQuestionBase & {
@@ -62,8 +63,9 @@ type TQuestionBase = {
   title: string;
   higherIsBetter?: boolean;
   optionExplanation?: string;
-  isSkippable?: boolean | null;
+  isSkippable?: boolean | null; // skippable question, not the same as when there is a option to skip (e.g. option: "not applicable", value: null)
   maxPoints?: number | null;
+  excludeScore?: boolean; // when a quesiton is not used in total score calculation
 };
 
 export type TQuestion =
