@@ -29,17 +29,25 @@ import {
 export async function addPrescriptionToClinicianClient(
   clinicianClientRef: TClinicianClientRef,
   prescription: TPrescription,
-  code: string
+  code: string,
+  clinicianName: string,
+  isGivingFreeMonth: boolean = false
 ) {
   try {
+    let giftUsed = isGivingFreeMonth;
     // check if user has a current prescription
     const clinicianClientSnapshot = await getDoc(
       clinicianClientRef.withConverter(clinicianClientConverter)
     );
 
     const currentPrescription = clinicianClientSnapshot.data()?.prescription;
+    const alreadyGotFreeMonth = clinicianClientSnapshot.data()?.oneMonthFree;
+    // If client had already got free month, we will not grant him free month again
+    if (alreadyGotFreeMonth) {
+      giftUsed = false;
+    }
+    // store current prescription in past prescription sub collection if it was already started
     if (currentPrescription && currentPrescription.status === "Started") {
-      // store current prescription in past prescription sub collection if it was already started
       const pastPrescriptionRef = collection(
         clinicianClientRef,
         "pastPrescriptions"
@@ -51,14 +59,20 @@ export async function addPrescriptionToClinicianClient(
     const prescriptionConverted =
       prescriptionConverter.toFirestore(prescription);
 
+    // send invitation to client and return the invitation id
+    const invitation = await createInvitation(
+      clinicianClientRef,
+      code,
+      clinicianName,
+      giftUsed
+    );
+
     await updateDoc(clinicianClientRef, {
       prescription: prescriptionConverted,
+      ...(giftUsed && { oneMonthFree: true }),
     });
 
-    // send invitation to client and return the invitation id
-    const invitationId = await createInvitation(clinicianClientRef, code);
-
-    return invitationId;
+    return { invitation, giftUsed };
   } catch (error) {
     console.error(
       "Error adding prescription to clinician client",
@@ -67,7 +81,7 @@ export async function addPrescriptionToClinicianClient(
       clinicianClientRef.path
     );
 
-    return false;
+    return { invitation: null, giftUsed: false };
   }
 }
 

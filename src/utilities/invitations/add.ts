@@ -13,6 +13,8 @@ import {
 export async function createInvitation(
   clinicianClientRef: TClinicianClientRef,
   code: string,
+  clinicianName?: string,
+  oneMonthFree?: boolean
 ): Promise<TInvitation> {
   // Create invitation for client
   const invitationRef = createInvitationRef();
@@ -20,10 +22,12 @@ export async function createInvitation(
   const invitation: TInvitationRead = {
     clinicianClientRef,
     clinicianClientIdentifiers: deserializeClinicianClientPath(
-      clinicianClientRef.path,
+      clinicianClientRef.path
     ),
     code,
     date: new Date(),
+    ...(oneMonthFree && { oneMonthFree }),
+    ...(clinicianName && { clinicianName }),
   };
 
   await setDoc(invitationRef, invitation);
