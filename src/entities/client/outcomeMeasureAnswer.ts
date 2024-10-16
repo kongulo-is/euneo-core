@@ -23,7 +23,7 @@ export type TSectionScoring = {
   maxPoints: number;
   scoredPoints: number;
   percentageScore: number;
-  questionIds: TQuestionId[]; // questionIds of questions in section, not nessecaraly in the same order as displayed
+  questionIds: TQuestionId[]; // questionIds of questions in section, not necessarily in the same order as displayed
   skipped: boolean;
 };
 
@@ -31,24 +31,33 @@ export type TOutcomeMeasureAnswers = TOutcomeMeasureAnswersBase & {
   date: Date;
 };
 
+// Base type for an answer
+export type TOutcomeMeasureAnswerBase = {
+  value?: number | null;
+  input?: string | null;
+};
+
 export type TOutcomeMeasureAnswer =
   | TOutcomeMeasureStandardAnswer
+  | TOutcomeMeasureMultipleChoiceAnswer
   | TOutcomeMeasureConditionalAnswer;
-// | TOutcomeMeasureInputAnswer;
 
 export type TOutcomeMeasureStandardAnswer = TOutcomeMeasureAnswerBase & {
-  type: "option" | "rating" | "multiple-choice" | "input";
+  type: "option" | "rating" | "input";
+};
+
+export type TOutcomeMeasureMultipleChoiceAnswer = Omit<
+  TOutcomeMeasureAnswerBase,
+  "value"
+> & {
+  value?: number[] | null;
+  type: "multiple-choice";
 };
 
 export type TOutcomeMeasureConditionalAnswer = TOutcomeMeasureAnswerBase & {
   conditionalValue?: string; // a, b, c...
   type: "conditional";
-  subtype?: "option" | "rating" | "multiple-choice" | "input";
+  subtype?: TQuestiontype;
 };
 
-type TOutcomeMeasureAnswerBase = {
-  value?: number | number[] | null;
-  input?: string | null;
-};
-
-//TODO: converters...
+type TQuestiontype = "option" | "rating" | "multiple-choice" | "input";

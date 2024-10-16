@@ -20,11 +20,6 @@ export async function getAllOutcomeMeasures(): Promise<
   Record<string, TOutcomeMeasure>
 > {
   try {
-    // TODO: UNCOMMENT when new oms are added and live...
-    const visaa = await getOutcomeMeasure("csi");
-
-    return { csi: visaa };
-
     const outcomeMeasuresRef = collection(
       db,
       "outcomeMeasures"

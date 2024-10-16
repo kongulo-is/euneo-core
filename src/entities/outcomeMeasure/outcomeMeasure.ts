@@ -46,7 +46,6 @@ type TOptionQuestion = TQuestionBase & {
 type TMultipleChoiceQuestion = TQuestionBase & {
   type: "multiple-choice";
   options: TOption[];
-  // maxPoints?: number | null;
 };
 
 export type TInputQuestion = TQuestionBase & {
