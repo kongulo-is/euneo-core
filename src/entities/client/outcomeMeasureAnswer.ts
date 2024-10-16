@@ -11,7 +11,7 @@ type TOutcomeMeasureAnswersBase = {
   percentageScore: number; // scoredPoints / maxPoints
   sectionScorings: TSectionScoring[];
   customScoring?: boolean;
-  scoringMethod?: "points" | "percentage" | "adjusted" | null;
+  scoringMethod: "points" | "percentage" | "adjusted" | null;
 };
 
 export type TOutcomeMeasureAnswersWrite = TOutcomeMeasureAnswersBase & {

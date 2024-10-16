@@ -105,7 +105,7 @@ export type TOutcomeMeasureBase = {
   sections: TOutcomeMeasureSection[]; // sections
   isConsoleLive: boolean;
   maxPoints?: number | null; // total points
-  scoringMethod?: TScoringMethod | null;
+  scoringMethod: TScoringMethod | null;
 
   // Only used if there is a custom scoring order (questions are not scored in the same order as displayed)
   customScoringSections?: {
