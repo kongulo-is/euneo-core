@@ -31,7 +31,7 @@ export type TNextPhase = {
   maxPainLevel: number;
   minPainLevel: number;
 };
-
+// TODO: Add acute phase mode
 // This type is used when the program is being created and the program id is not known
 export type TProgramPhaseForm = {
   days: TProgramDayKey[];
@@ -83,13 +83,13 @@ export type TProgramPhaseRead =
 export type TProgramPhase = TProgramPhaseRead;
 
 function isFinitePhase(
-  phase: TProgramPhaseBase,
+  phase: TProgramPhaseBase
 ): phase is TProgramFinitePhaseRead {
   return phase.mode === "finite" && phase.length !== undefined;
 }
 
 function isContinuousPhase(
-  phase: TProgramPhaseBase,
+  phase: TProgramPhaseBase
 ): phase is TProgramContinuousPhaseRead {
   return phase.mode === "continuous" || phase.mode === "maintenance";
 }
@@ -104,7 +104,7 @@ export const programPhaseConverter = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TProgramPhaseWrite>,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): TProgramPhaseRead {
     const data = snapshot.data(options);
 
