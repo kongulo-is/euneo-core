@@ -252,6 +252,14 @@ export async function addContinuousDaysToClientProgram(
   await _addDaysToFirestore(clientProgramRef, newDays, firstDocIndex);
 }
 
+/**
+ * @description Function that updates training days selection and future days on the client program in firestore
+ * @param clientId Id of the client
+ * @param clientProgramId Id of the client program
+ * @param newDays Updated days based on the newly selected training days
+ * @param trainingDays Array of booleans indicating which days are training days
+ * @param firstDocIndex What day index we starting modifying from
+ */
 export async function updateTrainingDays(
   clientId: string,
   clientProgramId: string,
