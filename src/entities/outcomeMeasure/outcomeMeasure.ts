@@ -109,8 +109,8 @@ export type TOutcomeMeasureBase = {
   // Only used if there is a custom scoring order (questions are not scored in the same order as displayed)
   customScoringSections?: {
     sectionName: string;
-    description: string;
-    questionsIds: string[];
+    questionIds: string[];
+    // description?: string;
   }[];
 };
 
