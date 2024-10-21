@@ -20,6 +20,45 @@ export async function getAllOutcomeMeasures(): Promise<
   Record<string, TOutcomeMeasure>
 > {
   try {
+    // TODO: UNCOMMENT when new oms are added and live...
+
+    // ------ temporary code
+
+    const newOMsList = [
+      "ompq",
+      "csi",
+      "dash",
+      "fiq",
+      "visa-a",
+      "ndi",
+      "rdq",
+      "sf-36",
+    ];
+
+    const oms = await Promise.all(
+      newOMsList.map(async (id) => {
+        try {
+          const docRef = doc(db, "outcomeMeasures", id).withConverter(
+            outcomeMeasureConverter
+          );
+          const docSnap = await getDoc(docRef);
+          return docSnap.exists() ? [id, docSnap.data()] : null;
+        } catch (error) {
+          console.log(`Error retrieving outcome measure ${id}: `, error);
+          return null;
+        }
+      })
+    );
+
+    const filteredOMs = oms.filter(
+      (om): om is [string, TOutcomeMeasure] => om !== null
+    );
+    const validOMs = Object.fromEntries(filteredOMs);
+
+    return validOMs;
+
+    // ------ code end
+
     const outcomeMeasuresRef = collection(
       db,
       "outcomeMeasures"
