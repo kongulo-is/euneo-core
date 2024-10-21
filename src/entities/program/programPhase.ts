@@ -31,7 +31,7 @@ export type TNextPhase = {
   maxPainLevel: number;
   minPainLevel: number;
 };
-// TODO: Add acute phase mode
+
 // This type is used when the program is being created and the program id is not known
 export type TProgramPhaseForm = {
   days: TProgramDayKey[];
@@ -50,6 +50,7 @@ export type TProgramPhaseWrite = {
   nextPhase?: TNextPhase[];
   finalPhase: boolean;
   mode: "finite" | "continuous" | "maintenance";
+  restDaysDisabled?: boolean;
 };
 
 export type TProgramPhaseBase = {
@@ -64,6 +65,7 @@ export type TProgramPhaseBase = {
   finalPhase: boolean;
   mode: "finite" | "continuous" | "maintenance";
   hidden?: boolean; // For compatibility (old modified programs that have more than one continuous phase after upgrade)
+  restDaysDisabled?: boolean;
 };
 
 export type TProgramFinitePhaseRead = TProgramPhaseBase & {
@@ -92,6 +94,18 @@ function isContinuousPhase(
   phase: TProgramPhaseBase
 ): phase is TProgramContinuousPhaseRead {
   return phase.mode === "continuous" || phase.mode === "maintenance";
+}
+
+export function getTrainingDaysForPhase(
+  phase: TProgramPhase,
+  selectedTrainingDays: boolean[]
+): boolean[] {
+  if (phase.restDaysDisabled) {
+    const newTrainingDays = new Array(7).fill(true);
+    return newTrainingDays;
+  }
+
+  return selectedTrainingDays;
 }
 
 export const programPhaseConverter = {
