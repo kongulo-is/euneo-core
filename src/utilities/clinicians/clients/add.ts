@@ -51,8 +51,10 @@ export async function addPrescriptionToClinicianClient(
       const pastPrescriptionRef = collection(
         clinicianClientRef,
         "pastPrescriptions"
-      ) as CollectionReference<TPrescriptionRead, TPrescriptionWrite>;
-      await addDoc(pastPrescriptionRef, currentPrescription);
+      ) as CollectionReference<TPrescriptionWrite>;
+      const prescriptionWrite =
+        prescriptionConverter.toFirestore(currentPrescription);
+      await addDoc(pastPrescriptionRef, prescriptionWrite);
     }
 
     // change the clinician client's prescription
