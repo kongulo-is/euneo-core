@@ -37,6 +37,7 @@ export type TClinicianClientBase = {
   date: Date;
   conditionId: TConditionId | null; // TODO: this no longer exists right?
   prescription?: TPrescription;
+  oneMonthFree?: boolean;
 };
 
 export type TClinicianClientRead = TClinicianClientBase;
@@ -47,6 +48,7 @@ export type TClinicianClientWrite = {
   date: Timestamp;
   conditionId: TConditionId | null;
   prescription?: TPrescriptionWrite;
+  oneMonthFree?: boolean;
 };
 
 export type TClinicianClient = TClinicianClientBase & {
@@ -116,6 +118,7 @@ export const clinicianClientConverter = {
         clinicianClient.prescription
       );
     }
+    const oneMonthFree = clinicianClient.oneMonthFree || false;
 
     const clinicianClientWrite: TClinicianClientWrite = {
       name: clinicianClient.name,
@@ -125,6 +128,7 @@ export const clinicianClientConverter = {
       ...(prescription && {
         prescription: prescription,
       }),
+      ...(oneMonthFree && { oneMonthFree }),
     };
 
     return clinicianClientWrite;
@@ -144,6 +148,8 @@ export const clinicianClientConverter = {
       );
     }
 
+    const oneMonthFree = clinicianClientWrite.oneMonthFree || false;
+
     const clinicianClient: TClinicianClientRead = {
       name: clinicianClientWrite.name,
       email: clinicianClientWrite.email,
@@ -152,6 +158,7 @@ export const clinicianClientConverter = {
       ...(prescription && {
         prescription,
       }),
+      ...(oneMonthFree && { oneMonthFree }),
     };
 
     return clinicianClient;

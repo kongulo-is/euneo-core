@@ -1,14 +1,9 @@
-import { DocumentReference, deleteField, doc } from "firebase/firestore";
-import { db } from "../../../firebase/db";
-
+import { DocumentReference, deleteField } from "firebase/firestore";
 import { updateDoc } from "../../updateDoc";
-
 import { createPhase } from "../../programHelpers";
 import { addContinuousDaysToClientProgram } from "./add";
-
 import { removeDaysFromClientProgram } from "./delete";
 import {
-  TProgramContinuousPhaseRead,
   TProgramFinitePhaseRead,
   TProgramPhase,
   TProgramPhaseKey,
@@ -18,32 +13,40 @@ import {
   createClientProgramDayRef,
   TClientProgramDay,
 } from "../../../entities/client/day";
-import { TClinicianWrite } from "../../../entities/clinician/clinician";
 import {
   createClinicianClientRef,
   TClinicianClientRef,
-  TClinicianClientWrite,
 } from "../../../entities/clinician/clinicianClient";
 import { TPhase } from "../../../entities/client/phase";
 import {
   createClientProgramRef,
   TClientProgram,
+  TClientProgramRead,
   TClientProgramRef,
   TClientProgramWrite,
 } from "../../../entities/client/clientProgram";
 import {
   createProgramVersionRef,
+  TProgramVersionRead,
   TProgramVersionRef,
+  TProgramVersionWrite,
 } from "../../../entities/program/version";
+import { daysBetweenDates, isToday } from "../../basicHelpers";
 
 const _getNumberOfDaysToModifyAndRemove = (
   clientProgramDays: TClientProgramDay[],
   oldCurrentPhase: TProgramPhase,
   newCurrentPhase: TProgramPhase,
-  startDayIndex: number
+  startDayIndex: number,
+  phaseExtended: boolean
 ) => {
   // If not finite phase, then we don't need to worry about removing days since the number of days does not change
-  if (oldCurrentPhase.mode !== "finite" || newCurrentPhase.mode !== "finite") {
+  // If phase is finite and extended, then we don't need to remove anything since we are not shortening the phase.
+  if (
+    oldCurrentPhase.mode !== "finite" ||
+    newCurrentPhase.mode !== "finite" ||
+    phaseExtended
+  ) {
     return {
       numberOfDaysToRemove: 0,
       numberOfDaysToModify: clientProgramDays.length - startDayIndex,
@@ -60,24 +63,350 @@ const _getNumberOfDaysToModifyAndRemove = (
   };
 };
 
-// Helper function to update program fields
-// TODO: explain better, a function should only do 1 thing
-const _updateClientProgram = async (
+/**
+ * @description Checks if current phase is extended or not.
+ * @param days client program days
+ * @param phaseLength length of current phase days created
+ * @param defaultPhase length of the phase by default (stored under the program itself, not the client program)
+ * @returns boolean value indicating if the phase is extended or not
+ */
+function _isPhaseExtended(
+  days: TClientProgramDay[],
+  currentClientPhase: TPhase,
+  defaultPhase: TProgramPhase
+): boolean {
+  if (defaultPhase.mode !== "finite") return false;
+
+  const phaseLength = currentClientPhase.value;
+  const defaultPhaseLength = defaultPhase.length;
+
+  if (defaultPhaseLength >= phaseLength) return false;
+
+  const currentPhaseDays = days.slice(-phaseLength);
+
+  const currDayIndex = currentPhaseDays.findIndex((day) => isToday(day.date));
+
+  // If the current phase is finished and was longer than the base length, return true
+  if (
+    currDayIndex === -1 &&
+    daysBetweenDates(new Date(), currentPhaseDays[0].date) > 0
+  ) {
+    return true;
+  }
+
+  return currDayIndex >= defaultPhaseLength;
+}
+
+/**
+ * @description Creates references for clinician client, program version, and client program.
+ * @returns references for clinician client, program version, and client program
+ */
+function _createReferences(
+  clinicianId: string,
+  clientId: string,
+  clinicianClientId: string,
+  program: TClinicianProgram,
+  clientProgram: TClientProgram,
+  version: string
+) {
+  const clinicianClientRef = createClinicianClientRef({
+    clinicians: clinicianId,
+    clients: clinicianClientId,
+  });
+
+  const programVersionRef = createProgramVersionRef({
+    clinicians: clinicianId,
+    programs: program.programVersionIdentifiers.programs,
+    versions: version,
+  });
+
+  const clientProgramRef = createClientProgramRef({
+    clients: clientId,
+    programs: clientProgram.clientProgramIdentifiers.programs,
+  });
+
+  return { clinicianClientRef, programVersionRef, clientProgramRef };
+}
+
+/**
+ * @description Updates client program's phases array by updating the last value with the new phase length.
+ * @returns updated phase key value list with the updated length of the current phase stored in the last value
+ */
+function _updateClientProgramPhases(
+  phases: TPhase[],
+  currentPhaseId: `p${number}`,
+  phaseLength: number
+) {
+  const updatedPhases = [...phases];
+  updatedPhases.pop();
+  updatedPhases.push({ key: currentPhaseId, value: phaseLength });
+  return updatedPhases;
+}
+
+/**
+ * @description Check if the current phase is finished.
+ * @returns Boolean indicating if the current phase is finished or not
+ */
+function _isPhaseFinished(days: TClientProgramDay[], today: Date): boolean {
+  return days[days.length - 1].date < today;
+}
+
+/**
+ * @description Function that updates clinician client prescription and client program with the new modified version
+ * @returns Boolean indicating if the operation was successful or not
+ */
+async function _updateProgramVersion(
   clientProgramRef: TClientProgramRef,
   clinicianClientRef: TClinicianClientRef,
   programVersionRef: TProgramVersionRef,
   updatedPhases: TPhase[]
-) => {
-  await updateClientProgramFields(clientProgramRef, {
+) {
+  return await Promise.all([
+    await updateClientProgramFields(clientProgramRef, {
+      clinicianClientRef,
+      programVersionRef,
+      shouldRefetch: true,
+      phases: updatedPhases,
+    }),
+    await updateDoc(clinicianClientRef, {
+      "prescription.programVersionRef": programVersionRef,
+    }),
+  ])
+    .then(() => true)
+    .catch(() => false);
+}
+
+function _getPhaseInfo(
+  clientProgram: TClientProgram,
+  program: TClinicianProgram,
+  oldProgram: TProgram,
+  today: Date
+) {
+  const currentClientPhase =
+    clientProgram.phases[clientProgram.phases.length - 1];
+  const currentPhaseId = currentClientPhase.key as `p${number}`;
+  const currentPhase = program.phases[currentPhaseId];
+  const oldCurrentPhase = oldProgram.phases[currentPhaseId];
+
+  const currDayIndex =
+    clientProgram.days.findIndex(
+      (day) => day.date.getTime() === today.getTime()
+    ) || 0;
+  const currentDay = clientProgram.days[currDayIndex].dayId;
+
+  const startPhaseDayIndex = currDayIndex
+    ? oldCurrentPhase.daysDeprecated.indexOf(currentDay)
+    : 0;
+  const startDocIndex =
+    currDayIndex === -1 ? clientProgram.days.length : currDayIndex;
+
+  return {
+    currentClientPhase,
+    currentPhaseId,
+    currentPhase,
+    oldCurrentPhase,
+    currDayIndex,
+    startDocIndex,
+    startPhaseDayIndex,
+  };
+}
+
+/**
+ * @description Helper function to modify the client program's days.
+ * @returns Boolean indicating if the operation was successful or not
+ */
+async function _modifyClientProgramDays(
+  clientProgram: TClientProgram,
+  program: TClinicianProgram,
+  oldProgram: TProgram,
+  clinicianClientRef: TClinicianClientRef,
+  programVersionRef: DocumentReference<
+    TProgramVersionRead,
+    TProgramVersionWrite
+  >,
+  today: Date,
+  clientProgramRef: DocumentReference<TClientProgramRead, TClientProgramWrite>
+) {
+  const { days, trainingDays } = clientProgram;
+
+  const {
+    currentClientPhase,
+    currentPhaseId,
+    currentPhase,
+    oldCurrentPhase,
+    currDayIndex,
+    startDocIndex,
+    startPhaseDayIndex,
+  } = _getPhaseInfo(clientProgram, program, oldProgram, today);
+
+  const phaseExtended = _isPhaseExtended(
+    days,
+    currentClientPhase,
+    currentPhase
+  );
+  console.log("phaseExtended", phaseExtended);
+
+  // Phase length can vary when phase has been extended by client;
+  const programPhaseLength = phaseExtended
+    ? currentClientPhase.value
+    : currentPhase.length || days.length;
+
+  const { numberOfDaysToRemove, numberOfDaysToModify } =
+    _getNumberOfDaysToModifyAndRemove(
+      days,
+      oldCurrentPhase,
+      currentPhase,
+      currDayIndex,
+      phaseExtended
+    );
+
+  // Remove excess days if necessary.
+  if (numberOfDaysToRemove > numberOfDaysToModify) {
+    await removeDaysFromClientProgram(
+      clientProgram.clientProgramRef,
+      startDocIndex,
+      numberOfDaysToRemove
+    );
+  }
+
+  // Create and add new days to the program.
+  const newDays = createPhase(
+    trainingDays,
+    program,
+    currentPhaseId,
+    new Date(),
+    numberOfDaysToModify,
+    currentPhase.days[startPhaseDayIndex] ? startPhaseDayIndex : 0
+  );
+
+  console.log("newDays", newDays);
+
+  await addContinuousDaysToClientProgram(
+    clientProgram.clientProgramRef,
+    newDays,
+    startDocIndex
+  );
+
+  const updatedPhases = _updateClientProgramPhases(
+    clientProgram.phases,
+    currentPhaseId,
+    programPhaseLength
+  );
+
+  console.log("updatedPhases", updatedPhases);
+
+  return await _updateProgramVersion(
+    clientProgramRef,
     clinicianClientRef,
     programVersionRef,
-    shouldRefetch: true,
-    phases: updatedPhases,
-  });
-  await updateDoc(clinicianClientRef, {
-    "prescription.programVersionRef": programVersionRef,
-  });
-};
+    updatedPhases
+  );
+}
+
+/**
+ * @description Helper function to change the client program's mode and update the client program accordingly.
+ * @returns Boolean indicating if the operation was successful or not
+ */
+async function _changeClientProgramMode(
+  clinicianId: string,
+  clientId: string,
+  clientProgram: TClientProgram,
+  program: TClinicianProgram,
+  clinicianClientId: string,
+  version: string,
+  newCurrentPhaseId: `p${number}`
+) {
+  try {
+    // Prepare references and current date.
+    const { clinicianClientRef, programVersionRef, clientProgramRef } =
+      _createReferences(
+        clinicianId,
+        clientId,
+        clinicianClientId,
+        program,
+        clientProgram,
+        version
+      );
+    // Destructure days and trainingDays from the client program
+    const { days, trainingDays } = clientProgram;
+
+    // Get the current phase ID from the client program
+    const oldCurrentPhaseId = "p1" as `p${number}`;
+    const currentPhaseId = newCurrentPhaseId;
+
+    // Get the current phase from the program
+    const currentPhase = program.phases[
+      currentPhaseId
+    ] as TProgramFinitePhaseRead;
+
+    // Set today's date with time set to 00:00:00
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Find the index of today's day in the client program days array
+    const currDayIndex = days.findIndex(
+      (day) => day.date.getTime() === today.getTime()
+    );
+
+    // Calculate the start index for phase days and document updates
+    const startDocIndex = currDayIndex === -1 ? days.length : currDayIndex;
+    const daysLeft = days.length - startDocIndex;
+
+    // If there are more days to remove than modify, remove the excess days
+    if (currentPhase.length < daysLeft) {
+      await removeDaysFromClientProgram(
+        clientProgram.clientProgramRef,
+        startDocIndex,
+        daysLeft
+      );
+    }
+
+    // Create new days for the current phase
+    const newDays = createPhase(
+      trainingDays,
+      program,
+      currentPhaseId,
+      new Date(),
+      currentPhase.length,
+      0
+    );
+
+    // Add the newly created days to the client program
+    await addContinuousDaysToClientProgram(
+      clientProgram.clientProgramRef,
+      newDays,
+      startDocIndex
+    );
+
+    const updatedPhases: TPhase[] = [];
+    // If there was at least one day finished, add old phase to array
+    if (days.length > daysLeft) {
+      const daysFinished = days.length - daysLeft;
+      updatedPhases.push({
+        key: oldCurrentPhaseId,
+        value: daysFinished,
+      });
+    }
+    // Add new phase to array
+    updatedPhases.push({
+      key: currentPhaseId,
+      value: currentPhase.length,
+    });
+    // Update the client program with the new phases
+    await _updateProgramVersion(
+      clientProgramRef,
+      clinicianClientRef,
+      programVersionRef,
+      updatedPhases
+    );
+
+    return true;
+  } catch (error) {
+    // Log any errors that occur during the process
+    console.log("Error updating client program: ", error);
+    return false;
+  }
+}
 
 // TODO: Fix this fucntion describe it
 export async function updateProgramDay(
@@ -191,115 +520,6 @@ export async function removeRefetchFromProgram(
     });
 }
 
-// TODO: Try to combine with updateClientProgramVersion (They are very similar)
-// Change client program mode
-export async function changeClientProgramMode(
-  clinicianId: string,
-  clientId: string,
-  clientProgram: TClientProgram,
-  program: TClinicianProgram,
-  clinicianClientId: string,
-  version: string,
-  newCurrentPhaseId: `p${number}`
-) {
-  try {
-    // Create refs
-    const clinicianClientRef = createClinicianClientRef({
-      clinicians: clinicianId,
-      clients: clinicianClientId,
-    });
-
-    const programVersionRef = createProgramVersionRef({
-      clinicians: clinicianId,
-      programs: program.programVersionIdentifiers.programs,
-      versions: version,
-    });
-
-    const clientProgramRef = createClientProgramRef({
-      clients: clientId,
-      programs: clientProgram.clientProgramIdentifiers.programs,
-    });
-    // Destructure days and trainingDays from the client program
-    const { days, trainingDays } = clientProgram;
-
-    // Get the current phase ID from the client program
-    const oldCurrentPhaseId = "p1" as `p${number}`;
-    const currentPhaseId = newCurrentPhaseId;
-
-    // Get the current phase from the program
-    const currentPhase = program.phases[
-      currentPhaseId
-    ] as TProgramFinitePhaseRead;
-
-    // Set today's date with time set to 00:00:00
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Find the index of today's day in the client program days array
-    const currDayIndex = days.findIndex(
-      (day) => day.date.getTime() === today.getTime()
-    );
-
-    // Calculate the start index for phase days and document updates
-    const startDocIndex = currDayIndex === -1 ? days.length : currDayIndex;
-    const daysLeft = days.length - startDocIndex;
-
-    // If there are more days to remove than modify, remove the excess days
-    if (currentPhase.length < daysLeft) {
-      await removeDaysFromClientProgram(
-        clientProgram.clientProgramRef,
-        startDocIndex,
-        daysLeft
-      );
-    }
-
-    // Create new days for the current phase
-    const newDays = createPhase(
-      trainingDays,
-      program,
-      currentPhaseId,
-      new Date(),
-      currentPhase.length,
-      0
-    );
-
-    // Add the newly created days to the client program
-    await addContinuousDaysToClientProgram(
-      clientProgram.clientProgramRef,
-      newDays,
-      startDocIndex
-    );
-
-    const updatedPhases: TPhase[] = [];
-    // If there was at least one day finished, add old phase to array
-    if (days.length > daysLeft) {
-      const daysFinished = days.length - daysLeft;
-      updatedPhases.push({
-        key: oldCurrentPhaseId,
-        value: daysFinished,
-      });
-    }
-    // Add new phase to array
-    updatedPhases.push({
-      key: currentPhaseId,
-      value: currentPhase.length,
-    });
-    // Update the client program with the new phases
-    await _updateClientProgram(
-      clientProgramRef,
-      clinicianClientRef,
-      programVersionRef,
-      updatedPhases
-    );
-
-    return true;
-  } catch (error) {
-    // Log any errors that occur during the process
-    console.log("Error updating client program: ", error);
-    return false;
-  }
-}
-
 // Modify client program
 export async function updateClientProgramVersion(
   clinicianId: string,
@@ -313,9 +533,9 @@ export async function updateClientProgramVersion(
   newCurrentPhaseId?: `p${number}`
 ) {
   try {
-    //  Need to call another function if we are converting from continuous to finite program
+    // Handle conversion from continuous to finite mode if required.
     if (isConverting && newCurrentPhaseId) {
-      return await changeClientProgramMode(
+      return await _changeClientProgramMode(
         clinicianId,
         clientId,
         clientProgram,
@@ -325,116 +545,42 @@ export async function updateClientProgramVersion(
         newCurrentPhaseId
       );
     }
-    // Destructure days and trainingDays from the client program
-    const { days, trainingDays } = clientProgram;
-
-    // Get the current phase ID from the client program
-    const currentPhaseId = clientProgram.phases[clientProgram.phases.length - 1]
-      .key as `p${number}`;
-
-    // Get the current and old phases from the programs
-    const currentPhase = program.phases[currentPhaseId];
-    const oldCurrentPhase = oldProgram.phases[currentPhaseId];
-
-    // Set today's date with time set to 00:00:00
+    // Keep track of today's date in a variable.
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // TODO: should we take this in instead?
-    const clinicianClientRef = createClinicianClientRef({
-      clinicians: clinicianId,
-      clients: clinicianClientId,
-    });
+    // Prepare references and current date.
+    const { clinicianClientRef, programVersionRef, clientProgramRef } =
+      _createReferences(
+        clinicianId,
+        clientId,
+        clinicianClientId,
+        program,
+        clientProgram,
+        version
+      );
 
-    const programVersionRef = createProgramVersionRef({
-      clinicians: clinicianId,
-      programs: program.programVersionIdentifiers.programs,
-      versions: version,
-    });
-
-    const clientProgramRef = createClientProgramRef({
-      clients: clientId,
-      programs: clientProgram.clientProgramIdentifiers.programs,
-    });
-
-    // If the last day in the client program is before today, update the program and exit
-    if (days[days.length - 1].date < today) {
-      await _updateClientProgram(
+    // No need to modify program days if the last day is before today.
+    if (_isPhaseFinished(clientProgram.days, today)) {
+      return await _updateProgramVersion(
         clientProgramRef,
         clinicianClientRef,
         programVersionRef,
         clientProgram.phases
       );
-      return true;
     }
 
-    // Find the index of today's day in the client program days array
-    const currDayIndex =
-      days.findIndex((day) => day.date.getTime() === today.getTime()) || 0;
-
-    // Calculate the start index for phase days and document updates
-    const currentDay = days[currDayIndex].dayId;
-    const startPhaseDayIndex = currDayIndex
-      ? oldCurrentPhase.daysDeprecated.indexOf(currentDay)
-      : 0;
-    const startDocIndex = currDayIndex === -1 ? days.length : currDayIndex;
-
-    // Get the number of days to remove and modify based on phase changes
-    const { numberOfDaysToRemove, numberOfDaysToModify } =
-      _getNumberOfDaysToModifyAndRemove(
-        days,
-        oldCurrentPhase,
-        currentPhase,
-        currDayIndex
-      );
-
-    // If there are more days to remove than modify, remove the excess days
-    if (numberOfDaysToRemove > numberOfDaysToModify) {
-      await removeDaysFromClientProgram(
-        clientProgram.clientProgramRef,
-        startDocIndex,
-        numberOfDaysToRemove
-      );
-    }
-
-    // Create new days for the current phase
-    const newDays = createPhase(
-      trainingDays,
+    // Determine the number of days to remove or modify and update accordingly.
+    return await _modifyClientProgramDays(
+      clientProgram,
       program,
-      currentPhaseId,
-      new Date(),
-      numberOfDaysToModify,
-      currentPhase.days[startPhaseDayIndex] ? startPhaseDayIndex : 0
-    );
-
-    // Add the newly created days to the client program
-    await addContinuousDaysToClientProgram(
-      clientProgram.clientProgramRef,
-      newDays,
-      startDocIndex
-    );
-
-    // Update the phases array with the new phase information
-    const updatedPhases = [...clientProgram.phases];
-    const oldPhaseData = updatedPhases.pop();
-    const currentPhaseLength =
-      currentPhase.mode === "finite"
-        ? currentPhase.length
-        : oldPhaseData?.value || days.length;
-
-    updatedPhases.push({ key: currentPhaseId, value: currentPhaseLength });
-
-    // Update the client program with the new phases
-    await _updateClientProgram(
-      clientProgramRef,
+      oldProgram,
       clinicianClientRef,
       programVersionRef,
-      updatedPhases
+      today,
+      clientProgramRef
     );
-
-    return true;
   } catch (error) {
-    // Log any errors that occur during the process
     console.log("Error updating client program: ", error);
     return false;
   }
