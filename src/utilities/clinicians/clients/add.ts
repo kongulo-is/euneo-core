@@ -5,15 +5,12 @@ import {
   CollectionReference,
   addDoc,
   updateDoc,
-  getDocs,
   setDoc,
 } from "firebase/firestore";
-import { db } from "../../../firebase/db";
 
 import { createInvitation } from "../../invitations/add";
 import {
   TPrescription,
-  TPrescriptionRead,
   TPrescriptionWrite,
   prescriptionConverter,
 } from "../../../entities/clinician/prescription";
