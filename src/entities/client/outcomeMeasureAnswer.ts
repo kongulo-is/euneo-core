@@ -3,19 +3,23 @@ import { TOutcomeMeasureId } from "../outcomeMeasure/outcomeMeasure";
 
 type TQuestionId = string;
 
+export type TOutcomeMeasureAnswersWrite = TOutcomeMeasureAnswersBase & {
+  date: Timestamp;
+};
+
+export type TOutcomeMeasureAnswers = TOutcomeMeasureAnswersBase & {
+  date: Date;
+};
+
 type TOutcomeMeasureAnswersBase = {
   outcomeMeasureId: TOutcomeMeasureId;
   answers: Record<TQuestionId, TOutcomeMeasureAnswer | null>;
   scoredPoints: number; // sum of all answered questions points
-  maxPoints: number; // max points of all answered questions or maxPoint given from OM.
-  percentageScore: number; // scoredPoints / maxPoints
+  maxPoints: number; // max points of all answered questions or maxPoint given from OM. (null when converting old answers)
+  percentageScore: number; //%
   sectionScorings: TSectionScoring[];
   customScoring?: boolean;
   scoringMethod: "points" | "percentage" | "adjusted" | null;
-};
-
-export type TOutcomeMeasureAnswersWrite = TOutcomeMeasureAnswersBase & {
-  date: Timestamp;
 };
 
 export type TSectionScoring = {
@@ -25,10 +29,6 @@ export type TSectionScoring = {
   percentageScore: number;
   questionIds: TQuestionId[]; // questionIds of questions in section, not necessarily in the same order as displayed
   skipped: boolean;
-};
-
-export type TOutcomeMeasureAnswers = TOutcomeMeasureAnswersBase & {
-  date: Date;
 };
 
 // Base type for an answer
@@ -46,11 +46,16 @@ export type TOutcomeMeasureStandardAnswer = TOutcomeMeasureAnswerBase & {
   type: "option" | "rating" | "input";
 };
 
-export type TOutcomeMeasureMultipleChoiceAnswer = Omit<
-  TOutcomeMeasureAnswerBase,
-  "value"
-> & {
-  value?: number[] | null;
+// export type TOutcomeMeasureMultipleChoiceAnswer = Omit<
+//   TOutcomeMeasureAnswerBase,
+//   "value"
+// > & {
+//   value?: number[] | null;
+//   type: "multiple-choice";
+// };
+
+export type TOutcomeMeasureMultipleChoiceAnswer = TOutcomeMeasureAnswerBase & {
+  value?: number[] | null; // Overriding the value type from the base
   type: "multiple-choice";
 };
 
@@ -61,3 +66,17 @@ export type TOutcomeMeasureConditionalAnswer = TOutcomeMeasureAnswerBase & {
 };
 
 type TQuestiontype = "option" | "rating" | "multiple-choice" | "input";
+
+//! deprecated --------
+
+export type TOutcomeMeasureAnswersOld = {
+  date: Date;
+  outcomeMeasureId: TOutcomeMeasureId;
+  sections: TOutcomeMeasureAnswerSectionOld[];
+};
+
+export type TOutcomeMeasureAnswerSectionOld = {
+  sectionName: string;
+  score: number;
+  answers: (number | null)[];
+};

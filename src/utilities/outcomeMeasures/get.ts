@@ -33,6 +33,8 @@ export async function getAllOutcomeMeasures(): Promise<
       "ndi",
       "rdq",
       "sf-36",
+      "worc",
+      "spadi",
     ];
 
     const oms = await Promise.all(
