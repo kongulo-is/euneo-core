@@ -1,5 +1,4 @@
 import {
-  doc,
   getDoc,
   collection,
   CollectionReference,
@@ -16,7 +15,6 @@ import {
 } from "../../../entities/clinician/prescription";
 import {
   clinicianClientConverter,
-  createClinicianClientRef,
   deserializeClinicianClientPath,
   TClinicianClient,
   TClinicianClientRead,
@@ -85,14 +83,10 @@ export async function addPrescriptionToClinicianClient(
 }
 
 export async function createClinicianClient(
-  clinicianId: string,
+  clinicianClientRef: TClinicianClientRef,
   data: TClinicianClientRead
 ): Promise<TClinicianClient> {
   try {
-    const clinicianClientRef = createClinicianClientRef({
-      clinicians: clinicianId,
-    });
-
     await setDoc(clinicianClientRef, data);
 
     return {
