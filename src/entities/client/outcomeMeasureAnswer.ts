@@ -46,18 +46,18 @@ export type TOutcomeMeasureStandardAnswer = TOutcomeMeasureAnswerBase & {
   type: "option" | "rating" | "input";
 };
 
-// export type TOutcomeMeasureMultipleChoiceAnswer = Omit<
-//   TOutcomeMeasureAnswerBase,
-//   "value"
-// > & {
-//   value?: number[] | null;
-//   type: "multiple-choice";
-// };
-
-export type TOutcomeMeasureMultipleChoiceAnswer = TOutcomeMeasureAnswerBase & {
-  value?: number[] | null; // Overriding the value type from the base
+export type TOutcomeMeasureMultipleChoiceAnswer = Omit<
+  TOutcomeMeasureAnswerBase,
+  "value"
+> & {
+  value?: number[] | null;
   type: "multiple-choice";
 };
+
+// export type TOutcomeMeasureMultipleChoiceAnswer = TOutcomeMeasureAnswerBase & {
+//   value?: number[] | null; // Overriding the value type from the base
+//   type: "multiple-choice";
+// };
 
 export type TOutcomeMeasureConditionalAnswer = TOutcomeMeasureAnswerBase & {
   conditionalValue?: string; // a, b, c...
