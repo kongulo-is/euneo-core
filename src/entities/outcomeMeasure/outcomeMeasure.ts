@@ -60,7 +60,7 @@ export type TInputQuestion = TQuestionBase & {
 type TQuestionBase = {
   id: string; // q1, q2, q3...
   title: string;
-  higherIsBetter?: boolean; // flip score, maxPoints for question - score. (maxPoints good, 0 bad)
+  reverseScore?: boolean; // flip score, maxPoints for question - score. (maxPoints good, 0 bad)
   optionExplanation?: string;
   isSkippable?: boolean | null; // skippable question, not the same as when there is a option to skip (e.g. option: "not applicable", value: null)
   maxPoints?: number | null;
@@ -105,7 +105,8 @@ export type TOutcomeMeasureBase = {
   isConsoleLive: boolean;
   maxPoints?: number | null; // total points
   scoringMethod: TScoringMethod | null;
-  higherIsBetter?: boolean; // flip score, 100% - score. (100 good, 0 bad).
+  reverseScore?: boolean; // flip score, 100% - score. (100 good, 0 bad).
+  higherIsBetter?: boolean; // Does the client want to score low or high on the om
 
   // Only used if there is a custom scoring order (questions are not scored in the same order as displayed)
   customScoringSections?: {
