@@ -108,6 +108,10 @@ export function getTrainingDaysForPhase(
   return selectedTrainingDays;
 }
 
+export function isInAcutePhase(phase: TProgramPhase) {
+  return phase.restDaysDisabled;
+}
+
 export const programPhaseConverter = {
   toFirestore(phase: TProgramPhaseRead): TProgramPhaseWrite {
     const { daysDeprecated, ...rest } = phase;
