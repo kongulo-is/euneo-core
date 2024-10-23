@@ -27,19 +27,24 @@ import {
   programDayConverter,
 } from "../../../entities/program/programDay";
 import { Collection } from "../../../entities/global";
+import { getProgram } from "../../programs/get";
+import {
+  removeClinicianProgramDay,
+  removeClinicianProgramPhase,
+} from "./delete";
 
 export function _convertNextPhase(
   nextPhase: TNextPhaseForm[],
   programVersionRef: DocumentReference<
     TProgramVersionRead,
     TProgramVersionWrite
-  >,
+  >
 ): TNextPhase[] {
   return nextPhase.map((phase) => {
     const nextPhaseRef = doc(
       programVersionRef,
       "phases",
-      phase.phaseId,
+      phase.phaseId
     ) as DocumentReference<TProgramPhaseRead, TProgramPhaseWrite>;
 
     return {
@@ -57,7 +62,7 @@ export async function _saveDays(
     TProgramVersionRead,
     TProgramVersionWrite
   >,
-  days: Record<TProgramDayKey, TProgramDayRead>,
+  days: Record<TProgramDayKey, TProgramDayRead>
 ) {
   const daysRef = collection(programVersionRef, Collection.Days);
   await Promise.all(
@@ -66,9 +71,9 @@ export async function _saveDays(
       return setDoc(
         doc(daysRef.withConverter(programDayConverter), dayId),
         days[dayId],
-        { merge: true },
+        { merge: true }
       );
-    }),
+    })
   );
 }
 
@@ -78,7 +83,7 @@ export async function _savePhases(
     TProgramVersionWrite
   >,
   phases: Record<TProgramPhaseKey, TProgramPhaseForm>,
-  highestPhaseId?: TProgramPhaseKey | null,
+  highestPhaseId?: TProgramPhaseKey | null
 ): Promise<Record<TProgramPhaseKey, TProgramPhaseRead>> {
   const phasesRef = collection(programVersionRef, Collection.Phases);
   const phasesRead: Record<TProgramPhaseKey, TProgramPhaseRead> = {};
@@ -96,8 +101,8 @@ export async function _savePhases(
             (day) =>
               doc(
                 collection(programVersionRef, Collection.Days),
-                day,
-              ) as DocumentReference<TProgramDayRead, TProgramDayWrite>,
+                day
+              ) as DocumentReference<TProgramDayRead, TProgramDayWrite>
           ),
           daysDeprecated: phase.days,
           nextPhase: _convertNextPhase(phase.nextPhase, programVersionRef),
@@ -116,8 +121,8 @@ export async function _savePhases(
             (day) =>
               doc(
                 collection(programVersionRef, Collection.Days),
-                day,
-              ) as DocumentReference<TProgramDayRead, TProgramDayWrite>,
+                day
+              ) as DocumentReference<TProgramDayRead, TProgramDayWrite>
           ),
           daysDeprecated: phase.days,
           mode: phase.mode,
@@ -129,12 +134,12 @@ export async function _savePhases(
 
       await setDoc(
         doc(phasesRef.withConverter(programPhaseConverter), phaseId),
-        phaseRead,
+        phaseRead
         // { merge: true },
       );
 
       phasesRead[phaseId] = phaseRead;
-    }),
+    })
   );
 
   return phasesRead;
@@ -147,7 +152,7 @@ export async function _saveProgramInfo(
     TProgramVersionWrite
   >,
 
-  isSaved: boolean,
+  isSaved: boolean
 ) {
   const programInfo: TClinicianProgramRead = {
     currentVersionRef: programVersionRef,
@@ -168,11 +173,55 @@ export async function _saveVersionInfo(
     TProgramVersionRead,
     TProgramVersionWrite
   >,
-  programVersionRead: TProgramVersionRead,
+  programVersionRead: TProgramVersionRead
 ): Promise<TProgramVersion> {
   await setDoc(programVersionRef, programVersionRead);
   return {
     ...programVersionRead,
     programVersionRef,
   };
+}
+
+export async function _removeUnusedPhasesAndDays(
+  programVersionRef: DocumentReference<
+    TProgramVersionRead,
+    TProgramVersionWrite
+  >,
+  newPhases: Record<TProgramPhaseKey, TProgramPhaseForm>,
+  newDays: Record<TProgramDayKey, TProgramDayRead>
+) {
+  const oldClinicianProgram = await getProgram(programVersionRef);
+  if (oldClinicianProgram.creator !== "clinician") {
+    throw new Error("Program is not a clinician program");
+  }
+
+  const { phases: oldPhases, days: oldDays } = oldClinicianProgram;
+
+  const newPhaseKeys = new Set(Object.keys(newPhases));
+  const newDayKeys = new Set(Object.keys(newDays));
+
+  const oldPhaseKeys = Object.keys(oldPhases);
+  const oldDayKeys = Object.keys(oldDays);
+
+  // Find keys in oldPhases that are not in newPhases
+  const unusedPhaseKeys = oldPhaseKeys.filter((key) => !newPhaseKeys.has(key));
+
+  // Find keys in oldDays that are not in newDays
+  const unusedDayKeys = oldDayKeys.filter((key) => !newDayKeys.has(key));
+
+  return await Promise.all([
+    unusedPhaseKeys.map(async (key) => {
+      const phaseKey: TProgramPhaseKey = key as TProgramPhaseKey;
+      return await removeClinicianProgramPhase(programVersionRef, phaseKey);
+    }),
+    unusedDayKeys.map(async (key) => {
+      const dayKey: TProgramDayKey = key as `d${number}`;
+      return await removeClinicianProgramDay(programVersionRef, dayKey);
+    }),
+  ])
+    .then(() => true)
+    .catch((err) => {
+      console.error(err);
+      return false;
+    });
 }

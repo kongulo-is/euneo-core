@@ -38,6 +38,8 @@ export type TInvitationWrite = {
   code: string;
   clinicianClientRef: TClinicianClientRef;
   date: Timestamp;
+  oneMonthFree?: boolean;
+  clinicianName?: string;
 };
 
 export type TInvitationRead = {
@@ -45,6 +47,8 @@ export type TInvitationRead = {
   date: Date;
   clinicianClientRef: TClinicianClientRef;
   clinicianClientIdentifiers: TClinicianClientIdentifiers;
+  oneMonthFree?: boolean;
+  clinicianName?: string;
 };
 
 export type TInvitation = TInvitationRead & {
@@ -53,7 +57,7 @@ export type TInvitation = TInvitationRead & {
 };
 
 export function serializeInvitationIdentifiers(
-  obj: TInvitationIdentifiers,
+  obj: TInvitationIdentifiers
 ): string {
   try {
     return `${Collection.Invitations}/${obj.invitations}`;
@@ -64,7 +68,7 @@ export function serializeInvitationIdentifiers(
 }
 
 export function deserializeInvitationPath(
-  path: string,
+  path: string
 ): TInvitationIdentifiers {
   try {
     const [_invitations, invitationId] = path.split("/");
@@ -78,7 +82,7 @@ export function deserializeInvitationPath(
 }
 
 export function createInvitationRef(
-  invitations?: string,
+  invitations?: string
 ): DocumentReference<TInvitationRead, TInvitationWrite> {
   const path = `${Collection.Invitations}`;
   const invitationsCollection = collection(db, path);
@@ -93,7 +97,7 @@ export function createInvitationRef(
 export function createInvitationCollectionRef(): TInvitationCollectionRef {
   const path = `${Collection.Invitations}`;
   const invitationsCollection = collection(db, path).withConverter(
-    invitationConverter,
+    invitationConverter
   );
 
   return invitationsCollection;
@@ -105,11 +109,15 @@ export const invitationConverter = {
       code: invitation.code,
       clinicianClientRef: invitation.clinicianClientRef,
       date: Timestamp.fromDate(invitation.date),
+      ...(invitation.oneMonthFree && { oneMonthFree: invitation.oneMonthFree }),
+      ...(invitation.clinicianName && {
+        clinicianName: invitation.clinicianName,
+      }),
     };
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TInvitationWrite>,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): TInvitationRead {
     const data = snapshot.data(options);
 
@@ -117,10 +125,10 @@ export const invitationConverter = {
       ...data,
       date: data.date.toDate(),
       clinicianClientRef: data.clinicianClientRef.withConverter(
-        clinicianClientConverter,
+        clinicianClientConverter
       ),
       clinicianClientIdentifiers: deserializeClinicianClientPath(
-        data.clinicianClientRef.path,
+        data.clinicianClientRef.path
       ),
     };
 

@@ -73,19 +73,19 @@ export type TClinicianProgramRead = TProgramBase & {
 export type TProgramRead = TEuneoProgramRead | TClinicianProgramRead;
 
 export function isClinicianProgram(
-  program: TProgramRead,
+  program: TProgramRead
 ): program is TClinicianProgramRead {
   return (program as TClinicianProgramRead).createdAt !== undefined;
 }
 
 export function isEuneoProgram(
-  program: TProgramRead,
+  program: TProgramRead
 ): program is TEuneoProgramRead {
   return (program as TEuneoProgramRead).isConsoleLive !== undefined;
 }
 
 export function isClinicianProgramIdentifiers(
-  identifiers: TProgramIdentifiers,
+  identifiers: TProgramIdentifiers
 ): identifiers is TClinicianProgramIdentifiers {
   return (
     (identifiers as TClinicianProgramIdentifiers)[Collection.Clinicians] !==
@@ -113,7 +113,7 @@ export function deserializeProgramPath(path: string): TProgramIdentifiers {
     const clinicianId = segments[cliniciansIndex + 1];
     const programsIndex = segments.indexOf(
       Collection.Programs,
-      cliniciansIndex,
+      cliniciansIndex
     );
     const programId = segments[programsIndex + 1];
 
@@ -200,7 +200,7 @@ export const programConverter = {
         >;
       }
     >,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): TProgramRead {
     const programWrite = snapshot.data(options);
     const { createdAt, lastUpdatedAt, currentVersion, ...rest } = programWrite;
@@ -211,7 +211,7 @@ export const programConverter = {
         ? lastUpdatedAt.toDate()
         : createdAt
           ? createdAt.toDate()
-          : new Date(),
+          : new Date("2024-01-01T00:00:00"),
       isSaved: rest.isSaved ?? false,
       isArchived: rest.isArchived ?? false,
       currentVersionRef: currentVersion ?? programWrite.currentVersionRef, // TODO: remove currentVersion when all clients have updated programs, this is for users with deprecated programs

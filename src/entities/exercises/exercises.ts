@@ -101,7 +101,6 @@ export type TExerciseWrite = {
   isConsoleLive: boolean;
   clinicianRef?: TClinicianRef;
   createdAt?: Timestamp;
-  isArchived?: boolean;
   primaryArea?: TExerciseArea[] | null; // new field //TODO: this should be mandatory
   secondaryArea?: TExerciseArea[] | null; // new field
   primaryType?: TExerciseType | null; // new field (new "type" field) //TODO: this should be mandatory
@@ -113,7 +112,7 @@ export type TExerciseWrite = {
   targetedMuscles?: string[] | null; // new field
   primaryInvolvedMuscleGroups?: string[] | null; // new field
   primaryInvolvedMuscles?: string[] | null; // new field
-  creator: "Euneo Health" | "You"; // new field
+  creator: "Euneo Health" | string; // new field. "Euneo Health" or {clinicianId}
 };
 
 /**
@@ -145,7 +144,6 @@ export type TExerciseRead = {
   isConsoleLive: boolean;
   clinicianRef?: TClinicianRef;
   createdAt?: Date;
-  isArchived?: boolean;
   // New exercise fields
   primaryArea?: TExerciseArea[] | null; // new field //TODO: this should be mandatory
   secondaryArea?: TExerciseArea[] | null; // new field
@@ -158,7 +156,7 @@ export type TExerciseRead = {
   targetedMuscles?: string[] | null; // new field
   primaryInvolvedMuscleGroups?: string[] | null; // new field
   primaryInvolvedMuscles?: string[] | null; // new field
-  creator: "Euneo Health" | "You"; // new field
+  creator: "Euneo Health" | string; // new field. "Euneo Health" or {clinicianId}
 };
 
 export type TExercise = TExerciseRead & {

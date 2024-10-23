@@ -66,9 +66,7 @@ export const prescriptionConverter = {
       TProgramVersionWrite
     > = doc(
       db,
-      serializeProgramVersionIdentifiers(
-        prescription.programVersionIdentifiers,
-      ),
+      serializeProgramVersionIdentifiers(prescription.programVersionIdentifiers)
     ).withConverter(programVersionConverter);
 
     const prescriptionWrite: TPrescriptionWrite = {
@@ -96,7 +94,7 @@ export const prescriptionConverter = {
     }
 
     const clientProgramRef = prescriptionWrite.clientProgramRef?.withConverter(
-      clientProgramConverter,
+      clientProgramConverter
     );
 
     let clientProgramIdentifiers: TClientProgramIdentifiers | undefined;

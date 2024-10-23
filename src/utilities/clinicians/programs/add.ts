@@ -23,6 +23,7 @@ import {
   _saveDays,
   _savePhases,
   _saveVersionInfo,
+  _removeUnusedPhasesAndDays,
 } from "./_helpers";
 import { DocumentReference } from "firebase/firestore";
 
@@ -33,7 +34,7 @@ export async function createClinicianProgram(
   phases: Record<TProgramPhaseKey, TProgramPhaseForm>,
   days: Record<TProgramDayKey, TProgramDayRead>,
   isSaved: boolean,
-  clinicianProgramId?: string // used to overwrite the program (used when saving program)
+  clinicianProgramId?: string
 ): Promise<TClinicianProgram> {
   try {
     const programVersionRef = createProgramVersionRef({
@@ -49,6 +50,11 @@ export async function createClinicianProgram(
     const programVersionIdentifiers = deserializeProgramVersionPath(
       programVersionRef.path
     );
+
+    // If program id has been used to create a program, we need to remove unused phases and days if there are any
+    if (clinicianProgramId) {
+      await _removeUnusedPhasesAndDays(programVersionRef, phases, days);
+    }
 
     if (!isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
       throw new Error("Invalid program version identifiers");

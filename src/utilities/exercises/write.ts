@@ -130,18 +130,19 @@ export async function getExerciseById(id: string): Promise<TExercise> {
 export async function uploadExercise(
   exercise: TExerciseWrite,
   clinicianId: string
-): Promise<string> {
+): Promise<TExercise> {
   try {
     const exerciseRef = createExerciseCollectionRef();
     const clinicianRef = createClinicianRef(clinicianId);
-    await addDoc(exerciseRef, {
+    const docRef = await addDoc(exerciseRef, {
       ...exercise,
       clinicianRef,
       createdAt: new Date(),
       id: exerciseRef.id,
     });
 
-    return exerciseRef.id;
+    const newExercise = await getExerciseById(docRef.id);
+    return newExercise;
   } catch (error) {
     console.error("Error uploading exercise:", error);
     throw error;

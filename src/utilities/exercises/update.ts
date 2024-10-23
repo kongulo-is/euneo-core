@@ -28,7 +28,7 @@ export async function makeExercisesConsoleLive(
 export async function archiveExercise(exerciseRef: TExerciseRef) {
   try {
     await updateDoc(exerciseRef, {
-      isArchived: true,
+      isConsoleLive: false,
     });
     return true;
   } catch (error) {
@@ -42,12 +42,13 @@ export const updateExerciseDetails = async (
   exerciseDetails: Partial<TExerciseRead>
 ) => {
   // delete all props in exerciseDetail that are undefined
-  (Object.keys(exerciseDetails) as Array<keyof TExerciseRead>).forEach((key) => {
-    if (exerciseDetails[key] === undefined) {
-      delete exerciseDetails[key];
+  (Object.keys(exerciseDetails) as Array<keyof TExerciseRead>).forEach(
+    (key) => {
+      if (exerciseDetails[key] === undefined) {
+        delete exerciseDetails[key];
+      }
     }
-  });
-  
+  );
 
   await updateDoc(exerciseRef, exerciseDetails);
 };
