@@ -60,12 +60,15 @@ export type TOutcomeMeasureMultipleChoiceAnswer = Omit<
 // };
 
 export type TOutcomeMeasureConditionalAnswer = TOutcomeMeasureAnswerBase & {
-  conditionalValue?: string; // a, b, c...
   type: "conditional";
-  subtype?: TQuestiontype;
 };
 
-type TQuestiontype = "option" | "rating" | "multiple-choice" | "input";
+type TQuestiontype =
+  | "option"
+  | "rating"
+  | "multiple-choice"
+  | "input"
+  | "conditional";
 
 //! deprecated --------
 

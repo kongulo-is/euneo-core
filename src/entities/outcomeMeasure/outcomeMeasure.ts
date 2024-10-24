@@ -1,5 +1,4 @@
 import { QueryDocumentSnapshot, SnapshotOptions } from "firebase/firestore";
-
 export type TOutcomeMeasureId =
   | "faam"
   | "sf-36"
@@ -13,10 +12,8 @@ export type TOutcomeMeasureId =
   | "spadi"
   | "wosi";
 
-export type TConditionalOption = {
-  option: string;
-  value: string; // a, b, c...
-  subQuestion: TQuestion;
+export type TConditionalOption = TOption & {
+  subQuestionId: string;
 };
 
 export type TOption = {
@@ -24,13 +21,10 @@ export type TOption = {
   value: number | null;
 };
 
-export type TConditionalQuestion = {
-  id: string; // q1, q2, q3...
-  title: string;
-  optionsWithSubQuestions: TConditionalOption[];
+export type TConditionalQuestion = TQuestionBase & {
+  subQuestionsId: string;
+  options: TConditionalOption[];
   type: "conditional";
-  isSkippable?: boolean;
-  excludeScore?: boolean; // when a quesiton is not used in total score calculation
 };
 
 type TRatingQuestion = TQuestionBase & {
@@ -59,6 +53,7 @@ export type TInputQuestion = TQuestionBase & {
 
 type TQuestionBase = {
   id: string; // q1, q2, q3...
+  parentId?: string;
   title: string;
   reverseScore?: boolean; // flip score, maxPoints for question - score. (maxPoints good, 0 bad)
   optionExplanation?: string;
