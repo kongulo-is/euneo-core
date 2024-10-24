@@ -105,7 +105,7 @@ export type TOutcomeMeasureBase = {
   isConsoleLive: boolean;
   maxPoints?: number | null; // total points
   scoringMethod: TScoringMethod | null;
-  reverseScore?: boolean; // flip score, 100% - score. (100 good, 0 bad).
+  reverseScore?: boolean; // flip percentage score, 100% - score. (100 good, 0 bad).
   higherIsBetter?: boolean; // Does the client want to score low or high on the om
 
   // Only used if there is a custom scoring order (questions are not scored in the same order as displayed)
