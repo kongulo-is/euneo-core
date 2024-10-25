@@ -81,6 +81,7 @@ export type TOutcomeMeasureSection = {
     title: string;
     description: string;
   } | null;
+  notScored?: boolean; // when a section is not scored.
   conditionalSectionQuestion?: TConditionalSectionQuestion | null;
 };
 

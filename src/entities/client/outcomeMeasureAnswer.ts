@@ -29,6 +29,7 @@ export type TSectionScoring = {
   percentageScore: number;
   questionIds: TQuestionId[]; // questionIds of questions in section, not necessarily in the same order as displayed
   skipped: boolean;
+  notScored?: boolean;
 };
 
 // Base type for an answer
