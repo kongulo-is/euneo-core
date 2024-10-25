@@ -36,6 +36,7 @@ export type TSectionScoring = {
 export type TOutcomeMeasureAnswerBase = {
   value?: number | null;
   input?: string | null;
+  excludeScore?: boolean; // when a single quesiton is not used in total score calculation
 };
 
 export type TOutcomeMeasureAnswer =
