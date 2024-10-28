@@ -136,7 +136,8 @@ export async function getClinicianClient(
 
 // Get all clinician clients
 export async function getClinicianClients(
-  clinicianId: string
+  clinicianId: string,
+  excludePrograms: boolean = false
 ): Promise<TClinicianClient[]> {
   try {
     // Get clients data form clinician collection
@@ -153,11 +154,13 @@ export async function getClinicianClients(
       snapshot.docs.map(async (c) => {
         try {
           const clientData: TClinicianClientBase = c.data();
-          const clientProgram = await _fetchClientProgram({
-            clientData,
-            maxNumberOfDays: 7,
-            skipMaintenanceData: true,
-          });
+          const clientProgram = excludePrograms
+            ? undefined
+            : await _fetchClientProgram({
+                clientData,
+                maxNumberOfDays: 7,
+                skipMaintenanceData: true,
+              });
 
           const clinicianClientRef = createClinicianClientRef({
             clinicians: clinicianId,

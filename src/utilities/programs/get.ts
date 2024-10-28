@@ -17,6 +17,7 @@ import { updateDoc } from "../updateDoc";
 import {
   TClinicianProgram,
   TEuneoProgram,
+  TEuneoProgramWithoutSubCollections,
   TProgram,
   TProgramRead,
   TProgramWrite,
@@ -114,10 +115,42 @@ export async function getProgramFromCode(code: string): Promise<{
   };
 }
 
+export async function getEuneoProgramsBase(
+  filter: "isConsoleLive" | "isLive" | ""
+): Promise<TEuneoProgramWithoutSubCollections[]> {
+  const programsRef = collection(db, "programs");
+
+  let programsSnap: QuerySnapshot<TProgramRead, TProgramWrite>;
+  if (filter) {
+    const programsQuery = query(programsRef, where(filter, "==", true));
+    programsSnap = await getDocs(programsQuery.withConverter(programConverter));
+  } else {
+    programsSnap = await getDocs(programsRef.withConverter(programConverter));
+  }
+
+  const programsData = programsSnap.docs.map((doc) => doc.data());
+
+  const programs = Promise.all(
+    programsData.map(async (p) => {
+      const { currentVersionRef } = p;
+      const programBase = await _getProgramDetailsFromRef(currentVersionRef);
+      if (programBase.creator !== "euneo") {
+        throw new Error("Program is not a euneo program, invalid program");
+      }
+      const program = {
+        ...programBase,
+      } as TEuneoProgramWithoutSubCollections;
+
+      return program;
+    })
+  );
+
+  return programs;
+}
+
 export async function getAllEuneoPrograms(
   filter: "isConsoleLive" | "isLive" | "",
-  excludeMaintenance: boolean = false,
-  shouldUpgradeOnError: boolean = false // TODO: remove this?
+  excludeMaintenance: boolean = false
 ): Promise<TEuneoProgram[]> {
   const programsRef = collection(db, "programs");
 

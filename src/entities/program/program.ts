@@ -255,6 +255,11 @@ export type TEuneoProgram = {
   creator: "euneo";
 };
 
+export type TEuneoProgramWithoutSubCollections = Omit<
+  TEuneoProgram,
+  "days" | "phases"
+>;
+
 export type TClinicianProgram = {
   programInfo: TClinicianProgramInfo;
   versionInfo: TProgramVersion;
@@ -265,6 +270,15 @@ export type TClinicianProgram = {
   phases: Record<TProgramPhaseKey, TProgramPhase>;
   creator: "clinician";
 };
+
+export type TClinicianProgramWithoutSubCollections = Omit<
+  TClinicianProgram,
+  "days" | "phases"
+>;
+
+export type TProgramWithoutSubCollections =
+  | TEuneoProgramWithoutSubCollections
+  | TClinicianProgramWithoutSubCollections;
 
 /**
  * @description This program type merges the base program type with the version information along with phases and days
