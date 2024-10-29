@@ -6,6 +6,7 @@ import {
 import {
   createInvitationRef,
   deserializeInvitationPath,
+  invitationConverter,
   TInvitation,
   TInvitationRead,
 } from "../../entities/invitation/invitation";
@@ -30,7 +31,7 @@ export async function createInvitation(
     ...(clinicianName && { clinicianName }),
   };
 
-  await setDoc(invitationRef, invitation);
+  await setDoc(invitationRef.withConverter(invitationConverter), invitation);
 
   return {
     ...invitation,
