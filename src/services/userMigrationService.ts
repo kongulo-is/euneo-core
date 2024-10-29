@@ -18,6 +18,7 @@ export const isOldOutcomeMeasureAnswer = (
 export function migrateOutcomeMeasureAnswers(
   oldAnswers: TOutcomeMeasureAnswersWriteOld
 ): TOutcomeMeasureAnswers {
+  const reverseScore = ["koos", "hoos"].includes(oldAnswers.outcomeMeasureId);
   // Convert sections to new answer format
   const answers = {} as Record<string, TOutcomeMeasureStandardAnswer | null>;
   let questionIdCounter = 1;
@@ -41,8 +42,12 @@ export function migrateOutcomeMeasureAnswers(
         questionIdCounter += 1;
       });
 
-      // reverse calculate with scoredPoints and percentageScore
-      const maxPoints = Math.round(scoredPoints / (section.score / 100));
+      const percentageScore = reverseScore
+        ? 100 - section.score
+        : section.score;
+
+      // reverse calculate with scoredPoints and percentageScore - this is only flipped to calculate the maxPoints for koos and hoos.
+      const maxPoints = Math.round(scoredPoints / (percentageScore / 100));
 
       return {
         sectionName: section.sectionName,
@@ -65,7 +70,7 @@ export function migrateOutcomeMeasureAnswers(
   let percentageScore = Math.round(scoredPoints / sectionScorings.length);
 
   //   Reverse score
-  if (["koos", "hoos"].includes(oldAnswers.outcomeMeasureId)) {
+  if (reverseScore) {
     percentageScore = 100 - percentageScore;
   }
   const maxPoints = Math.round(scoredPoints / (percentageScore / 100));
@@ -76,7 +81,7 @@ export function migrateOutcomeMeasureAnswers(
   return {
     outcomeMeasureId: oldAnswers.outcomeMeasureId,
     scoredPoints, // Sum of all scored points from sections
-    maxPoints: maxPoints,
+    maxPoints,
     percentageScore, // Calculate the overall percentage score
     sectionScorings,
     scoringMethod: "percentage", // Default in old outcome measure answers
