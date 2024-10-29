@@ -25,22 +25,23 @@ export async function getAllOutcomeMeasures(): Promise<
     // ------ temporary code
 
     const newOMsList = [
-      "ompq",
-      "csi",
-      "dash",
-      "fiq",
-      "visa-a",
-      "ndi",
-      "rdq",
+      // "ompq",
+      // "csi",
+      // "dash",
+      // "fiq",
+      // "visa-a",
+      // "ndi",
+      // "rdq",
+      // "worc",
+      // "spadi",
       "sf-36",
-      "worc",
-      "spadi",
+      "faam",
     ];
 
     const oms = await Promise.all(
       newOMsList.map(async (id) => {
         try {
-          const docRef = doc(db, "outcomeMeasures", id).withConverter(
+          const docRef = doc(db, "outcomeMeasuresTest", id).withConverter(
             outcomeMeasureConverter
           );
           const docSnap = await getDoc(docRef);
@@ -51,6 +52,8 @@ export async function getAllOutcomeMeasures(): Promise<
         }
       })
     );
+
+    console.log("oms: ", oms);
 
     const filteredOMs = oms.filter(
       (om): om is [string, TOutcomeMeasure] => om !== null
@@ -87,7 +90,7 @@ export async function getOutcomeMeasure(
   try {
     const outcomeMeasureRef = doc(
       db,
-      "outcomeMeasures",
+      "outcomeMeasuresTest", // TODO: change back....
       outcomeMeasureId
     ) as DocumentReference<TOutcomeMeasureWrite>;
     const outcomeMeasureSnapshot = await getDoc(

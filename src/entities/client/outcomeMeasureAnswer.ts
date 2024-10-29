@@ -55,26 +55,14 @@ export type TOutcomeMeasureMultipleChoiceAnswer = Omit<
   type: "multiple-choice";
 };
 
-// export type TOutcomeMeasureMultipleChoiceAnswer = TOutcomeMeasureAnswerBase & {
-//   value?: number[] | null; // Overriding the value type from the base
-//   type: "multiple-choice";
-// };
-
 export type TOutcomeMeasureConditionalAnswer = TOutcomeMeasureAnswerBase & {
   type: "conditional";
 };
 
-type TQuestiontype =
-  | "option"
-  | "rating"
-  | "multiple-choice"
-  | "input"
-  | "conditional";
+//! deprecated last used id v. 2.3.0 --------
 
-//! deprecated --------
-
-export type TOutcomeMeasureAnswersOld = {
-  date: Date;
+export type TOutcomeMeasureAnswersWriteOld = {
+  date: Timestamp;
   outcomeMeasureId: TOutcomeMeasureId;
   sections: TOutcomeMeasureAnswerSectionOld[];
 };

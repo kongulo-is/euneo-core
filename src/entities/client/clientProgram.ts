@@ -13,6 +13,7 @@ import { TOutcomeMeasureId } from "../outcomeMeasure/outcomeMeasure";
 import {
   TOutcomeMeasureAnswersWrite,
   TOutcomeMeasureAnswers,
+  TOutcomeMeasureAnswersWriteOld,
 } from "./outcomeMeasureAnswer";
 import { TPainLevel, TPainLevelWrite } from "./painLevel";
 import { TClientPhysicalInformation } from "./physicalInformation";
@@ -33,6 +34,10 @@ import {
 } from "../program/version";
 import { TClientProgramDay } from "./day";
 import { db } from "../../firebase/db";
+import {
+  isOldOutcomeMeasureAnswer,
+  migrateOutcomeMeasureAnswers,
+} from "../../services/userMigrationService";
 
 // Ref type
 export type TClientProgramRef = DocumentReference<
@@ -258,25 +263,43 @@ export const clientProgramConverter = {
       ...rest
     } = data;
 
-    // convert timestamps to dates in outcomeMeasures and painLevels
+    // Convert timestamps to dates in outcomeMeasures and painLevels
     const outcomeMeasuresAnswers = {} as Record<
       TOutcomeMeasureId,
       TOutcomeMeasureAnswers[]
     > | null;
+
     if (
       data.outcomeMeasuresAnswers &&
       !isEmptyObject(data.outcomeMeasuresAnswers)
     ) {
-      Object.keys(data.outcomeMeasuresAnswers)?.forEach((measureId) => {
+      Object.keys(data.outcomeMeasuresAnswers).forEach((measureId) => {
         const measureAnswers =
           data.outcomeMeasuresAnswers![measureId as TOutcomeMeasureId];
-        outcomeMeasuresAnswers![measureId as TOutcomeMeasureId] =
-          measureAnswers.map((answer) => ({
+        let newAnswersArray;
+
+        // Migrate old outcome measure answers to new format if needed
+        if (isOldOutcomeMeasureAnswer(measureAnswers[0])) {
+          console.log("🔀 Migrating old outcome measure answers");
+          newAnswersArray = measureAnswers.map((oldAnswer) => {
+            return migrateOutcomeMeasureAnswers(
+              oldAnswer as unknown as TOutcomeMeasureAnswersWriteOld
+            );
+          });
+        } else {
+          console.log("Outcome measure answers are already in the new format");
+          newAnswersArray = measureAnswers.map((answer) => ({
             ...answer,
             date: answer.date.toDate(),
           }));
+        }
+
+        outcomeMeasuresAnswers![measureId as TOutcomeMeasureId] =
+          newAnswersArray;
       });
     }
+
+    console.log("> Outcome measure answers are:", outcomeMeasuresAnswers);
 
     const painLevelsClient: TPainLevel[] = painLevels.map((pain) => ({
       ...pain,
