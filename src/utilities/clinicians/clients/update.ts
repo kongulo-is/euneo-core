@@ -1,13 +1,12 @@
 import { getDoc } from "firebase/firestore";
 import {
-  TClinicianClientRead,
   TClinicianClientRef,
+  TClinicianClientWrite,
 } from "../../../entities/clinician/clinicianClient";
 import { updateDoc } from "../../updateDoc";
 import {
   prescriptionConverter,
   TPrescription,
-  TPrescriptionRead,
   TPrescriptionWrite,
 } from "../../../entities/clinician/prescription";
 import { TClientProgramRef } from "../../../entities/client/clientProgram";
@@ -17,7 +16,7 @@ import { TClientProgramRef } from "../../../entities/client/clientProgram";
  */
 export async function updateClinicianClient(
   clinicianClientRef: TClinicianClientRef,
-  clinicianClient: Partial<TClinicianClientRead>
+  clinicianClient: Partial<TClinicianClientWrite>
 ): Promise<boolean> {
   try {
     await updateDoc(clinicianClientRef, clinicianClient);
