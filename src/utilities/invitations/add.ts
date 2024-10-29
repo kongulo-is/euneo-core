@@ -31,7 +31,7 @@ export async function createInvitation(
     ...(clinicianName && { clinicianName }),
   };
 
-  await setDoc(invitationRef.withConverter(invitationConverter), invitation);
+  await setDoc(invitationRef, invitation);
 
   return {
     ...invitation,
