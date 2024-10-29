@@ -4,9 +4,6 @@ import {
   TOutcomeMeasureStandardAnswer,
   TSectionScoring,
 } from "../entities/client/outcomeMeasureAnswer";
-import { TOutcomeMeasure } from "../entities/outcomeMeasure/outcomeMeasure";
-
-// Migration function to transform old answer structure to new answer structure
 
 // Helper type guard to check if an answer is in the old format
 export const isOldOutcomeMeasureAnswer = (
@@ -15,6 +12,7 @@ export const isOldOutcomeMeasureAnswer = (
   return "sections" in answer;
 };
 
+// Migration function to transform old answer structure to new answer structure
 export function migrateOutcomeMeasureAnswers(
   oldAnswers: TOutcomeMeasureAnswersWriteOld
 ): TOutcomeMeasureAnswers {
@@ -74,8 +72,6 @@ export function migrateOutcomeMeasureAnswers(
     percentageScore = 100 - percentageScore;
   }
   const maxPoints = Math.round(scoredPoints / (percentageScore / 100));
-
-  console.log("oldAnswers", oldAnswers);
 
   // Build the new outcome measure answers object
   return {

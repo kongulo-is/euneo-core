@@ -276,23 +276,41 @@ export const clientProgramConverter = {
       Object.keys(data.outcomeMeasuresAnswers).forEach((measureId) => {
         const measureAnswers =
           data.outcomeMeasuresAnswers![measureId as TOutcomeMeasureId];
-        let newAnswersArray;
 
         // Migrate old outcome measure answers to new format if needed
-        if (isOldOutcomeMeasureAnswer(measureAnswers[0])) {
-          console.log("🔀 Migrating old outcome measure answers");
-          newAnswersArray = measureAnswers.map((oldAnswer) => {
+        // if (isOldOutcomeMeasureAnswer(measureAnswers[0])) {
+        //   console.log("🔀 Migrating old outcome measure answers");
+        //   newAnswersArray = measureAnswers.map((oldAnswer) => {
+        //     console.log("oldAnswer", oldAnswer);
+        //     return migrateOutcomeMeasureAnswers(
+        //       oldAnswer as unknown as TOutcomeMeasureAnswersWriteOld
+        //     );
+        //   });
+        // } else {
+        //   console.log("Outcome measure answers are already in the new format");
+        //   newAnswersArray = measureAnswers.map((answer) => ({
+        //     ...answer,
+        //     date: answer.date.toDate(),
+        //   }));
+        // }
+
+        const newAnswersArray = measureAnswers.map((answer, i) => {
+          if (isOldOutcomeMeasureAnswer(answer)) {
+            console.log("🔀 Migrating old outcome measure answer ", i);
             return migrateOutcomeMeasureAnswers(
-              oldAnswer as unknown as TOutcomeMeasureAnswersWriteOld
+              answer as unknown as TOutcomeMeasureAnswersWriteOld
             );
-          });
-        } else {
-          console.log("Outcome measure answers are already in the new format");
-          newAnswersArray = measureAnswers.map((answer) => ({
-            ...answer,
-            date: answer.date.toDate(),
-          }));
-        }
+          } else {
+            console.log(
+              "Outcome measure answer is already in the new format",
+              i
+            );
+            return {
+              ...answer,
+              date: answer.date.toDate(),
+            };
+          }
+        });
 
         outcomeMeasuresAnswers![measureId as TOutcomeMeasureId] =
           newAnswersArray;
