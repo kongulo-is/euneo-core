@@ -20,56 +20,20 @@ export async function getAllOutcomeMeasures(): Promise<
   Record<string, TOutcomeMeasure>
 > {
   try {
-    // TODO: UNCOMMENT when new oms are added and live...
-
-    // ------ temporary code
-
-    const newOMsList = [
-      // "ompq",
-      // "csi",
-      // "dash",
-      // "fiq",
-      // "visa-a",
-      // "ndi",
-      // "rdq",
-      // "worc",
-      // "spadi",
-      "sf-36",
-      "faam",
-    ];
-
-    const oms = await Promise.all(
-      newOMsList.map(async (id) => {
-        try {
-          const docRef = doc(db, "outcomeMeasuresTest", id).withConverter(
-            outcomeMeasureConverter
-          );
-          const docSnap = await getDoc(docRef);
-          return docSnap.exists() ? [id, docSnap.data()] : null;
-        } catch (error) {
-          console.log(`Error retrieving outcome measure ${id}: `, error);
-          return null;
-        }
-      })
-    );
-
-    console.log("oms: ", oms);
-
-    const filteredOMs = oms.filter(
-      (om): om is [string, TOutcomeMeasure] => om !== null
-    );
-    const validOMs = Object.fromEntries(filteredOMs);
-
-    return validOMs;
-
-    // ------ code end
-
     const outcomeMeasuresRef = collection(
       db,
-      "outcomeMeasures"
+      "outcomeMeasuresTest"
     ) as CollectionReference<TOutcomeMeasureWrite>;
 
-    const q = query(outcomeMeasuresRef, where("isConsoleLive", "==", true));
+    const q = query(outcomeMeasuresRef);
+
+    // TODO: UNCOMMENT when new oms are added and live...
+    // const outcomeMeasuresRef = collection(
+    //   db,
+    //   "outcomeMeasures"
+    // ) as CollectionReference<TOutcomeMeasureWrite>;
+
+    // const q = query(outcomeMeasuresRef, where("isConsoleLive", "==", true));
 
     const snapshot = await getDocs(q.withConverter(outcomeMeasureConverter));
 
