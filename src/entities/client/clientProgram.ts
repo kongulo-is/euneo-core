@@ -263,6 +263,8 @@ export const clientProgramConverter = {
       ...rest
     } = data;
 
+    let migrationApplied = false;
+
     // Convert timestamps to dates in outcomeMeasures and painLevels
     const outcomeMeasuresAnswers = {} as Record<
       TOutcomeMeasureId,
@@ -277,26 +279,10 @@ export const clientProgramConverter = {
         const measureAnswers =
           data.outcomeMeasuresAnswers![measureId as TOutcomeMeasureId];
 
-        // Migrate old outcome measure answers to new format if needed
-        // if (isOldOutcomeMeasureAnswer(measureAnswers[0])) {
-        //   console.log("🔀 Migrating old outcome measure answers");
-        //   newAnswersArray = measureAnswers.map((oldAnswer) => {
-        //     console.log("oldAnswer", oldAnswer);
-        //     return migrateOutcomeMeasureAnswers(
-        //       oldAnswer as unknown as TOutcomeMeasureAnswersWriteOld
-        //     );
-        //   });
-        // } else {
-        //   console.log("Outcome measure answers are already in the new format");
-        //   newAnswersArray = measureAnswers.map((answer) => ({
-        //     ...answer,
-        //     date: answer.date.toDate(),
-        //   }));
-        // }
-
         const newAnswersArray = measureAnswers.map((answer, i) => {
           if (isOldOutcomeMeasureAnswer(answer)) {
             console.log("🔀 Migrating old outcome measure answer ", i);
+            migrationApplied = true;
             return migrateOutcomeMeasureAnswers(
               answer as unknown as TOutcomeMeasureAnswersWriteOld
             );
@@ -337,6 +323,16 @@ export const clientProgramConverter = {
       });
     }
     programVersionRef = programVersionRef || programRef;
+
+    // if migration was applied, we need to update the client program
+    if (migrationApplied && process.env.EXPO_PUBLIC_PROJECT === "APP") {
+      console.log(
+        "🔄 Updating client program with new outcome measure answers"
+      );
+      updateDoc(snapshot.ref.withConverter(clientProgramConverter), {
+        outcomeMeasuresAnswers: outcomeMeasuresAnswers as any,
+      });
+    }
 
     if (!programVersionRef) {
       throw new Error("Program version ref not found");
