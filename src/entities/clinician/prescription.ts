@@ -26,8 +26,9 @@ export type TPrescriptionWrite = {
     TProgramVersionRead,
     TProgramVersionWrite
   >;
-  prescriptionDate: Timestamp;
   status: TPrescriptionStatus;
+  prescriptionDate: Timestamp;
+  lastActive?: Timestamp;
   clientProgramRef?: DocumentReference<TClientProgramRead, TClientProgramWrite>;
   /**
    * @deprecated Use programVersionRef instead
@@ -36,8 +37,9 @@ export type TPrescriptionWrite = {
 };
 
 export type TPrescriptionBase = {
-  prescriptionDate: Date;
   status: TPrescriptionStatus;
+  prescriptionDate: Date;
+  lastActive?: Date;
   programVersionRef: DocumentReference<
     TProgramVersionRead,
     TProgramVersionWrite
@@ -77,13 +79,16 @@ export const prescriptionConverter = {
       ...("clientProgramRef" in prescription && {
         clientProgramRef: prescription.clientProgramRef,
       }),
+      ...(prescription.lastActive && {
+        lastActive: Timestamp.fromDate(prescription.lastActive),
+      }),
     };
 
     return prescriptionWrite;
   },
 
   fromFirestore(prescriptionWrite: TPrescriptionWrite): TPrescriptionRead {
-    const { programRef, ...rest } = prescriptionWrite;
+    const { programRef, lastActive, ...rest } = prescriptionWrite;
 
     const programVersionRef = (
       prescriptionWrite.programVersionRef || programRef
@@ -116,6 +121,9 @@ export const prescriptionConverter = {
       ...(clientProgramIdentifiers && {
         clientProgramIdentifiers,
         clientProgramRef,
+      }),
+      ...(lastActive && {
+        lastActive: lastActive.toDate(),
       }),
     };
 

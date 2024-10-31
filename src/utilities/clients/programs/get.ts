@@ -144,19 +144,3 @@ export async function getClientPrograms(
     throw error;
   }
 }
-
-export async function getClientProgramLastActive(
-  clientProgramRef: DocumentReference<TClientProgramRead, TClientProgramWrite>
-) {
-  const clientProgramSnap = await getDoc(
-    clientProgramRef.withConverter(clientProgramConverter)
-  );
-
-  const clientProgramData = clientProgramSnap.data();
-
-  if (!clientProgramData) {
-    throw new Error("Client program data not found");
-  }
-
-  return clientProgramData.lastActive;
-}

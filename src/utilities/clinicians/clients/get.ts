@@ -196,3 +196,56 @@ export async function getClinicianClients(
     return [];
   }
 }
+
+// // Get all clinician clients without their programs
+// export async function getClinicianClientsWithoutPrograms(
+//   clinicianId: string
+// ): Promise<TClinicianClientWithoutProgram[]> {
+//   try {
+//     // Get clients data form clinician collection
+//     const clinicianRef = doc(db, "clinicians", clinicianId);
+//     const clientsRef = collection(clinicianRef, "clients");
+//     const q = query(clientsRef, orderBy("date", "desc")).withConverter(
+//       clinicianClientConverter
+//     );
+
+//     const snapshot = await getDocs(q);
+
+//     // get clients program data from programs subcollection to client.
+//     const clientsData: TClinicianClientWithoutProgram[] = await Promise.all(
+//       snapshot.docs.map(async (c) => {
+//         try {
+//           const clientData: TClinicianClientBase = c.data();
+
+//           const clinicianClientRef = createClinicianClientRef({
+//             clinicians: clinicianId,
+//             clients: c.id,
+//           });
+
+//           const clinicianClient = {
+//             ...clientData,
+//             clinicianClientRef,
+//             clinicianClientIdentifiers: deserializeClinicianClientPath(
+//               c.ref.path
+//             ),
+//           };
+
+//           return clinicianClient;
+//         } catch (error) {
+//           console.error("Error getting clients data:", error, c);
+//           throw new Error(error as any);
+//         }
+//       })
+//     ).catch((err) => {
+//       console.error("Error getting clients ", err);
+//       return [];
+//     });
+
+//     return clientsData;
+//   } catch (error) {
+//     console.error("Error fetching clients:", error, {
+//       clinicianId,
+//     });
+//     return [];
+//   }
+// }

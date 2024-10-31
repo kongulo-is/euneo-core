@@ -100,6 +100,7 @@ export async function createNewClinicianProgramVersion(
       phases: phasesRead,
       creator: "clinician",
       programVersionIdentifiers,
+      programVersionRef: newProgramVersionRef,
     };
 
     return clinicianProgram;
