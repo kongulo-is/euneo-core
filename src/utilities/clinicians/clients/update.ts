@@ -1,4 +1,4 @@
-import { getDoc } from "firebase/firestore";
+import { getDoc, Timestamp } from "firebase/firestore";
 import {
   clinicianClientConverter,
   TClinicianClientRead,
@@ -92,5 +92,24 @@ export async function updateClinicianClientPrescriptionStatus(
       status,
     });
     throw error;
+  }
+}
+
+export async function updateClinicianClientPrescriptionLastActive(
+  clinicianClientRef: TClinicianClientRef,
+  lastActive: Date
+): Promise<boolean> {
+  try {
+    await updateDoc(clinicianClientRef, {
+      "prescription.lastActive": Timestamp.fromDate(lastActive),
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error updating clinician client prescription: ", error, {
+      clinicianClientRef,
+      lastActive,
+    });
+    return false;
   }
 }
