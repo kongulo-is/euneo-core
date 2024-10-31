@@ -50,6 +50,7 @@ export type TProgramPhaseWrite = {
   nextPhase?: TNextPhase[];
   finalPhase: boolean;
   mode: "finite" | "continuous" | "maintenance";
+  restDaysDisabled?: boolean;
 };
 
 export type TProgramPhaseBase = {
@@ -64,6 +65,7 @@ export type TProgramPhaseBase = {
   finalPhase: boolean;
   mode: "finite" | "continuous" | "maintenance";
   hidden?: boolean; // For compatibility (old modified programs that have more than one continuous phase after upgrade)
+  restDaysDisabled?: boolean;
 };
 
 export type TProgramFinitePhaseRead = TProgramPhaseBase & {
@@ -83,15 +85,31 @@ export type TProgramPhaseRead =
 export type TProgramPhase = TProgramPhaseRead;
 
 function isFinitePhase(
-  phase: TProgramPhaseBase,
+  phase: TProgramPhaseBase
 ): phase is TProgramFinitePhaseRead {
   return phase.mode === "finite" && phase.length !== undefined;
 }
 
 function isContinuousPhase(
-  phase: TProgramPhaseBase,
+  phase: TProgramPhaseBase
 ): phase is TProgramContinuousPhaseRead {
   return phase.mode === "continuous" || phase.mode === "maintenance";
+}
+
+export function getTrainingDaysForPhase(
+  phase: TProgramPhase,
+  selectedTrainingDays: boolean[]
+): boolean[] {
+  if (phase.restDaysDisabled) {
+    const newTrainingDays = new Array(7).fill(true);
+    return newTrainingDays;
+  }
+
+  return selectedTrainingDays;
+}
+
+export function isInAcutePhase(phase: TProgramPhase) {
+  return phase.restDaysDisabled;
 }
 
 export const programPhaseConverter = {
@@ -104,7 +122,7 @@ export const programPhaseConverter = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot<TProgramPhaseWrite>,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): TProgramPhaseRead {
     const data = snapshot.data(options);
 

@@ -6,6 +6,7 @@ import {
 import {
   createInvitationRef,
   deserializeInvitationPath,
+  invitationConverter,
   TInvitation,
   TInvitationRead,
 } from "../../entities/invitation/invitation";

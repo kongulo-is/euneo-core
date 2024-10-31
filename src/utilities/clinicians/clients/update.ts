@@ -1,7 +1,9 @@
-import { getDoc } from "firebase/firestore";
+import { getDoc, Timestamp } from "firebase/firestore";
 import {
+  clinicianClientConverter,
   TClinicianClientRead,
   TClinicianClientRef,
+  TClinicianClientWrite,
 } from "../../../entities/clinician/clinicianClient";
 import { updateDoc } from "../../updateDoc";
 import {
@@ -17,7 +19,7 @@ import { TClientProgramRef } from "../../../entities/client/clientProgram";
  */
 export async function updateClinicianClient(
   clinicianClientRef: TClinicianClientRef,
-  clinicianClient: Partial<TClinicianClientRead>
+  clinicianClient: Partial<TClinicianClientWrite>
 ): Promise<boolean> {
   try {
     await updateDoc(clinicianClientRef, clinicianClient);
@@ -90,5 +92,24 @@ export async function updateClinicianClientPrescriptionStatus(
       status,
     });
     throw error;
+  }
+}
+
+export async function updateClinicianClientPrescriptionLastActive(
+  clinicianClientRef: TClinicianClientRef,
+  lastActive: Date
+): Promise<boolean> {
+  try {
+    await updateDoc(clinicianClientRef, {
+      "prescription.lastActive": Timestamp.fromDate(lastActive),
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error updating clinician client prescription: ", error, {
+      clinicianClientRef,
+      lastActive,
+    });
+    return false;
   }
 }
