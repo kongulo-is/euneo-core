@@ -33,7 +33,8 @@ export type TClientStatus =
 
 export type TClinicianClientBase = {
   name: string;
-  email: string;
+  email?: string;
+  phone?: string;
   date: Date;
   conditionId: TConditionId | null; // TODO: this no longer exists right?
   prescription?: TPrescription;
@@ -44,7 +45,8 @@ export type TClinicianClientRead = TClinicianClientBase;
 
 export type TClinicianClientWrite = {
   name: string;
-  email: string;
+  email?: string;
+  phone?: string;
   date: Timestamp;
   conditionId: TConditionId | null;
   prescription?: TPrescriptionWrite;
@@ -122,9 +124,10 @@ export const clinicianClientConverter = {
 
     const clinicianClientWrite: TClinicianClientWrite = {
       name: clinicianClient.name,
-      email: clinicianClient.email,
       conditionId: clinicianClient.conditionId,
       date: Timestamp.fromDate(clinicianClient.date),
+      ...(clinicianClient.email && { email: clinicianClient.email }),
+      ...(clinicianClient.phone && { phone: clinicianClient.phone }),
       ...(prescription && {
         prescription: prescription,
       }),
@@ -152,9 +155,10 @@ export const clinicianClientConverter = {
 
     const clinicianClient: TClinicianClientRead = {
       name: clinicianClientWrite.name,
-      email: clinicianClientWrite.email,
       conditionId: clinicianClientWrite.conditionId,
       date: clinicianClientWrite.date.toDate(),
+      ...(clinicianClientWrite.email && { email: clinicianClientWrite.email }),
+      ...(clinicianClientWrite.phone && { phone: clinicianClientWrite.phone }),
       ...(prescription && {
         prescription,
       }),

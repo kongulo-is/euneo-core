@@ -1,4 +1,4 @@
-import { getDoc } from "firebase/firestore";
+import { deleteField, getDoc } from "firebase/firestore";
 import {
   TClinicianClientRef,
   TClinicianClientWrite,
@@ -19,7 +19,11 @@ export async function updateClinicianClient(
   clinicianClient: Partial<TClinicianClientWrite>
 ): Promise<boolean> {
   try {
-    await updateDoc(clinicianClientRef, clinicianClient);
+    await updateDoc(clinicianClientRef, {
+      ...clinicianClient,
+      email: clinicianClient.email || deleteField(),
+      phone: clinicianClient.phone || deleteField(),
+    });
 
     return true;
   } catch (error) {
