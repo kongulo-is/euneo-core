@@ -1,7 +1,5 @@
-import { getDoc, Timestamp } from "firebase/firestore";
+import { deleteField, getDoc, Timestamp } from "firebase/firestore";
 import {
-  clinicianClientConverter,
-  TClinicianClientRead,
   TClinicianClientRef,
   TClinicianClientWrite,
 } from "../../../entities/clinician/clinicianClient";
@@ -9,7 +7,6 @@ import { updateDoc } from "../../updateDoc";
 import {
   prescriptionConverter,
   TPrescription,
-  TPrescriptionRead,
   TPrescriptionWrite,
 } from "../../../entities/clinician/prescription";
 import { TClientProgramRef } from "../../../entities/client/clientProgram";
@@ -22,7 +19,11 @@ export async function updateClinicianClient(
   clinicianClient: Partial<TClinicianClientWrite>
 ): Promise<boolean> {
   try {
-    await updateDoc(clinicianClientRef, clinicianClient);
+    await updateDoc(clinicianClientRef, {
+      ...clinicianClient,
+      email: clinicianClient.email || deleteField(),
+      phone: clinicianClient.phone || deleteField(),
+    });
 
     return true;
   } catch (error) {
