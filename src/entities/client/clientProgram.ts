@@ -66,6 +66,7 @@ export type TClientProgramWrite = {
   clinicianClientRef?: TClinicianClientRef;
   completed?: boolean;
   shouldRefetch?: boolean;
+  lastActive?: Timestamp;
   programVersionRef: TProgramVersionRef;
   /**
    * @deprecated use programVersionRef instead
@@ -89,6 +90,7 @@ export type TClientProgramBase = {
   phases: TPhase[];
   completed?: boolean;
   shouldRefetch?: boolean;
+  lastActive?: Date;
 };
 
 // Define the common prescription fields
@@ -241,6 +243,9 @@ export const clientProgramConverter = {
       ...("clinicianClientRef" in program && {
         clinicianClientRef: program.clinicianClientRef,
       }),
+      ...(program.lastActive && {
+        lastActive: Timestamp.fromDate(program.lastActive),
+      }),
     };
 
     if ("conditionAssessmentAnswers" in program) {
@@ -260,6 +265,7 @@ export const clientProgramConverter = {
       painLevels,
       clinicianClientRef,
       programVersionRef,
+      lastActive,
       ...rest
     } = data;
 
@@ -353,6 +359,7 @@ export const clientProgramConverter = {
         clinicianClientIdentifiers: deserializeClinicianClientPath(
           clinicianClientRef.path
         ),
+        ...(lastActive && { lastActive: lastActive?.toDate() }),
       };
       return clientProgram;
     } else {
@@ -364,6 +371,7 @@ export const clientProgramConverter = {
         programVersionIdentifiers: deserializeProgramVersionPath(
           programVersionRef.path
         ),
+        ...(lastActive && { lastActive: lastActive?.toDate() }),
       };
       return clientProgram;
     }

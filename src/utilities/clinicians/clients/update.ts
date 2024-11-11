@@ -1,13 +1,12 @@
-import { getDoc } from "firebase/firestore";
+import { deleteField, getDoc, Timestamp } from "firebase/firestore";
 import {
-  TClinicianClientRead,
   TClinicianClientRef,
+  TClinicianClientWrite,
 } from "../../../entities/clinician/clinicianClient";
 import { updateDoc } from "../../updateDoc";
 import {
   prescriptionConverter,
   TPrescription,
-  TPrescriptionRead,
   TPrescriptionWrite,
 } from "../../../entities/clinician/prescription";
 import { TClientProgramRef } from "../../../entities/client/clientProgram";
@@ -17,10 +16,14 @@ import { TClientProgramRef } from "../../../entities/client/clientProgram";
  */
 export async function updateClinicianClient(
   clinicianClientRef: TClinicianClientRef,
-  clinicianClient: Partial<TClinicianClientRead>
+  clinicianClient: Partial<TClinicianClientWrite>
 ): Promise<boolean> {
   try {
-    await updateDoc(clinicianClientRef, clinicianClient);
+    await updateDoc(clinicianClientRef, {
+      ...clinicianClient,
+      email: clinicianClient.email || deleteField(),
+      phone: clinicianClient.phone || deleteField(),
+    });
 
     return true;
   } catch (error) {
@@ -90,5 +93,24 @@ export async function updateClinicianClientPrescriptionStatus(
       status,
     });
     throw error;
+  }
+}
+
+export async function updateClinicianClientPrescriptionLastActive(
+  clinicianClientRef: TClinicianClientRef,
+  lastActive: Date
+): Promise<boolean> {
+  try {
+    await updateDoc(clinicianClientRef, {
+      "prescription.lastActive": Timestamp.fromDate(lastActive),
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error updating clinician client prescription: ", error, {
+      clinicianClientRef,
+      lastActive,
+    });
+    return false;
   }
 }

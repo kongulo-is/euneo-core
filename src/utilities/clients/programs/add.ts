@@ -5,7 +5,10 @@ import {
   TClinicianProgram,
   TEuneoProgram,
 } from "../../../entities/program/program";
-import { TProgramPhaseKey } from "../../../entities/program/programPhase";
+import {
+  getTrainingDaysForPhase,
+  TProgramPhaseKey,
+} from "../../../entities/program/programPhase";
 import {
   clientProgramDayConverter,
   createClientProgramDayRef,
@@ -53,7 +56,7 @@ export async function addClinicianProgramToClient(
   clientId: string,
   clientProgramRead: TClientProgram_ClinicianWithPrescription_Read,
   program: TClinicianProgram,
-  startPhase: TProgramPhaseKey = "p1"
+  startPhaseId: TProgramPhaseKey = "p1"
 ): Promise<TClientProgram_Clinician> {
   // Store the program in the Firestore database
   const clientProgramRef = createClientProgramRef({
@@ -61,13 +64,19 @@ export async function addClinicianProgramToClient(
   });
 
   await setDoc(clientProgramRef, clientProgramRead);
-  const { trainingDays } = clientProgramRead;
+  const { trainingDays: selectedTrainingDays } = clientProgramRead;
+
+  const phaseTrainingDays = getTrainingDaysForPhase(
+    program.phases[startPhaseId],
+    selectedTrainingDays
+  );
+
   const clientProgramDays = createPhase(
-    trainingDays,
+    phaseTrainingDays,
     program,
-    startPhase,
+    startPhaseId,
     new Date(),
-    program.phases[startPhase].length || 14
+    program.phases[startPhaseId].length || 14
   );
 
   const clientClinicianProgram: TClientProgram_Clinician = {
@@ -111,13 +120,22 @@ export async function addEuneoProgramToClient(
   phaseId: TProgramPhaseKey,
   startDay: Date = new Date()
 ): Promise<TClientProgram_Euneo> {
-  const { trainingDays, phases } = clientProgramRead;
+  const { trainingDays: selectedTrainingDays, phases } = clientProgramRead;
+
+  console.log("Initial euneo phase: ", program.phases[phaseId]);
+
+  const phaseTrainingDays = getTrainingDaysForPhase(
+    program.phases[phaseId],
+    selectedTrainingDays
+  );
+
+  console.log("Phase training days: ", phaseTrainingDays);
 
   // const currentPhase = program.phases[phaseId];
   const phaseLength = phases[phases.length - 1].value;
 
   const clientProgramDays: TClientProgramDay[] = createPhase(
-    trainingDays,
+    phaseTrainingDays,
     program,
     phaseId,
     startDay,
@@ -249,6 +267,14 @@ export async function addContinuousDaysToClientProgram(
   await _addDaysToFirestore(clientProgramRef, newDays, firstDocIndex);
 }
 
+/**
+ * @description Function that updates training days selection and future days on the client program in firestore
+ * @param clientId Id of the client
+ * @param clientProgramId Id of the client program
+ * @param newDays Updated days based on the newly selected training days
+ * @param trainingDays Array of booleans indicating which days are training days
+ * @param firstDocIndex What day index we starting modifying from
+ */
 export async function updateTrainingDays(
   clientId: string,
   clientProgramId: string,

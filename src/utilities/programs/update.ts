@@ -1,7 +1,12 @@
 import { updateDoc } from "firebase/firestore";
-import { TClinicianProgram } from "../../entities/program/program";
+import {
+  TClinicianProgram,
+  TClinicianProgramWithoutSubCollections,
+} from "../../entities/program/program";
 
-export const archiveClinicianProgram = async (program: TClinicianProgram) => {
+export const archiveClinicianProgram = async (
+  program: TClinicianProgram | TClinicianProgramWithoutSubCollections
+) => {
   try {
     await updateDoc(program.programInfo.programRef, {
       isArchived: true,
