@@ -1,3 +1,4 @@
+// Function used to call our grantGift cloud function. Returns a promise with the response from the cloud function.
 export const grantClientFreeGift = async (
   appUserId: string,
   type: "month" | "week"
