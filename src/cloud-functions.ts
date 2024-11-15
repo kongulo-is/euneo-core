@@ -1,7 +1,7 @@
 export const grantClientFreeMonth = async (
   appUserId: string,
   entitlementIdentifier: string = "Premium"
-) => {
+): Promise<{ success: boolean; data: any }> => {
   const cloudFunctionUrl = "https://grantfreemonth-tk33gbjiva-ey.a.run.app";
 
   const requestBody = {
@@ -27,7 +27,7 @@ export const grantClientFreeMonth = async (
     const data = await response.json();
     // console.log("Success:", data);
 
-    return { success: true, data: data };
+    return data;
   } catch (error) {
     console.error("Error calling grantFreeMonth function:", error);
     return { success: false, data: null };
