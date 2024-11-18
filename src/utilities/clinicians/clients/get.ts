@@ -137,7 +137,9 @@ export async function getClinicianClient(
 // Get all clinician clients
 export async function getClinicianClients(
   clinicianId: string,
-  excludePrograms: boolean = false
+  excludePrograms: boolean = false,
+  skipMaintenanceData: boolean = true,
+  maxNumberOfDays?: number
 ): Promise<TClinicianClient[]> {
   try {
     // Get clients data form clinician collection
@@ -158,8 +160,8 @@ export async function getClinicianClients(
             ? undefined
             : await _fetchClientProgram({
                 clientData,
-                maxNumberOfDays: 7,
-                skipMaintenanceData: true,
+                maxNumberOfDays,
+                skipMaintenanceData,
               });
 
           const clinicianClientRef = createClinicianClientRef({
