@@ -10,6 +10,11 @@ import {
 import { Collection } from "../global";
 import { db } from "../../firebase/db";
 import { TClinicianRef } from "../clinician/clinician";
+import {
+  deserializeClinicPath,
+  TClinicIdentifiers,
+  TClinicRef,
+} from "../clinic/clinic";
 
 export type TExerciseIdentifiers = {
   [Collection.Exercises]: string;
@@ -79,16 +84,15 @@ export type TEquipment =
 
 export type TExerciseField = "Sets" | "Reps" | "Time";
 
+// Base type with common fields
 export type TExerciseWrite = {
-  // TODO: þarf að vera á meðan gamla programmið er inni
-  description: string;
+  name: string;
   variation: string;
+  primaryArea?: TExerciseArea[] | null;
+  primaryType?: TExerciseType | null;
+  primarySubtype?: TExerciseSubtype | null;
   startPreview: number;
   thumbnailTimestamp: number;
-  name: string;
-  steps: string[];
-  instructions?: string;
-  tips: string[];
   videoLink: {
     displayID: string;
     assetID: string;
@@ -99,39 +103,40 @@ export type TExerciseWrite = {
   type?: TExerciseType;
   editableFields: TExerciseField[];
   isConsoleLive: boolean;
-  clinicianRef?: TClinicianRef;
+  /**
+   * @deprecated
+   */
+  description: string;
+  creator: "Euneo Health" | "Clinician" | "Clinic";
+  steps?: string[];
+  instructions?: string;
+  tips?: string[];
+  secondaryArea?: TExerciseArea[] | null;
+  secondaryType?: TExerciseType | null;
+  secondarySubtype?: TExerciseSubtype | null;
+  equipmentNeeded?: TEquipment[] | null;
+  equipmentShown?: TEquipment[] | null;
+  targetedMuscles?: string[] | null;
+  primaryInvolvedMuscleGroups?: string[] | null;
+  primaryInvolvedMuscles?: string[] | null;
+  creatorRef?: TClinicianRef | TClinicRef;
   createdAt?: Timestamp;
-  primaryArea?: TExerciseArea[] | null; // new field //TODO: this should be mandatory
-  secondaryArea?: TExerciseArea[] | null; // new field
-  primaryType?: TExerciseType | null; // new field (new "type" field) //TODO: this should be mandatory
-  secondaryType?: TExerciseType | null; // new field
-  primarySubtype?: TExerciseSubtype | null; // new field
-  secondarySubtype?: TExerciseSubtype | null; // new field
-  equipmentNeeded?: TEquipment[] | null; // new field
-  equipmentShown?: TEquipment[] | null; // new field
-  targetedMuscles?: string[] | null; // new field
-  primaryInvolvedMuscleGroups?: string[] | null; // new field
-  primaryInvolvedMuscles?: string[] | null; // new field
-  creator: "Euneo Health" | string; // new field. "Euneo Health" or {clinicianId}
+  /**
+   * @deprecated use creatorRef instead
+   */
+  clinicianRef?: TClinicianRef;
 };
 
-/**
- * @description Exercise in exercise collection
- * @param steps Instructions for the exercise
- * @param tips Tips for the exercise
- * @param displayID url video
- * @param assetID id of video in mux
- */
+// Unified read type
 export type TExerciseRead = {
   id: string;
   variation: string;
-  description: string;
+  name: string;
+  primaryArea?: TExerciseArea[] | null;
+  primaryType?: TExerciseType | null;
+  primarySubtype?: TExerciseSubtype | null;
   startPreview: number;
   thumbnailTimestamp: number;
-  name: string;
-  steps: string[];
-  instructions?: string;
-  tips: string[];
   videoLink: {
     displayID: string;
     assetID: string;
@@ -142,21 +147,29 @@ export type TExerciseRead = {
   type?: TExerciseType;
   editableFields: TExerciseField[];
   isConsoleLive: boolean;
-  clinicianRef?: TClinicianRef;
+  /**
+   * @deprecated
+   */
+  description: string;
   createdAt?: Date;
-  // New exercise fields
-  primaryArea?: TExerciseArea[] | null; // new field //TODO: this should be mandatory
-  secondaryArea?: TExerciseArea[] | null; // new field
-  primaryType?: TExerciseType | null; // new field (new "type" field) //TODO: this should be mandatory
-  secondaryType?: TExerciseType | null; // new field
-  primarySubtype?: TExerciseSubtype | null; // new field
-  secondarySubtype?: TExerciseSubtype | null; // new field
-  equipmentNeeded?: TEquipment[] | null; // new field
-  equipmentShown?: TEquipment[] | null; // new field
-  targetedMuscles?: string[] | null; // new field
-  primaryInvolvedMuscleGroups?: string[] | null; // new field
-  primaryInvolvedMuscles?: string[] | null; // new field
-  creator: "Euneo Health" | string; // new field. "Euneo Health" or {clinicianId}
+  creator: "Euneo Health" | "Clinician" | "Clinic";
+  steps?: string[];
+  instructions?: string;
+  tips?: string[];
+  secondaryArea?: TExerciseArea[] | null;
+  secondaryType?: TExerciseType | null;
+  secondarySubtype?: TExerciseSubtype | null;
+  equipmentNeeded?: TEquipment[] | null;
+  equipmentShown?: TEquipment[] | null;
+  targetedMuscles?: string[] | null;
+  primaryInvolvedMuscleGroups?: string[] | null;
+  primaryInvolvedMuscles?: string[] | null;
+  creatorRef?: TClinicianRef | TClinicRef;
+  /**
+   * @deprecated use creatorRef instead
+   */
+  clinicianRef?: TClinicianRef;
+  creatorIdentifiers?: TClinicIdentifiers;
 };
 
 export type TExercise = TExerciseRead & {
@@ -193,7 +206,7 @@ export function serializeExerciseIdentifiers(
   obj: TExerciseIdentifiers
 ): string {
   try {
-    return `${Collection.Exercises}/${obj.exercises}`;
+    return `${Collection.Exercises}/${obj[Collection.Exercises]}`;
   } catch (error) {
     console.error("Error serializing exercise identifiers: ", error);
     throw error;
@@ -204,7 +217,8 @@ export const exerciseConverter = {
   toFirestore(exercise: TExercise): TExerciseWrite {
     const { id, createdAt, ...rest } = exercise;
 
-    const date = createdAt && { createdAt: Timestamp.fromDate(createdAt) };
+    // Convert Date to Timestamp if it exists
+    const date = createdAt ? { createdAt: Timestamp.fromDate(createdAt) } : {};
 
     const data: TExerciseWrite = {
       ...rest,
@@ -219,7 +233,8 @@ export const exerciseConverter = {
   ): TExerciseRead {
     const data = snapshot.data(options);
 
-    const date = data.createdAt && data.createdAt.toDate();
+    // Convert Timestamp to Date if createdAt is present
+    const date = data.createdAt ? data.createdAt.toDate() : undefined;
 
     const equipmentNeeded = data.equipmentNeeded
       ? data.equipmentNeeded.length > 0
@@ -227,15 +242,15 @@ export const exerciseConverter = {
         : (["None"] as TEquipment[])
       : [];
 
-    const exercise: TExerciseRead = {
+    return {
       ...data,
       id: snapshot.id,
       createdAt: date,
-      equipmentNeeded,
-      // Added this for edit exercises
       primaryArea: data.primaryArea ? data.primaryArea : [],
+      creatorIdentifiers: data.creatorRef
+        ? deserializeClinicPath(data.creatorRef.path)
+        : undefined,
+      equipmentNeeded,
     };
-
-    return exercise;
   },
 };

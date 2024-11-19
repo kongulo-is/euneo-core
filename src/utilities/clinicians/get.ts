@@ -1,6 +1,4 @@
 import {
-  collection,
-  CollectionReference,
   doc,
   DocumentReference,
   getDoc,
@@ -19,7 +17,12 @@ import {
   createClinicianVideosCollectionRef,
   TClinicianVideo,
 } from "../../entities/clinician/videos";
-import { addVideoToClinician, waitForVideoToBeProcessed } from "./videos/add";
+import { waitForVideoToBeProcessed } from "./videos/add";
+import {
+  clinicConverter,
+  deserializeClinicPath,
+  TClinic,
+} from "../../entities/clinic/clinic";
 
 export async function getAllClinicians(): Promise<
   (TClinician & { uid: string })[]
@@ -70,9 +73,24 @@ export async function getClinician(clinicianId: string): Promise<TClinician> {
       clinicianRef.withConverter(clinicianConverter)
     );
 
-    const clinician = clinicianDoc.data();
+    const clinician: TClinician | undefined = clinicianDoc.data();
 
     if (!clinician) throw new Error("No clinician found");
+
+    if (clinician.clinicsRef) {
+      const clinics: TClinic[] = await Promise.all(
+        clinician.clinicsRef.map(async (clinicRef) => {
+          const clinicDoc = await getDoc(
+            clinicRef.withConverter(clinicConverter)
+          );
+          const clinicData = clinicDoc.data();
+          if (!clinicData) throw new Error("No clinic found");
+          const clinicIdentifiers = deserializeClinicPath(clinicRef.path);
+          return { ...clinicData, clinicRef, clinicIdentifiers };
+        })
+      );
+      clinician.clinics = clinics;
+    }
 
     return clinician;
   } catch (error) {

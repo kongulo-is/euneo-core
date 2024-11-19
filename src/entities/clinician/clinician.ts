@@ -8,6 +8,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
+import { TClinic, TClinicRef } from "../clinic/clinic";
 
 export type TSubscriptionGifts = {
   remaining: number;
@@ -29,13 +30,14 @@ export type TClinicianCollectionRef = CollectionReference<
 export type TClinicianRead = {
   email: string;
   name: string;
+  /**
+   * @description uid for admin: 4xs2zP7nEhYVTZWVGsS9GHW4yug2
+   */
   isAdmin?: boolean;
   favouriteExercises?: string[];
   subscriptionGifts?: TSubscriptionGifts;
+  clinicsRef?: TClinicRef[];
 };
-
-export type TClinician = TClinicianRead;
-// TODO: vantar videopool?
 
 export type TClinicianWrite = {
   email: string;
@@ -43,6 +45,7 @@ export type TClinicianWrite = {
   isAdmin?: boolean;
   favouriteExercises?: string[];
   subscriptionGifts?: TSubscriptionGiftsWrite;
+  clinicsRef?: TClinicRef[];
 };
 
 export function createClinicianRef(clinicianId: string): TClinicianRef {
@@ -91,6 +94,9 @@ export const clinicianConverter = {
           expires: Timestamp.fromDate(clinician.subscriptionGifts.expires),
         },
       }),
+      ...(clinician.clinicsRef && {
+        clinicsRef: clinician.clinicsRef,
+      }),
     };
 
     return clinicianWrite;
@@ -115,8 +121,15 @@ export const clinicianConverter = {
           expires: clinicianWrite.subscriptionGifts.expires.toDate(),
         },
       }),
+      ...(clinicianWrite.clinicsRef && {
+        clinicsRef: clinicianWrite.clinicsRef,
+      }),
     };
 
     return clinicianClient;
   },
+};
+
+export type TClinician = TClinicianRead & {
+  clinics?: TClinic[];
 };
