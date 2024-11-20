@@ -331,7 +331,12 @@ export const clientProgramConverter = {
     programVersionRef = programVersionRef || programRef;
 
     // if migration was applied, we need to update the client program
-    if (migrationApplied && process.env.EXPO_PUBLIC_PROJECT === "APP") {
+    if (
+      migrationApplied &&
+      process.env.EXPO_PUBLIC_PROJECT === "APP" &&
+      false
+    ) {
+      // TODO: remove false so it works...
       console.log(
         "🔄 Updating client program with new outcome measure answers"
       );

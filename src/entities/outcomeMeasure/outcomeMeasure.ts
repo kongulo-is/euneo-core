@@ -49,6 +49,7 @@ export type TInputQuestion = TQuestionBase & {
   min?: number;
   max?: number;
   placeHolder?: string;
+  unit?: string;
 };
 
 type TQuestionBase = {
