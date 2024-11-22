@@ -17,6 +17,7 @@ export function migrateOutcomeMeasureAnswers(
   oldAnswers: TOutcomeMeasureAnswersWriteOld
 ): TOutcomeMeasureAnswers {
   const reverseScore = ["koos", "hoos"].includes(oldAnswers.outcomeMeasureId);
+  const isFaam = oldAnswers.outcomeMeasureId === "faam";
   // Convert sections to new answer format
   const answers = {} as Record<string, TOutcomeMeasureStandardAnswer | null>;
   let questionIdCounter = 1;
@@ -28,6 +29,11 @@ export function migrateOutcomeMeasureAnswers(
       let scoredPoints = 0;
 
       section.answers.forEach((answer: number | null) => {
+        // Questions 22 and 28 are not scored in the old om (missing from old faam)
+        if (isFaam && (questionIdCounter === 22 || questionIdCounter === 28)) {
+          questionIdCounter += 1;
+        }
+
         if (answer !== null) {
           scoredPoints += answer;
         }
