@@ -3,6 +3,7 @@ import {
   doc,
   DocumentReference,
   QueryDocumentSnapshot,
+  serverTimestamp,
   SnapshotOptions,
   Timestamp,
 } from "firebase/firestore";
@@ -10,6 +11,11 @@ import { TProgramPhaseKey } from "../program/programPhase";
 import { TProgramDayKey } from "../program/programDay";
 import { Collection } from "../global";
 import { db } from "../../firebase/db";
+import { getTimezoneOffset } from "date-fns-tz";
+import {
+  normalizeDateToUTC,
+  toUTCStartOfDay,
+} from "../../utilities/basicHelpers";
 
 export type TClientProgramDayRef = DocumentReference<
   TClientProgramDayRead,
@@ -62,9 +68,10 @@ export function createClientProgramDayRef({
 // Converter
 export const clientProgramDayConverter = {
   toFirestore(day: TClientProgramDayRead): TClientProgramDayWrite {
+    const date = toUTCStartOfDay(day.date);
     const data: TClientProgramDayWrite = {
       dayId: day.dayId,
-      date: Timestamp.fromDate(day.date),
+      date: Timestamp.fromDate(date),
       finished: day.finished,
       adherence: day.adherence,
       restDay: day.restDay,
@@ -79,10 +86,12 @@ export const clientProgramDayConverter = {
     options: SnapshotOptions
   ): TClientProgramDayRead {
     const data = snapshot.data(options);
+    const date = data.date.toDate();
+    const normalizedDate = normalizeDateToUTC(date);
     const clientProgramDay: TClientProgramDay = {
       ...data,
       phaseId: data.phaseId,
-      date: data.date.toDate(),
+      date: normalizedDate,
     };
 
     return clientProgramDay;

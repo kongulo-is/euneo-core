@@ -10,6 +10,7 @@ import {
   TPrescriptionWrite,
 } from "../../../entities/clinician/prescription";
 import { TClientProgramRef } from "../../../entities/client/clientProgram";
+import { toUTCStartOfDay } from "../../basicHelpers";
 
 /**
  * @description This function updates the client document in the database
@@ -101,8 +102,10 @@ export async function updateClinicianClientPrescriptionLastActive(
   lastActive: Date
 ): Promise<boolean> {
   try {
+    // Store last active date in utc format
+    const utcLastActive = toUTCStartOfDay(lastActive);
     await updateDoc(clinicianClientRef, {
-      "prescription.lastActive": Timestamp.fromDate(lastActive),
+      "prescription.lastActive": Timestamp.fromDate(utcLastActive),
     });
 
     return true;
