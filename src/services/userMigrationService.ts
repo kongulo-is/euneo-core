@@ -51,7 +51,7 @@ export function migrateOutcomeMeasureAnswers(
         : section.score;
 
       // reverse calculate with scoredPoints and percentageScore - this is only flipped to calculate the maxPoints for koos and hoos.
-      const maxPoints = Math.round(scoredPoints / (percentageScore / 100));
+      const maxPoints = Math.ceil(scoredPoints / (percentageScore / 100));
 
       return {
         sectionName: section.sectionName,
@@ -71,13 +71,28 @@ export function migrateOutcomeMeasureAnswers(
     0
   );
 
-  let percentageScore = Math.round(scoredPoints / sectionScorings.length);
+  const maxPoints = sectionScorings.reduce(
+    (total, section) => Math.max(total, section.maxPoints),
+    0
+  );
+
+  let percentageScore =
+    sectionScorings.length > 1
+      ? Math.round((scoredPoints / maxPoints) * 100)
+      : sectionScorings[0].percentageScore;
+
+  console.log("sectionScorings: ", sectionScorings);
+
+  console.log("scoredPoints: ", scoredPoints);
+
+  console.log("maxPoints: ", maxPoints);
+
+  console.log("percentageScore: ", percentageScore);
 
   //   Reverse score
   if (reverseScore) {
     percentageScore = 100 - percentageScore;
   }
-  const maxPoints = Math.round(scoredPoints / (percentageScore / 100));
 
   // Build the new outcome measure answers object
   return {
