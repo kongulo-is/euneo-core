@@ -16,6 +16,14 @@ export const isOldOutcomeMeasureAnswer = (
 export function migrateOutcomeMeasureAnswers(
   oldAnswers: TOutcomeMeasureAnswersWriteOld
 ): TOutcomeMeasureAnswers {
+  const maxQuestionPoints: Record<string, number> = {
+    faam: 4,
+    hoos: 4,
+    koos: 4,
+    lefs: 4,
+    odi: 5,
+    pgq: 3,
+  };
   const reverseScore = ["koos", "hoos"].includes(oldAnswers.outcomeMeasureId);
   const isFaam = oldAnswers.outcomeMeasureId === "faam";
   // Convert sections to new answer format
@@ -27,6 +35,7 @@ export function migrateOutcomeMeasureAnswers(
     (section) => {
       const questionIds: string[] = [];
       let scoredPoints = 0;
+      let answerCount = 0;
 
       section.answers.forEach((answer: number | null) => {
         // Questions 22 and 28 are not scored in the old om (missing from old faam)
@@ -36,6 +45,7 @@ export function migrateOutcomeMeasureAnswers(
 
         if (answer !== null) {
           scoredPoints += answer;
+          answerCount += 1;
         }
         const id = `q${questionIdCounter}`;
         answers[id] = {
@@ -46,12 +56,8 @@ export function migrateOutcomeMeasureAnswers(
         questionIdCounter += 1;
       });
 
-      const percentageScore = reverseScore
-        ? 100 - section.score
-        : section.score;
-
-      // reverse calculate with scoredPoints and percentageScore - this is only flipped to calculate the maxPoints for koos and hoos.
-      const maxPoints = Math.ceil(scoredPoints / (percentageScore / 100));
+      const maxPoints =
+        answerCount * maxQuestionPoints[oldAnswers.outcomeMeasureId];
 
       return {
         sectionName: section.sectionName,
@@ -72,7 +78,7 @@ export function migrateOutcomeMeasureAnswers(
   );
 
   const maxPoints = sectionScorings.reduce(
-    (total, section) => Math.max(total, section.maxPoints),
+    (total, section) => total + section.maxPoints,
     0
   );
 
@@ -80,14 +86,6 @@ export function migrateOutcomeMeasureAnswers(
     sectionScorings.length > 1
       ? Math.round((scoredPoints / maxPoints) * 100)
       : sectionScorings[0].percentageScore;
-
-  console.log("sectionScorings: ", sectionScorings);
-
-  console.log("scoredPoints: ", scoredPoints);
-
-  console.log("maxPoints: ", maxPoints);
-
-  console.log("percentageScore: ", percentageScore);
 
   //   Reverse score
   if (reverseScore) {
