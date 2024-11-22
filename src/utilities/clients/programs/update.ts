@@ -474,6 +474,7 @@ export async function updateClientProgramFields(
   clientProgramRef: TClientProgramRef,
   fields: Partial<TClientProgramWrite>
 ) {
+  // @ts-ignore
   return await updateDoc(clientProgramRef, {
     ...fields,
   })
