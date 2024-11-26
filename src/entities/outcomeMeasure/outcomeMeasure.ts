@@ -104,6 +104,7 @@ export type TOutcomeMeasureBase = {
   scoringMethod: TScoringMethod | null;
   reverseScore?: boolean; // flip percentage score, 100% - score. (100 good, 0 bad).
   higherIsBetter?: boolean; // Does the client want to score low or high on the om
+  totalScore?: boolean; // Does the measure show the total score of the list. (e.g. total score bar in chart.)
 
   // Only used if there is a custom scoring order (questions are not scored in the same order as displayed)
   customScoringSections?: {
