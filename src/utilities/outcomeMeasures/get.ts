@@ -54,7 +54,7 @@ export async function getOutcomeMeasure(
   try {
     const outcomeMeasureRef = doc(
       db,
-      "outcomeMeasuresTest", // TODO: change back....
+      "outcomeMeasures",
       outcomeMeasureId
     ) as DocumentReference<TOutcomeMeasureWrite>;
     const outcomeMeasureSnapshot = await getDoc(
