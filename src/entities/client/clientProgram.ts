@@ -293,10 +293,7 @@ export const clientProgramConverter = {
               answer as unknown as TOutcomeMeasureAnswersWriteOld
             );
           } else {
-            console.log(
-              "Outcome measure answer is already in the new format",
-              i
-            );
+            console.log("OM answer is already in the new format", i);
             return {
               ...answer,
               date: answer.date.toDate(),
@@ -331,15 +328,8 @@ export const clientProgramConverter = {
     programVersionRef = programVersionRef || programRef;
 
     // if migration was applied, we need to update the client program
-    if (
-      migrationApplied &&
-      process.env.EXPO_PUBLIC_PROJECT === "APP" &&
-      false
-    ) {
-      // TODO: UNCOMMENT: remove false so it works...
-      console.log(
-        "🔄 Updating client program with new outcome measure answers"
-      );
+    if (migrationApplied && process.env.EXPO_PUBLIC_PROJECT === "APP") {
+      console.log("🔄 Updating clients OM answers");
       updateDoc(snapshot.ref.withConverter(clientProgramConverter), {
         outcomeMeasuresAnswers: outcomeMeasuresAnswers as any,
       });

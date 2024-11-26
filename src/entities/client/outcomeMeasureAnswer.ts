@@ -59,7 +59,7 @@ export type TOutcomeMeasureConditionalAnswer = TOutcomeMeasureAnswerBase & {
   type: "conditional";
 };
 
-//! deprecated last used id v. 2.3.0 --------
+//! deprecated last used id v. 2.4.5 --------
 
 export type TOutcomeMeasureAnswersWriteOld = {
   date: Timestamp;
