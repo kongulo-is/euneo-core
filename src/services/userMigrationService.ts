@@ -63,7 +63,9 @@ export function migrateOutcomeMeasureAnswers(
         sectionName: section.sectionName,
         maxPoints: maxPoints,
         scoredPoints,
-        percentageScore: section.score,
+        percentageScore: ["odi", "pgq"].includes(oldAnswers.outcomeMeasureId)
+          ? 100 - section.score
+          : section.score,
         questionIds,
         skipped: section.answers.every(
           (answer) => answer === null || answer === undefined
