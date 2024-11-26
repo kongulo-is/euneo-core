@@ -24,11 +24,7 @@ import {
 } from "../clinician/clinicianClient";
 import { TConditionAssessmentAnswer } from "./conditionAssessmentAnswer";
 
-import {
-  isEmptyObject,
-  normalizeDateToUTC,
-  toUTCStartOfDay,
-} from "../../utilities/basicHelpers";
+import { isEmptyObject } from "../../utilities/basicHelpers";
 import {
   TClinicianProgramVersionIdentifiers,
   TEuneoProgramVersionIdentifiers,
@@ -221,7 +217,7 @@ export const clientProgramConverter = {
         outcomeMeasuresAnswers[measureId as TOutcomeMeasureId] =
           measureAnswers.map((answer) => ({
             ...answer,
-            date: Timestamp.fromDate(toUTCStartOfDay(answer.date)),
+            date: Timestamp.fromDate(answer.date),
           }));
       });
     }
@@ -243,7 +239,7 @@ export const clientProgramConverter = {
         clinicianClientRef: program.clinicianClientRef,
       }),
       ...(program.lastActive && {
-        lastActive: Timestamp.fromDate(toUTCStartOfDay(program.lastActive)),
+        lastActive: Timestamp.fromDate(program.lastActive),
       }),
     };
 
@@ -283,7 +279,7 @@ export const clientProgramConverter = {
         outcomeMeasuresAnswers![measureId as TOutcomeMeasureId] =
           measureAnswers.map((answer) => ({
             ...answer,
-            date: normalizeDateToUTC(answer.date.toDate()),
+            date: answer.date.toDate(),
           }));
       });
     }
@@ -326,10 +322,9 @@ export const clientProgramConverter = {
         clinicianClientIdentifiers: deserializeClinicianClientPath(
           clinicianClientRef.path
         ),
-        ...(lastActive &&
-          lastActive.toDate && {
-            lastActive: normalizeDateToUTC(lastActive.toDate()),
-          }),
+        ...(lastActive && {
+          lastActive: lastActive.toDate(),
+        }),
       };
       return clientProgram;
     } else {
@@ -341,10 +336,9 @@ export const clientProgramConverter = {
         programVersionIdentifiers: deserializeProgramVersionPath(
           programVersionRef.path
         ),
-        ...(lastActive &&
-          lastActive.toDate && {
-            lastActive: normalizeDateToUTC(lastActive.toDate()),
-          }),
+        ...(lastActive && {
+          lastActive: lastActive.toDate(),
+        }),
       };
       return clientProgram;
     }

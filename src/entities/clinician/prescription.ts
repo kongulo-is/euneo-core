@@ -18,10 +18,6 @@ import {
   programVersionConverter,
   serializeProgramVersionIdentifiers,
 } from "../program/version";
-import {
-  normalizeDateToUTC,
-  toUTCStartOfDay,
-} from "../../utilities/basicHelpers";
 
 type TPrescriptionStatus = "Invited" | "Accepted" | "Started";
 
@@ -83,9 +79,7 @@ export const prescriptionConverter = {
         clientProgramRef: prescription.clientProgramRef,
       }),
       ...(prescription.lastActive && {
-        lastActive: Timestamp.fromDate(
-          toUTCStartOfDay(prescription.lastActive)
-        ),
+        lastActive: Timestamp.fromDate(prescription.lastActive),
       }),
     };
 
@@ -128,7 +122,7 @@ export const prescriptionConverter = {
         clientProgramRef,
       }),
       ...(lastActive && {
-        lastActive: normalizeDateToUTC(lastActive.toDate()),
+        lastActive: lastActive.toDate(),
       }),
     };
 
