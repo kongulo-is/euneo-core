@@ -38,6 +38,10 @@ export async function getClinicProgramWithDays(
     excludeMaintenance
   );
 
+  if (clinicProgram.creator !== "clinic") {
+    throw new Error("Program is not a clinic program, invalid program");
+  }
+
   return clinicProgram;
 }
 
@@ -63,7 +67,11 @@ export async function getClinicProgramsBase(
         const program = {
           ...programBase,
           // TODO: remove as
-        };
+        } as TClinicProgramWithoutSubCollections;
+
+        if (program.creator !== "clinic") {
+          throw new Error("Program is not a clinic program, invalid program");
+        }
 
         return program;
       })
@@ -76,7 +84,7 @@ export async function getClinicProgramsBase(
 
 export async function getClinicProgramsWithSubcollections(
   clinicId: string
-): Promise<TClinicianProgram[]> {
+): Promise<TClinicProgram[]> {
   try {
     const clinicRef = doc(db, "clinics", clinicId);
     const programsRef = collection(clinicRef, "programs");
@@ -93,6 +101,9 @@ export async function getClinicProgramsWithSubcollections(
         const { currentVersionRef } = p;
 
         const program = await _getProgramFromRef(currentVersionRef, true);
+        if (program.creator !== "clinic") {
+          throw new Error("Program is not a clinic program, invalid program");
+        }
 
         return program;
       })

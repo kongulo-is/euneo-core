@@ -19,7 +19,6 @@ import { TProgramDay, TProgramDayKey } from "./programDay";
 import { TProgramPhase, TProgramPhaseKey } from "./programPhase";
 import { db } from "../../firebase/db";
 import { Collection } from "../global";
-import { updateDoc } from "../../utilities/updateDoc";
 
 export type TProgramRef = DocumentReference<TProgramRead, TProgramWrite>;
 
@@ -77,6 +76,7 @@ export type TClinicianProgramRead = TProgramBase & {
 
 export type TClinicProgramRead = TProgramBase & {
   // TODO: Make this mandatory?
+  isConsoleLive: boolean;
 };
 
 export type TProgramRead = TEuneoProgramRead | TClinicianProgramRead;
