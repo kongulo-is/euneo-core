@@ -148,7 +148,7 @@ function _updateClientProgramPhases(
  * @returns Boolean indicating if the current phase is finished or not
  */
 function _isPhaseFinished(days: TClientProgramDay[], today: Date): boolean {
-  return days[days.length - 1].date < today;
+  return daysBetweenDates(days[days.length - 1].date, today) > 0;
 }
 
 /**
@@ -179,8 +179,7 @@ async function _updateProgramVersion(
 function _getPhaseInfo(
   clientProgram: TClientProgram,
   program: TClinicianProgram,
-  oldProgram: TProgram,
-  today: Date
+  oldProgram: TProgram
 ) {
   const currentClientPhase =
     clientProgram.phases[clientProgram.phases.length - 1];
@@ -189,9 +188,7 @@ function _getPhaseInfo(
   const oldCurrentPhase = oldProgram.phases[currentPhaseId];
 
   const currDayIndex =
-    clientProgram.days.findIndex(
-      (day) => day.date.getTime() === today.getTime()
-    ) || 0;
+    clientProgram.days.findIndex((day) => isToday(day.date)) || 0;
   const currentDay = clientProgram.days[currDayIndex].dayId;
 
   const startPhaseDayIndex = currDayIndex
@@ -224,7 +221,6 @@ async function _modifyClientProgramDays(
     TProgramVersionRead,
     TProgramVersionWrite
   >,
-  today: Date,
   clientProgramRef: DocumentReference<TClientProgramRead, TClientProgramWrite>
 ) {
   const { days, trainingDays } = clientProgram;
@@ -237,15 +233,13 @@ async function _modifyClientProgramDays(
     currDayIndex,
     startDocIndex,
     startPhaseDayIndex,
-  } = _getPhaseInfo(clientProgram, program, oldProgram, today);
+  } = _getPhaseInfo(clientProgram, program, oldProgram);
 
   const phaseExtended = _isPhaseExtended(
     days,
     currentClientPhase,
     currentPhase
   );
-  console.log("phaseExtended", phaseExtended);
-
   // Phase length can vary when phase has been extended by client;
   const programPhaseLength = phaseExtended
     ? currentClientPhase.value
@@ -279,8 +273,6 @@ async function _modifyClientProgramDays(
     currentPhase.days[startPhaseDayIndex] ? startPhaseDayIndex : 0
   );
 
-  console.log("newDays", newDays);
-
   await addContinuousDaysToClientProgram(
     clientProgram.clientProgramRef,
     newDays,
@@ -292,8 +284,6 @@ async function _modifyClientProgramDays(
     currentPhaseId,
     programPhaseLength
   );
-
-  console.log("updatedPhases", updatedPhases);
 
   return await _updateProgramVersion(
     clientProgramRef,
@@ -339,14 +329,8 @@ async function _changeClientProgramMode(
       currentPhaseId
     ] as TProgramFinitePhaseRead;
 
-    // Set today's date with time set to 00:00:00
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     // Find the index of today's day in the client program days array
-    const currDayIndex = days.findIndex(
-      (day) => day.date.getTime() === today.getTime()
-    );
+    const currDayIndex = days.findIndex((day) => isToday(day.date));
 
     // Calculate the start index for phase days and document updates
     const startDocIndex = currDayIndex === -1 ? days.length : currDayIndex;
@@ -547,7 +531,6 @@ export async function updateClientProgramVersion(
     }
     // Keep track of today's date in a variable.
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
     // Prepare references and current date.
     const { clinicianClientRef, programVersionRef, clientProgramRef } =
@@ -577,7 +560,6 @@ export async function updateClientProgramVersion(
       oldProgram,
       clinicianClientRef,
       programVersionRef,
-      today,
       clientProgramRef
     );
   } catch (error) {
@@ -654,15 +636,15 @@ export async function changeClientPhase(
 
     // Set today's date to midnight for comparison
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
     // Check if the last day in the client program is before today
-    const isLastDayFinished = days[days.length - 1].date < today;
+    const isLastDayFinished =
+      daysBetweenDates(days[days.length - 1].date, today) > 0;
 
     // Find the index of the current day or set to -1 if last day is finished
     const currDayIndex = isLastDayFinished
       ? -1
-      : days.findIndex((day) => day.date.getTime() === today.getTime());
+      : days.findIndex((day) => isToday(day.date));
 
     // Determine start indices for removing days and adding new days
     const startDayIndex = currDayIndex === -1 ? 0 : currDayIndex;

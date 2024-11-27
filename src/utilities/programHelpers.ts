@@ -301,9 +301,6 @@ export function createPhase(
   // Set the iterator to the provided length if it's provided, otherwise set it to the phase length if it's defined, otherwise set it to 14
   const iterator = length ? length : phase?.length ? phase.length : 14;
 
-  // Set the hours, minutes, seconds, and milliseconds of the date to 0
-  d.setHours(0, 0, 0, 0);
-
   // Loop for the number of times specified by the iterator
   for (let i = 0; i < iterator; i++) {
     // Get the dayId from the phase days array at the index specified by restIndex modulo the length of the phase days array

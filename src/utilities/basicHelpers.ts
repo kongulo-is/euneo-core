@@ -47,14 +47,17 @@ export function stringToDate(dateStr: string): Date {
 }
 
 export const isTodayOrBefore = (date: Date | Timestamp) => {
+  let newDate: Date;
   if (date instanceof Timestamp) {
-    date = date.toDate();
+    newDate = new Date(date.toDate());
+  } else {
+    newDate = new Date(date);
   }
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  date.setHours(0, 0, 0, 0);
+  newDate.setHours(0, 0, 0, 0);
 
-  return date <= today;
+  return newDate <= today;
 };
 
 /**
