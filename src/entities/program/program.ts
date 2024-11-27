@@ -1,6 +1,5 @@
 import {
   collection,
-  deleteField,
   doc,
   DocumentReference,
   QueryDocumentSnapshot,
@@ -9,6 +8,7 @@ import {
 } from "firebase/firestore";
 import {
   TClinicianProgramVersionIdentifiers,
+  TClinicProgramVersionIdentifiers,
   TEuneoProgramVersionIdentifiers,
   TProgramVersion,
   TProgramVersionRead,
@@ -19,7 +19,6 @@ import { TProgramDay, TProgramDayKey } from "./programDay";
 import { TProgramPhase, TProgramPhaseKey } from "./programPhase";
 import { db } from "../../firebase/db";
 import { Collection } from "../global";
-import { updateDoc } from "../../utilities/updateDoc";
 
 export type TProgramRef = DocumentReference<TProgramRead, TProgramWrite>;
 
@@ -29,6 +28,11 @@ export type TEuneoProgramIdentifiers = {
 
 export type TClinicianProgramIdentifiers = {
   [Collection.Clinicians]: string;
+  [Collection.Programs]: string;
+};
+
+export type TClinicProgramIdentifiers = {
+  [Collection.Clinics]: string;
   [Collection.Programs]: string;
 };
 
@@ -70,18 +74,30 @@ export type TClinicianProgramRead = TProgramBase & {
   isArchived: boolean;
 };
 
+export type TClinicProgramRead = TProgramBase & {
+  // TODO: Make this mandatory?
+  isConsoleLive: boolean;
+};
+
 export type TProgramRead = TEuneoProgramRead | TClinicianProgramRead;
 
-export function isClinicianProgram(
-  program: TProgramRead
-): program is TClinicianProgramRead {
-  return (program as TClinicianProgramRead).createdAt !== undefined;
+export function isClinicianProgramInfo(
+  program: TProgramInfo
+): program is TClinicianProgramInfo {
+  return (program as TClinicianProgramInfo).createdAt !== undefined;
 }
 
-export function isEuneoProgram(
-  program: TProgramRead
-): program is TEuneoProgramRead {
-  return (program as TEuneoProgramRead).isConsoleLive !== undefined;
+export function isEuneoProgramInfo(
+  program: TProgramInfo
+): program is TEuneoProgramInfo {
+  return (program as TEuneoProgramInfo).isConsoleLive !== undefined;
+}
+
+// TODO: fix this
+export function isClinicProgramInfo(
+  program: TProgramInfo
+): program is TClinicProgramInfo {
+  return (program as TClinicProgramInfo).programRef.path !== undefined;
 }
 
 export function isClinicianProgramIdentifiers(
@@ -240,7 +256,14 @@ export type TClinicianProgramInfo = TClinicianProgramRead & {
   programRef: TProgramRef;
 };
 
-export type TProgramInfo = TEuneoProgramInfo | TClinicianProgramInfo;
+export type TClinicProgramInfo = TClinicProgramRead & {
+  programRef: TProgramRef;
+};
+
+export type TProgramInfo =
+  | TEuneoProgramInfo
+  | TClinicianProgramInfo
+  | TClinicProgramInfo;
 
 // The types here below are used to merge the base program type with the version information along with phases and days
 
@@ -276,11 +299,28 @@ export type TClinicianProgramWithoutSubCollections = Omit<
   "days" | "phases"
 >;
 
+export type TClinicProgram = {
+  programInfo: TClinicProgramInfo;
+  versionInfo: TProgramVersion;
+  // TODO: Move these to versionInfo?
+  programVersionIdentifiers: TClinicProgramVersionIdentifiers;
+  programVersionRef: TProgramVersionRef;
+  days: Record<TProgramDayKey, TProgramDay>;
+  phases: Record<TProgramPhaseKey, TProgramPhase>;
+  creator: "clinic";
+};
+
+export type TClinicProgramWithoutSubCollections = Omit<
+  TClinicProgram,
+  "days" | "phases"
+>;
+
 export type TProgramWithoutSubCollections =
   | TEuneoProgramWithoutSubCollections
-  | TClinicianProgramWithoutSubCollections;
+  | TClinicianProgramWithoutSubCollections
+  | TClinicProgramWithoutSubCollections;
 
 /**
  * @description This program type merges the base program type with the version information along with phases and days
  */
-export type TProgram = TEuneoProgram | TClinicianProgram;
+export type TProgram = TEuneoProgram | TClinicianProgram | TClinicProgram;

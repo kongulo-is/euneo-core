@@ -1,10 +1,6 @@
-import { doc, setDoc } from "firebase/firestore";
-
+import { doc, DocumentReference, setDoc } from "firebase/firestore";
 import { createPhase } from "../../programHelpers";
-import {
-  TClinicianProgram,
-  TEuneoProgram,
-} from "../../../entities/program/program";
+import { TProgram } from "../../../entities/program/program";
 import {
   getTrainingDaysForPhase,
   TProgramPhaseKey,
@@ -17,13 +13,12 @@ import {
 import {
   createClientProgramRef,
   deserializeClientProgramPath,
-  TClientProgram_Clinician,
-  TClientProgram_ClinicianWithPrescription_Read,
-  TClientProgram_Euneo,
-  TClientProgram_Euneo_Read,
+  TClientProgram,
+  TClientProgramRead,
   TClientProgramRef,
+  TClientProgramWrite,
 } from "../../../entities/client/clientProgram";
-import { createClientRef } from "../../../entities/client/client";
+import { TClientRead, TClientWrite } from "../../../entities/client/client";
 import { TOutcomeMeasureId } from "../../../entities/outcomeMeasure/outcomeMeasure";
 import { TOutcomeMeasureAnswers } from "../../../entities/client/outcomeMeasureAnswer";
 import { TPainLevel } from "../../../entities/client/painLevel";
@@ -49,106 +44,37 @@ async function _addDaysToFirestore(
 }
 
 /**
- * @description TODO: add description here what does this mean? how do I use it?
- * This function is used in app
+ * @description Function used to create a client program.
+ * This function is only used in the app for now.
  */
-export async function addClinicianProgramToClient(
-  clientId: string,
-  clientProgramRead: TClientProgram_ClinicianWithPrescription_Read,
-  program: TClinicianProgram,
-  startPhaseId: TProgramPhaseKey = "p1"
-): Promise<TClientProgram_Clinician> {
-  // Store the program in the Firestore database
-  const clientProgramRef = createClientProgramRef({
-    clients: clientId,
-  });
-
-  await setDoc(clientProgramRef, clientProgramRead);
-  const { trainingDays: selectedTrainingDays } = clientProgramRead;
-
+export async function addProgramToClient(
+  clientRef: DocumentReference<TClientRead, TClientWrite>,
+  clientProgramRef: DocumentReference<TClientProgramRead, TClientProgramWrite>,
+  clientProgramRead: TClientProgramRead,
+  program: TProgram
+): Promise<TClientProgram> {
+  const { trainingDays: selectedTrainingDays, phases } = clientProgramRead;
+  // Destructure first phase object
+  const startPhase = phases[phases.length - 1];
+  const startPhaseId = startPhase.key as TProgramPhaseKey;
+  const startPhaseLength = startPhase.value;
+  // Handle case where the program phase can be acute (rest days disabled)
   const phaseTrainingDays = getTrainingDaysForPhase(
     program.phases[startPhaseId],
     selectedTrainingDays
   );
-
+  // Create the client program days
   const clientProgramDays = createPhase(
     phaseTrainingDays,
     program,
     startPhaseId,
     new Date(),
-    program.phases[startPhaseId].length || 14
+    startPhaseLength
   );
-
-  const clientClinicianProgram: TClientProgram_Clinician = {
-    ...clientProgramRead,
-    days: clientProgramDays,
-    clientProgramRef: clientProgramRef,
-    clientProgramIdentifiers: deserializeClientProgramPath(
-      clientProgramRef.path
-    ),
-  };
-
-  await Promise.all(
-    clientProgramDays.map((day, i) => {
-      const dayRef = createClientProgramDayRef({
-        clients: clientId,
-        programs: clientClinicianProgram.clientProgramIdentifiers.programs,
-        days: i.toString(),
-      });
-
-      return setDoc(dayRef, day);
-    })
-  );
-
-  const clientRef = createClientRef({
-    clients: clientId,
-  });
-
-  updateDoc(clientRef, { currentClientProgramRef: clientProgramRef });
-
-  return clientClinicianProgram;
-}
-
-/**
- * @description TODO: add description here what does this mean? how do I use it? Who uses it?
- * @returns
- */
-export async function addEuneoProgramToClient(
-  clientId: string,
-  clientProgramRead: TClientProgram_Euneo_Read,
-  program: TEuneoProgram,
-  phaseId: TProgramPhaseKey,
-  startDay: Date = new Date()
-): Promise<TClientProgram_Euneo> {
-  const { trainingDays: selectedTrainingDays, phases } = clientProgramRead;
-
-  console.log("Initial euneo phase: ", program.phases[phaseId]);
-
-  const phaseTrainingDays = getTrainingDaysForPhase(
-    program.phases[phaseId],
-    selectedTrainingDays
-  );
-
-  console.log("Phase training days: ", phaseTrainingDays);
-
-  // const currentPhase = program.phases[phaseId];
-  const phaseLength = phases[phases.length - 1].value;
-
-  const clientProgramDays: TClientProgramDay[] = createPhase(
-    phaseTrainingDays,
-    program,
-    phaseId,
-    startDay,
-    phaseLength
-  );
-
-  const clientProgramRef = createClientProgramRef({
-    clients: clientId,
-  });
-
+  // Store the client program in the Firestore database
   await setDoc(clientProgramRef, clientProgramRead);
 
-  const clientEuenoProgram: TClientProgram_Euneo = {
+  const clientProgram: TClientProgram = {
     ...clientProgramRead,
     days: clientProgramDays,
     clientProgramRef: clientProgramRef,
@@ -156,13 +82,12 @@ export async function addEuneoProgramToClient(
       clientProgramRef.path
     ),
   };
-
+  // Add client program days to it's sub collection
   await Promise.all(
     clientProgramDays.map((day, i) => {
-      // TODO: move this to a function inside days folder? this is also used in the function above
       const dayRef = createClientProgramDayRef({
-        clients: clientId,
-        programs: clientEuenoProgram.clientProgramIdentifiers.programs,
+        clients: clientRef.id,
+        programs: clientProgram.clientProgramIdentifiers.programs,
         days: i.toString(),
       });
 
@@ -170,14 +95,142 @@ export async function addEuneoProgramToClient(
     })
   );
 
-  const clientRef = createClientRef({
-    clients: clientId,
-  });
-
+  // Update client's current program field in firebase
   updateDoc(clientRef, { currentClientProgramRef: clientProgramRef });
 
-  return clientEuenoProgram;
+  return clientProgram;
 }
+
+// /**
+//  * @description TODO: add description here what does this mean? how do I use it?
+//  * This function is used in app
+//  */
+// export async function addClinicianProgramToClient(
+//   clientId: string,
+//   clientProgramRead: TClientProgram_ClinicianWithPrescription_Read,
+//   program: TClinicianProgram,
+//   startPhaseId: TProgramPhaseKey = "p1"
+// ): Promise<TClientProgram_Clinician> {
+//   // Store the program in the Firestore database
+//   const clientProgramRef = createClientProgramRef({
+//     clients: clientId,
+//   });
+
+//   await setDoc(clientProgramRef, clientProgramRead);
+//   const { trainingDays: selectedTrainingDays } = clientProgramRead;
+
+//   const phaseTrainingDays = getTrainingDaysForPhase(
+//     program.phases[startPhaseId],
+//     selectedTrainingDays
+//   );
+
+//   const clientProgramDays = createPhase(
+//     phaseTrainingDays,
+//     program,
+//     startPhaseId,
+//     new Date(),
+//     program.phases[startPhaseId].length || 14
+//   );
+
+//   const clientClinicianProgram: TClientProgram_Clinician = {
+//     ...clientProgramRead,
+//     days: clientProgramDays,
+//     clientProgramRef: clientProgramRef,
+//     clientProgramIdentifiers: deserializeClientProgramPath(
+//       clientProgramRef.path
+//     ),
+//   };
+
+//   await Promise.all(
+//     clientProgramDays.map((day, i) => {
+//       const dayRef = createClientProgramDayRef({
+//         clients: clientId,
+//         programs: clientClinicianProgram.clientProgramIdentifiers.programs,
+//         days: i.toString(),
+//       });
+
+//       return setDoc(dayRef, day);
+//     })
+//   );
+
+//   const clientRef = createClientRef({
+//     clients: clientId,
+//   });
+
+//   updateDoc(clientRef, { currentClientProgramRef: clientProgramRef });
+
+//   return clientClinicianProgram;
+// }
+
+// /**
+//  * @description TODO: add description here what does this mean? how do I use it? Who uses it?
+//  * @returns
+//  */
+// export async function addEuneoProgramToClient(
+//   clientId: string,
+//   clientProgramRead: TClientProgram_Euneo_Read,
+//   program: TEuneoProgram,
+//   phaseId: TProgramPhaseKey,
+//   startDay: Date = new Date()
+// ): Promise<TClientProgram_Euneo> {
+//   const { trainingDays: selectedTrainingDays, phases } = clientProgramRead;
+
+//   console.log("Initial euneo phase: ", program.phases[phaseId]);
+
+//   const phaseTrainingDays = getTrainingDaysForPhase(
+//     program.phases[phaseId],
+//     selectedTrainingDays
+//   );
+
+//   console.log("Phase training days: ", phaseTrainingDays);
+
+//   // const currentPhase = program.phases[phaseId];
+//   const phaseLength = phases[phases.length - 1].value;
+
+//   const clientProgramDays: TClientProgramDay[] = createPhase(
+//     phaseTrainingDays,
+//     program,
+//     phaseId,
+//     startDay,
+//     phaseLength
+//   );
+
+//   const clientProgramRef = createClientProgramRef({
+//     clients: clientId,
+//   });
+
+//   await setDoc(clientProgramRef, clientProgramRead);
+
+//   const clientEuenoProgram: TClientProgram_Euneo = {
+//     ...clientProgramRead,
+//     days: clientProgramDays,
+//     clientProgramRef: clientProgramRef,
+//     clientProgramIdentifiers: deserializeClientProgramPath(
+//       clientProgramRef.path
+//     ),
+//   };
+
+//   await Promise.all(
+//     clientProgramDays.map((day, i) => {
+//       // TODO: move this to a function inside days folder? this is also used in the function above
+//       const dayRef = createClientProgramDayRef({
+//         clients: clientId,
+//         programs: clientEuenoProgram.clientProgramIdentifiers.programs,
+//         days: i.toString(),
+//       });
+
+//       return setDoc(dayRef, day);
+//     })
+//   );
+
+//   const clientRef = createClientRef({
+//     clients: clientId,
+//   });
+
+//   updateDoc(clientRef, { currentClientProgramRef: clientProgramRef });
+
+//   return clientEuenoProgram;
+// }
 
 // The context mapper should get data from the asyncs storage and set it to the context
 export async function addOutcomeMeasureToClientProgram(
