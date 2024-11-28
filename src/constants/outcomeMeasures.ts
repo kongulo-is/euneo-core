@@ -68,13 +68,43 @@ export const outcomeMeasures: OutcomeMeasures = {
     name: "Western Ontario Shoulder Instability Index",
     acronym: "WOSI",
   },
+  rmdq: {
+    id: "rmdq",
+    name: "Roland Morris Disability Questionnaire",
+    acronym: "RMDQ",
+  },
+  csi: {
+    id: "csi",
+    name: "Central Sensitization Inventory",
+    acronym: "CSI",
+  },
+  dash: {
+    id: "dash",
+    name: "Disabilities of the Arm, Shoulder and Hand",
+    acronym: "DASH",
+  },
+  uefi: {
+    id: "uefi",
+    name: "Upper Extremity Functional Index",
+    acronym: "UEFI",
+  },
+  worc: {
+    id: "worc",
+    name: "Western Ontario Rotator Cuff Index",
+    acronym: "WORC",
+  },
+  ndi: {
+    id: "ndi",
+    name: "Neck Disability Index",
+    acronym: "NDI",
+  },
 };
 
 export const outcomeMeasureOptions = Object.entries(outcomeMeasures).map(
   ([value, measure]) => ({
     value,
     label: measure.name,
-  }),
+  })
 );
 
 export const outcomeMeasureIdEnum = Object.keys(outcomeMeasures) as [

@@ -10,7 +10,15 @@ export type TOutcomeMeasureId =
   | "koos"
   | "lefs"
   | "spadi"
-  | "wosi";
+  | "wosi"
+  | "rmdq"
+  | "csi"
+  | "dash"
+  | "hoos"
+  | "koos"
+  | "uefi"
+  | "worc"
+  | "ndi";
 
 export type TConditionalOption = TOption & {
   subQuestionId: string;
