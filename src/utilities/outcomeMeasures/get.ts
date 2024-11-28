@@ -22,18 +22,10 @@ export async function getAllOutcomeMeasures(): Promise<
   try {
     const outcomeMeasuresRef = collection(
       db,
-      "outcomeMeasuresTest"
+      "outcomeMeasures"
     ) as CollectionReference<TOutcomeMeasureWrite>;
 
-    const q = query(outcomeMeasuresRef);
-
-    // TODO: UNCOMMENT when new oms are added and live...
-    // const outcomeMeasuresRef = collection(
-    //   db,
-    //   "outcomeMeasures"
-    // ) as CollectionReference<TOutcomeMeasureWrite>;
-
-    // const q = query(outcomeMeasuresRef, where("isConsoleLive", "==", true));
+    const q = query(outcomeMeasuresRef, where("isConsoleLive", "==", true));
 
     const snapshot = await getDocs(q.withConverter(outcomeMeasureConverter));
 
