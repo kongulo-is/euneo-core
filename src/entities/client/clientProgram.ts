@@ -62,6 +62,7 @@ export type TClientProgramWrite = {
   completed?: boolean;
   shouldRefetch?: boolean;
   lastActive?: Timestamp;
+  originTimeZone?: string; // Tells us where the program was created
   programVersionRef: TProgramVersionRef;
   /**
    * @deprecated use programVersionRef instead
@@ -86,6 +87,7 @@ export type TClientProgramBase = {
   completed?: boolean;
   shouldRefetch?: boolean;
   lastActive?: Date;
+  originTimeZone?: string; // Tells us where the program was created
 };
 
 // Define the common prescription fields
@@ -241,6 +243,9 @@ export const clientProgramConverter = {
       ...(program.lastActive && {
         lastActive: Timestamp.fromDate(program.lastActive),
       }),
+      ...(program.originTimeZone && {
+        originTimeZone: program.originTimeZone,
+      }),
     };
 
     if ("conditionAssessmentAnswers" in program) {
@@ -261,6 +266,7 @@ export const clientProgramConverter = {
       clinicianClientRef,
       programVersionRef,
       lastActive,
+      originTimeZone,
       ...rest
     } = data;
 
@@ -324,6 +330,9 @@ export const clientProgramConverter = {
         ),
         ...(lastActive && {
           lastActive: lastActive.toDate(),
+        }),
+        ...(originTimeZone && {
+          originTimeZone,
         }),
       };
       return clientProgram;

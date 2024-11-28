@@ -63,12 +63,15 @@ export async function addProgramToClient(
     program.phases[startPhaseId],
     selectedTrainingDays
   );
+  // Create first days of program with time set to 12:00 PM
+  const startDate = new Date();
+  startDate.setHours(12, 0, 0, 0);
   // Create the client program days
   const clientProgramDays = createPhase(
     phaseTrainingDays,
     program,
     startPhaseId,
-    new Date(),
+    startDate,
     startPhaseLength
   );
   // Store the client program in the Firestore database
