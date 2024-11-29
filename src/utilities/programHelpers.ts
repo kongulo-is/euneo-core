@@ -190,8 +190,6 @@ export async function _getProgramFromRef(
         creator: "clinician",
       };
     } else if (isClinicProgramVersionIdentifiers(programVersionIdentifiers)) {
-      console.log("Clinic program!!");
-
       if (!isClinicProgramInfo(programInfo)) {
         throw new Error(
           "Program is not a clinic program, invalid program info"
@@ -260,8 +258,6 @@ export async function _getProgramDetailsFromRef(
       _fetchProgramBase(programRef),
       _fetchProgramVersion(programVersionRef),
     ]);
-
-    console.log(programVersionRef, programVersionIdentifiers);
 
     // Adjust the returned type based on the program type
     if (isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {

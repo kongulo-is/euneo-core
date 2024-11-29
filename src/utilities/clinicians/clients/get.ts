@@ -25,6 +25,7 @@ import {
   TClinicianClientRead,
   TClinicianClientWrite,
 } from "../../../entities/clinician/clinicianClient";
+import { normalizeClientProgramToTimezone } from "../../clientProgramHelpers";
 
 async function _fetchClientProgram({
   clientData,
@@ -118,13 +119,23 @@ export async function getClinicianClient(
       skipMaintenanceData,
     });
 
+    const programTimezone = clientProgram?.originTimeZone || "UTC";
+    const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone; // Detect local timezone
+
     return {
       ...clientData,
       clinicianClientRef,
       clinicianClientIdentifiers: deserializeClinicianClientPath(
         clinicianClientRef.path
       ),
-      ...(clientProgram && !isEmptyObject(clientProgram) && { clientProgram }),
+      ...(clientProgram &&
+        !isEmptyObject(clientProgram) && {
+          clientProgram: normalizeClientProgramToTimezone(
+            clientProgram,
+            localTimezone,
+            programTimezone
+          ),
+        }),
     };
   } catch (error) {
     console.error("Error fetching client:", error, {

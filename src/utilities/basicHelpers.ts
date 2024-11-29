@@ -1,4 +1,3 @@
-import { getTimezoneOffset } from "date-fns-tz";
 import { Timestamp } from "firebase/firestore";
 
 export const isEmptyObject = (obj: Object) =>
@@ -18,6 +17,7 @@ export const daysBetweenDates = (date1: Date, date2: Date): number => {
   const d2 = new Date(date2);
   d1.setHours(0, 0, 0, 0);
   d2.setHours(0, 0, 0, 0);
+
   return Math.floor((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
 };
 
@@ -59,40 +59,6 @@ export const isTodayOrBefore = (date: Date | Timestamp) => {
 
   return newDate <= today;
 };
-
-/**
- * @description function takes a Date object and creates a new Date object representing the same calendar day in UTC,
- * with the time explicitly set to 00:00:00. This ensures that the day, month, and year remain unchanged from the input,
- * regardless of the input’s local timezone.
- * @param date
- * @returns
- */
-export function toUTCStartOfDay(date: Date): Date {
-  // Get year, month, and day directly from the input date
-  const year = date.getFullYear();
-  const month = date.getMonth(); // 0-based
-  const day = date.getDate();
-
-  // Create a UTC Date object with the same year, month, and day
-  return new Date(Date.UTC(year, month, day, 0, 0, 0));
-}
-
-/**
- * @description The function takes a Date object and adjusts it by subtracting the local timezone offset,
- * effectively converting the input date into its equivalent UTC representation.
- * This is useful when you need to work with dates in UTC, but the input date is represented in the local timezone.
- * @param date
- */
-export function normalizeDateToUTC(date: Date) {
-  const newDate = new Date(date);
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const timeZoneOffset = getTimezoneOffset(timezone);
-  const hourOffset = timeZoneOffset / (60 * 60 * 1000);
-
-  newDate.setHours(newDate.getHours() - hourOffset);
-
-  return newDate;
-}
 
 export function firestorePathToListObject(path: string): {
   [key: string]: string;
