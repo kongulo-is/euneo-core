@@ -11,8 +11,9 @@ import {
 import { Collection, TConditionId } from "../global";
 import { TOutcomeMeasureId } from "../outcomeMeasure/outcomeMeasure";
 import {
-  TOutcomeMeasureAnswerWrite,
+  TOutcomeMeasureAnswersWrite,
   TOutcomeMeasureAnswers,
+  TOutcomeMeasureAnswersWriteOld,
 } from "./outcomeMeasureAnswer";
 import { TPainLevel, TPainLevelWrite } from "./painLevel";
 import { TClientPhysicalInformation } from "./physicalInformation";
@@ -33,6 +34,10 @@ import {
 } from "../program/version";
 import { TClientProgramDay } from "./day";
 import { db } from "../../firebase/db";
+import {
+  isOldOutcomeMeasureAnswer,
+  migrateOutcomeMeasureAnswers,
+} from "../../services/userMigrationService";
 
 // Ref type
 export type TClientProgramRef = DocumentReference<
@@ -51,7 +56,7 @@ export type TClientProgramWrite = {
   conditionId: TConditionId | null;
   outcomeMeasuresAnswers: Record<
     TOutcomeMeasureId,
-    TOutcomeMeasureAnswerWrite[]
+    TOutcomeMeasureAnswersWrite[]
   > | null;
   painLevels: TPainLevelWrite[];
   physicalInformation: TClientPhysicalInformation;
@@ -207,10 +212,10 @@ export const clientProgramConverter = {
     // TODO: enable runtime checks?
     // runtimeChecks.assertTClientProgram(program, true); // Assertion done here if needed
 
-    const outcomeMeasuresAnswers = {} as Record<
+    const outcomeMeasuresAnswers: Record<
       TOutcomeMeasureId,
-      TOutcomeMeasureAnswerWrite[]
-    >;
+      TOutcomeMeasureAnswersWrite[]
+    > = {} as Record<TOutcomeMeasureId, TOutcomeMeasureAnswersWrite[]>;
 
     if (program.outcomeMeasuresAnswers) {
       Object.keys(program.outcomeMeasuresAnswers).forEach((measureId) => {
@@ -270,25 +275,44 @@ export const clientProgramConverter = {
       ...rest
     } = data;
 
-    // convert timestamps to dates in outcomeMeasures and painLevels
+    let migrationApplied = false;
+
+    // Convert timestamps to dates in outcomeMeasures and painLevels
     const outcomeMeasuresAnswers = {} as Record<
       TOutcomeMeasureId,
       TOutcomeMeasureAnswers[]
     > | null;
+
     if (
       data.outcomeMeasuresAnswers &&
       !isEmptyObject(data.outcomeMeasuresAnswers)
     ) {
-      Object.keys(data.outcomeMeasuresAnswers)?.forEach((measureId) => {
+      Object.keys(data.outcomeMeasuresAnswers).forEach((measureId) => {
         const measureAnswers =
           data.outcomeMeasuresAnswers![measureId as TOutcomeMeasureId];
+
+        const newAnswersArray = measureAnswers.map((answer, i) => {
+          if (isOldOutcomeMeasureAnswer(answer)) {
+            console.log("🔀 Migrating old outcome measure answer ", i);
+            migrationApplied = true;
+            return migrateOutcomeMeasureAnswers(
+              answer as unknown as TOutcomeMeasureAnswersWriteOld
+            );
+          } else {
+            console.log("OM answer is already in the new format", i);
+            return {
+              ...answer,
+              date: answer.date.toDate(),
+            };
+          }
+        });
+
         outcomeMeasuresAnswers![measureId as TOutcomeMeasureId] =
-          measureAnswers.map((answer) => ({
-            ...answer,
-            date: answer.date.toDate(),
-          }));
+          newAnswersArray;
       });
     }
+
+    console.log("> Outcome measure answers are:", outcomeMeasuresAnswers);
 
     const painLevelsClient: TPainLevel[] = painLevels.map((pain) => ({
       ...pain,
@@ -308,6 +332,14 @@ export const clientProgramConverter = {
       });
     }
     programVersionRef = programVersionRef || programRef;
+
+    // if migration was applied, we need to update the client program
+    if (migrationApplied && process.env.EXPO_PUBLIC_PROJECT === "APP") {
+      console.log("🔄 Updating clients OM answers");
+      updateDoc(snapshot.ref.withConverter(clientProgramConverter), {
+        outcomeMeasuresAnswers: outcomeMeasuresAnswers as any,
+      });
+    }
 
     if (!programVersionRef) {
       throw new Error("Program version ref not found");

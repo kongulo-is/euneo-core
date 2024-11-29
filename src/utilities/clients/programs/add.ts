@@ -1,4 +1,5 @@
-import { doc, DocumentReference, setDoc } from "firebase/firestore";
+import { arrayUnion, doc, DocumentReference, setDoc } from "firebase/firestore";
+
 import { createPhase } from "../../programHelpers";
 import { TProgram } from "../../../entities/program/program";
 import {
@@ -239,39 +240,36 @@ export async function addProgramToClient(
 export async function addOutcomeMeasureToClientProgram(
   clientId: string,
   clientProgramId: string,
-  outcomeMeasuresAnswers: Record<TOutcomeMeasureId, TOutcomeMeasureAnswers[]>,
-  newData: Record<Partial<TOutcomeMeasureId>, TOutcomeMeasureAnswers>
+  newOutcomeMeasure: TOutcomeMeasureAnswers
 ) {
   try {
+    // Ensure newOutcomeMeasure is defined and has the necessary fields
+    if (!newOutcomeMeasure || !newOutcomeMeasure.outcomeMeasureId) {
+      throw new Error("Invalid outcome measure: Missing necessary fields.");
+    }
+
     const clientProgramRef = createClientProgramRef({
       clients: clientId,
       programs: clientProgramId,
     });
 
-    const newOutcomeMeasuresAnswers = { ...outcomeMeasuresAnswers };
-    Object.entries(newData).forEach(([key, answers]) => {
-      const measureId = key as TOutcomeMeasureId;
-      const oldMeasureAnswers = outcomeMeasuresAnswers[measureId];
-      if (oldMeasureAnswers) {
-        newOutcomeMeasuresAnswers[measureId] = [...oldMeasureAnswers, answers];
-      } else {
-        newOutcomeMeasuresAnswers[measureId] = [answers];
-      }
+    console.log("newOutcomeMeasure: ", newOutcomeMeasure);
+
+    // Using Firestore's FieldValue.arrayUnion() to append new outcome measure
+    const res = await updateDoc(clientProgramRef, {
+      [`outcomeMeasuresAnswers.${newOutcomeMeasure.outcomeMeasureId}`]:
+        arrayUnion(newOutcomeMeasure), // Append the new outcome measure
     });
 
-    // Update the user's painLevel array in firestore
-    await updateDoc(clientProgramRef, {
-      outcomeMeasuresAnswers: newOutcomeMeasuresAnswers,
-    });
+    console.log("res: ", res);
 
     return true;
   } catch (error) {
-    console.log(error);
+    console.error("Error adding outcome measure to client program:", error);
 
     return false;
   }
 }
-
 export async function addPainLevelToClientProgram(
   clientId: string,
   clientProgramId: string,

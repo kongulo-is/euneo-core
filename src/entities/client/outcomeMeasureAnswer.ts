@@ -1,32 +1,73 @@
 import { Timestamp } from "firebase/firestore";
 import { TOutcomeMeasureId } from "../outcomeMeasure/outcomeMeasure";
 
-export type TOutcomeMeasureAnswerWrite = {
+type TQuestionId = string;
+
+export type TOutcomeMeasureAnswersWrite = TOutcomeMeasureAnswersBase & {
+  date: Timestamp;
+};
+
+export type TOutcomeMeasureAnswers = TOutcomeMeasureAnswersBase & {
+  date: Date;
+};
+
+type TOutcomeMeasureAnswersBase = {
+  outcomeMeasureId: TOutcomeMeasureId;
+  answers: Record<TQuestionId, TOutcomeMeasureAnswer | null>;
+  scoredPoints: number; // sum of all answered questions points
+  maxPoints: number; // max points of all answered questions or maxPoint given from OM. (null when converting old answers)
+  percentageScore: number; //%
+  sectionScorings: TSectionScoring[];
+  customScoring?: boolean;
+  scoringMethod: "points" | "percentage" | "adjusted" | null;
+};
+
+export type TSectionScoring = {
+  sectionName: string;
+  maxPoints: number;
+  scoredPoints: number;
+  percentageScore: number;
+  questionIds: TQuestionId[]; // questionIds of questions in section, not necessarily in the same order as displayed
+  skipped: boolean;
+  notScored?: boolean;
+};
+
+// Base type for an answer
+export type TOutcomeMeasureAnswerBase = {
+  value?: number | null;
+  input?: string | null;
+};
+
+export type TOutcomeMeasureAnswer =
+  | TOutcomeMeasureStandardAnswer
+  | TOutcomeMeasureMultipleChoiceAnswer
+  | TOutcomeMeasureConditionalAnswer;
+
+export type TOutcomeMeasureStandardAnswer = TOutcomeMeasureAnswerBase & {
+  type: "option" | "rating" | "input";
+};
+
+export type TOutcomeMeasureMultipleChoiceAnswer = Omit<
+  TOutcomeMeasureAnswerBase,
+  "value"
+> & {
+  value?: number[] | null;
+  type: "multiple-choice";
+};
+
+export type TOutcomeMeasureConditionalAnswer = TOutcomeMeasureAnswerBase & {
+  type: "conditional";
+};
+
+//! deprecated last used id v. 2.4.5 --------
+
+export type TOutcomeMeasureAnswersWriteOld = {
   date: Timestamp;
   outcomeMeasureId: TOutcomeMeasureId;
-  // type: string | "foot&ankle";
-  sections: TOutcomeMeasureAnswerSection[];
+  sections: TOutcomeMeasureAnswerSectionOld[];
 };
 
-/**
- * @memberof TClientProgram
- * @description Assessment of client during program.
- * @param name (FAAM, SF-36, VISA-A, PROMIS,...)
- */
-export type TOutcomeMeasureAnswers = {
-  date: Date;
-  outcomeMeasureId: TOutcomeMeasureId;
-  // type: string | "foot&ankle";
-  sections: TOutcomeMeasureAnswerSection[];
-};
-
-/**
- * @memberof TOutcomeMeasureAnswers
- * @description Assessment result and answers.
- * @param score 0-100%
- * @param answers array of answeres to questions (0-4)
- */
-export type TOutcomeMeasureAnswerSection = {
+export type TOutcomeMeasureAnswerSectionOld = {
   sectionName: string;
   score: number;
   answers: (number | null)[];
