@@ -94,6 +94,7 @@ export const conditions: Conditions = {
   "quadriceps-strain": "Quadriceps strain",
   "quadriceps-tendon-tear": "Quadriceps tendon tear",
   "rheumatoid-arthritis": "Rheumatoid arthritis",
+  "rotator-cuff-repair": "Rotator cuff repair",
   "rotator-cuff-tear": "Rotator cuff tear",
   "rotator-cuff-tendinopathy": "Rotator cuff tendinopathy",
   "sacroiliac-joint-syndrome": "Sacroiliac joint syndrome",
