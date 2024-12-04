@@ -22,7 +22,7 @@ export async function getAllOutcomeMeasures(): Promise<
   try {
     const outcomeMeasuresRef = collection(
       db,
-      "outcomeMeasures",
+      "outcomeMeasures"
     ) as CollectionReference<TOutcomeMeasureWrite>;
 
     const q = query(outcomeMeasuresRef, where("isConsoleLive", "==", true));
@@ -30,7 +30,7 @@ export async function getAllOutcomeMeasures(): Promise<
     const snapshot = await getDocs(q.withConverter(outcomeMeasureConverter));
 
     const outcomeMeasures = Object.fromEntries(
-      snapshot.docs.map((doc) => [doc.id, doc.data()]),
+      snapshot.docs.map((doc) => [doc.id, doc.data()])
     );
 
     return outcomeMeasures;
@@ -41,16 +41,16 @@ export async function getAllOutcomeMeasures(): Promise<
 }
 
 export async function getOutcomeMeasure(
-  outcomeMeasureId: TOutcomeMeasureId,
+  outcomeMeasureId: TOutcomeMeasureId
 ): Promise<TOutcomeMeasure> {
   try {
     const outcomeMeasureRef = doc(
       db,
       "outcomeMeasures",
-      outcomeMeasureId,
+      outcomeMeasureId
     ) as DocumentReference<TOutcomeMeasureWrite>;
     const outcomeMeasureSnapshot = await getDoc(
-      outcomeMeasureRef.withConverter(outcomeMeasureConverter),
+      outcomeMeasureRef.withConverter(outcomeMeasureConverter)
     );
 
     const outcomeMeasureData = outcomeMeasureSnapshot.data();

@@ -103,6 +103,7 @@ export type TConditionId =
   | "quadriceps-strain"
   | "quadriceps-tendon-tear"
   | "rheumatoid-arthritis"
+  | "rotator-cuff-repair"
   | "rotator-cuff-tear"
   | "rotator-cuff-tendinopathy"
   | "sacroiliac-joint-syndrome"
