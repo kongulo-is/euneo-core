@@ -262,8 +262,6 @@ export async function _getProgramDetailsFromRef(
       _fetchProgramVersion(programVersionRef),
     ]);
 
-    console.log(programVersionRef, programVersionIdentifiers);
-
     // Adjust the returned type based on the program type
     if (isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
       if (!isClinicianProgramInfo(programInfo)) {
