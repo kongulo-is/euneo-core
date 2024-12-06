@@ -136,7 +136,7 @@ export async function uploadExercise(
     const clinicianRef = createClinicianRef(clinicianId);
     const docRef = await addDoc(exerciseRef, {
       ...exercise,
-      clinicianRef,
+      creatorRef: clinicianRef,
       createdAt: new Date(),
       id: exerciseRef.id,
     });
