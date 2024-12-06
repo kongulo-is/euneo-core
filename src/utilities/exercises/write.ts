@@ -58,7 +58,7 @@ export async function getAllEuneoAndClinicianExercises(
     // Query for exercises with the specific clinicianId and ID starting with "EHE"
     const clinicianQueryRef = query(
       exerciseCollectionRef,
-      where("clinicianRef", "==", clinicianRef)
+      where("creatorRef", "==", clinicianRef)
     );
 
     // Query for exercises without a clinicianId and ID starting with "EHE"
