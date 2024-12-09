@@ -179,8 +179,7 @@ async function _updateProgramVersion(
 function _getPhaseInfo(
   clientProgram: TClientProgram,
   program: TClinicianProgram,
-  oldProgram: TProgram,
-  today: Date
+  oldProgram: TProgram
 ) {
   const currentClientPhase =
     clientProgram.phases[clientProgram.phases.length - 1];
@@ -189,9 +188,7 @@ function _getPhaseInfo(
   const oldCurrentPhase = oldProgram.phases[currentPhaseId];
 
   const currDayIndex =
-    clientProgram.days.findIndex(
-      (day) => day.date.getTime() === today.getTime()
-    ) || 0;
+    clientProgram.days.findIndex((day) => isToday(day.date)) || 0;
   const currentDay = clientProgram.days[currDayIndex].dayId;
 
   const startPhaseDayIndex = currDayIndex
@@ -224,7 +221,6 @@ async function _modifyClientProgramDays(
     TProgramVersionRead,
     TProgramVersionWrite
   >,
-  today: Date,
   clientProgramRef: DocumentReference<TClientProgramRead, TClientProgramWrite>
 ) {
   const { days, trainingDays } = clientProgram;
@@ -237,14 +233,13 @@ async function _modifyClientProgramDays(
     currDayIndex,
     startDocIndex,
     startPhaseDayIndex,
-  } = _getPhaseInfo(clientProgram, program, oldProgram, today);
+  } = _getPhaseInfo(clientProgram, program, oldProgram);
 
   const phaseExtended = _isPhaseExtended(
     days,
     currentClientPhase,
     currentPhase
   );
-  console.log("phaseExtended", phaseExtended);
 
   // Phase length can vary when phase has been extended by client;
   const programPhaseLength = phaseExtended
@@ -279,8 +274,6 @@ async function _modifyClientProgramDays(
     currentPhase.days[startPhaseDayIndex] ? startPhaseDayIndex : 0
   );
 
-  console.log("newDays", newDays);
-
   await addContinuousDaysToClientProgram(
     clientProgram.clientProgramRef,
     newDays,
@@ -300,6 +293,53 @@ async function _modifyClientProgramDays(
     clinicianClientRef,
     programVersionRef,
     updatedPhases
+  );
+}
+
+async function _modifyMaintenanceClientProgramDays(
+  clientProgram: TClientProgram,
+  program: TClinicianProgram,
+  clinicianClientRef: TClinicianClientRef,
+  programVersionRef: DocumentReference<
+    TProgramVersionRead,
+    TProgramVersionWrite
+  >,
+  clientProgramRef: DocumentReference<TClientProgramRead, TClientProgramWrite>
+) {
+  const { days, trainingDays } = clientProgram;
+
+  const currDayIndex = days.findIndex((d) => isToday(d.date));
+
+  // Phase days left
+  const daysLeft = days.length - currDayIndex;
+
+  // Id of the phase that maintenance phase is built on
+  const lastPhaseId = clientProgram.phases[clientProgram.phases.length - 2].key;
+
+  // Copy the last phase to the generated maintenance phase
+  program.phases["m1" as any] = program.phases[lastPhaseId as TProgramPhaseKey];
+
+  // Create and add new days to the program.
+  const newDays = createPhase(
+    trainingDays,
+    program,
+    "m1" as any,
+    new Date(),
+    daysLeft,
+    currDayIndex
+  );
+
+  await addContinuousDaysToClientProgram(
+    clientProgram.clientProgramRef,
+    newDays,
+    currDayIndex
+  );
+
+  return await _updateProgramVersion(
+    clientProgramRef,
+    clinicianClientRef,
+    programVersionRef,
+    clientProgram.phases
   );
 }
 
@@ -571,6 +611,18 @@ export async function updateClientProgramVersion(
       );
     }
 
+    const currentPhase = clientProgram.phases[clientProgram.phases.length - 1];
+    // If currently in maintenance phase, need to modify with that in mind
+    if (currentPhase.key.includes("m")) {
+      return await _modifyMaintenanceClientProgramDays(
+        clientProgram,
+        program,
+        clinicianClientRef,
+        programVersionRef,
+        clientProgramRef
+      );
+    }
+
     // Determine the number of days to remove or modify and update accordingly.
     return await _modifyClientProgramDays(
       clientProgram,
@@ -578,67 +630,10 @@ export async function updateClientProgramVersion(
       oldProgram,
       clinicianClientRef,
       programVersionRef,
-      today,
       clientProgramRef
     );
   } catch (error) {
     console.log("Error updating client program: ", error);
-    return false;
-  }
-}
-
-// Function that sets data from updated client program to document. Also updates prescription of user if set to true
-export async function setClientProgramVersion<T extends TProgram>(
-  clientId: string,
-  updatedClientProgram: TClientProgram,
-  program: T,
-  clinicianId: string,
-  clinicianClientId: string,
-  version: string,
-  updatePrescription?: boolean
-) {
-  try {
-    // start by removing the current day and future days from the client's program
-    const { days: newDays } = updatedClientProgram;
-
-    addContinuousDaysToClientProgram(
-      updatedClientProgram.clientProgramRef,
-      newDays,
-      0
-    );
-
-    const programVersionRef = createProgramVersionRef({
-      clinicians: clinicianId,
-      programs: program.programVersionIdentifiers.programs,
-      versions: program.programVersionIdentifiers.versions,
-    });
-
-    const clinicianClientRef = createClinicianClientRef({
-      clinicians: clinicianId,
-      clients: clinicianClientId,
-    });
-
-    const clientProgramRef = createClientProgramRef({
-      clients: clientId,
-      programs: updatedClientProgram.clientProgramIdentifiers.programs,
-    });
-
-    updateClientProgramFields(clientProgramRef, {
-      phases: updatedClientProgram.phases,
-      clinicianClientRef,
-      programVersionRef,
-      shouldRefetch: true,
-    });
-
-    if (updatePrescription) {
-      // Update prescription program reference
-      updateDoc(clinicianClientRef, {
-        "prescription.programVersionRef": programVersionRef,
-      });
-    }
-
-    return true;
-  } catch (error) {
     return false;
   }
 }

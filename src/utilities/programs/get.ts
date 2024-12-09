@@ -200,6 +200,7 @@ export async function getEuneoProgramWithDays(
 
 /**
  * @description Use this function if it does not matter which program type it is
+ * @param excludeMaintenance Whether we want to skip getting maintenance data
  * @returns TProgram
  */
 export async function getProgram(

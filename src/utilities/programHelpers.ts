@@ -162,7 +162,6 @@ export async function _getProgramFromRef(
     const programVersionIdentifiers = deserializeProgramVersionPath(
       programVersionRef.path
     );
-    console.log(programVersionIdentifiers);
 
     let programRef: DocumentReference<TProgramRead, TProgramWrite> =
       programVersionRef.parent.parent!.withConverter(programConverter);
