@@ -287,13 +287,13 @@ export const clientProgramConverter = {
 
         const newAnswersArray = measureAnswers.map((answer, i) => {
           if (isOldOutcomeMeasureAnswer(answer)) {
-            console.log("🔀 Migrating old outcome measure answer ", i);
+            // console.log("🔀 Migrating old outcome measure answer ", i);
             migrationApplied = true;
             return migrateOutcomeMeasureAnswers(
               answer as unknown as TOutcomeMeasureAnswersWriteOld
             );
           } else {
-            console.log("OM answer is already in the new format", i);
+            // console.log("OM answer is already in the new format", i);
             return {
               ...answer,
               date: answer.date.toDate(),
@@ -305,8 +305,6 @@ export const clientProgramConverter = {
           newAnswersArray;
       });
     }
-
-    console.log("> Outcome measure answers are:", outcomeMeasuresAnswers);
 
     const painLevelsClient: TPainLevel[] = painLevels.map((pain) => ({
       ...pain,
@@ -329,7 +327,7 @@ export const clientProgramConverter = {
 
     // if migration was applied, we need to update the client program
     if (migrationApplied && process.env.EXPO_PUBLIC_PROJECT === "APP") {
-      console.log("🔄 Updating clients OM answers");
+      // console.log("🔄 Updating clients OM answers");
       updateDoc(snapshot.ref.withConverter(clientProgramConverter), {
         outcomeMeasuresAnswers: outcomeMeasuresAnswers as any,
       });

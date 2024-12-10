@@ -250,15 +250,11 @@ export async function addOutcomeMeasureToClientProgram(
       programs: clientProgramId,
     });
 
-    console.log("newOutcomeMeasure: ", newOutcomeMeasure);
-
     // Using Firestore's FieldValue.arrayUnion() to append new outcome measure
     const res = await updateDoc(clientProgramRef, {
       [`outcomeMeasuresAnswers.${newOutcomeMeasure.outcomeMeasureId}`]:
         arrayUnion(newOutcomeMeasure), // Append the new outcome measure
     });
-
-    console.log("res: ", res);
 
     return true;
   } catch (error) {
