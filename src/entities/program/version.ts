@@ -30,6 +30,12 @@ export type TClinicianProgramVersionIdentifiers = {
   [Collection.Versions]: string;
 };
 
+export type TClinicProgramVersionIdentifiers = {
+  [Collection.Clinics]: string;
+  [Collection.Programs]: string;
+  [Collection.Versions]: string;
+};
+
 export type TProgramVersionWrite = {
   name: string; // can be empty string
   variation?: string;
@@ -71,11 +77,24 @@ export function isClinicianProgramVersionIdentifiers(
   );
 }
 
+export function isClinicProgramVersionIdentifiers(
+  identifiers:
+    | TEuneoProgramVersionIdentifiers
+    | TClinicianProgramVersionIdentifiers
+): identifiers is TClinicProgramVersionIdentifiers {
+  return (
+    (identifiers as TClinicProgramVersionIdentifiers)[Collection.Clinics] !==
+    undefined
+  );
+}
+
 // Serialization function for TProgramIdentifiers
 export function serializeProgramVersionIdentifiers(
   obj: TEuneoProgramVersionIdentifiers | TClinicianProgramVersionIdentifiers
 ): string {
-  if ("clinicians" in obj) {
+  if ("clinics" in obj) {
+    return `${Collection.Clinics}/${obj.clinics}/${Collection.Programs}/${obj.programs}/${Collection.Versions}/${obj.versions}`;
+  } else if ("clinicians" in obj) {
     return `${Collection.Clinicians}/${obj.clinicians}/${Collection.Programs}/${obj.programs}/${Collection.Versions}/${obj.versions}`;
   } else {
     return `${Collection.Programs}/${obj.programs}/${Collection.Versions}/${obj.versions}`;
@@ -85,7 +104,10 @@ export function serializeProgramVersionIdentifiers(
 // Deserialization function for TProgramIdentifiers
 export function deserializeProgramVersionPath(
   path: string
-): TEuneoProgramVersionIdentifiers | TClinicianProgramVersionIdentifiers {
+):
+  | TEuneoProgramVersionIdentifiers
+  | TClinicianProgramVersionIdentifiers
+  | TClinicProgramVersionIdentifiers {
   const segments = path.split("/");
 
   if (
@@ -110,6 +132,24 @@ export function deserializeProgramVersionPath(
       [Collection.Versions]: versionId,
     };
   } else if (
+    segments.includes(Collection.Clinics) &&
+    segments.includes(Collection.Programs) &&
+    segments.includes(Collection.Versions)
+  ) {
+    // Clinic Program
+    const clinicsIndex = segments.indexOf(Collection.Clinics);
+    const clinicId = segments[clinicsIndex + 1];
+    const programsIndex = segments.indexOf(Collection.Programs, clinicsIndex);
+    const programId = segments[programsIndex + 1];
+    const versionsIndex = segments.indexOf(Collection.Versions, programsIndex);
+    const versionId = segments[versionsIndex + 1];
+
+    return {
+      [Collection.Clinics]: clinicId,
+      [Collection.Programs]: programId,
+      [Collection.Versions]: versionId,
+    };
+  } else if (
     segments.includes(Collection.Programs) &&
     segments.includes(Collection.Versions)
   ) {
@@ -118,8 +158,6 @@ export function deserializeProgramVersionPath(
     const programId = segments[programsIndex + 1];
     const versionsIndex = segments.indexOf(Collection.Versions, programsIndex);
     const versionId = segments[versionsIndex + 1];
-
-    // check if the programId is a valid conditionId
 
     return {
       [Collection.Programs]: programId,

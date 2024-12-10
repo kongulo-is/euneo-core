@@ -15,8 +15,9 @@ import {
   _getProgramFromRef,
 } from "../../programHelpers";
 import {
+  TClinicProgram,
+  TClinicProgramWithoutSubCollections,
   TClinicianProgram,
-  TClinicianProgramWithoutSubCollections,
   programConverter,
 } from "../../../entities/program/program";
 import {
@@ -24,32 +25,32 @@ import {
   TProgramVersionWrite,
 } from "../../../entities/program/version";
 
-export async function getClinicianProgramWithDays(
+export async function getClinicProgramWithDays(
   programVersionRef: DocumentReference<
     TProgramVersionRead,
     TProgramVersionWrite
   >,
 
   excludeMaintenance: boolean = false
-): Promise<TClinicianProgram> {
-  const clinicianProgram = await _getProgramFromRef(
+): Promise<TClinicProgram> {
+  const clinicProgram = await _getProgramFromRef(
     programVersionRef,
     excludeMaintenance
   );
 
-  if (clinicianProgram.creator !== "clinician") {
-    throw new Error("Program is not a clinician program");
+  if (clinicProgram.creator !== "clinic") {
+    throw new Error("Program is not a clinic program, invalid program");
   }
 
-  return clinicianProgram;
+  return clinicProgram;
 }
 
-export async function getClinicianProgramsBase(
-  clinicianId: string
-): Promise<TClinicianProgramWithoutSubCollections[]> {
+export async function getClinicProgramsBase(
+  clinicId: string
+): Promise<TClinicProgramWithoutSubCollections[]> {
   try {
-    const clinicianRef = doc(db, "clinicians", clinicianId);
-    const programsRef = collection(clinicianRef, "programs");
+    const clinicRef = doc(db, "clinics", clinicId);
+    const programsRef = collection(clinicRef, "programs");
 
     const programsQuery = query(programsRef, where("isSaved", "==", true));
     const programsSnap = await getDocs(
@@ -62,30 +63,31 @@ export async function getClinicianProgramsBase(
       programsData.map(async (p) => {
         const { currentVersionRef } = p;
         const programBase = await _getProgramDetailsFromRef(currentVersionRef);
-        if (programBase.creator !== "clinician") {
-          throw new Error(
-            "Program is not a clinician program, invalid program"
-          );
-        }
+
         const program = {
           ...programBase,
-        } as TClinicianProgramWithoutSubCollections;
+          // TODO: remove as
+        } as TClinicProgramWithoutSubCollections;
+
+        if (program.creator !== "clinic") {
+          throw new Error("Program is not a clinic program, invalid program");
+        }
 
         return program;
       })
     );
   } catch (error) {
-    console.error("Error fetching clinician programs:", error);
+    console.error("Error fetching clinic programs:", error);
     throw error;
   }
 }
 
-export async function getClinicianProgramsWithSubcollections(
-  clinicianId: string
-): Promise<TClinicianProgram[]> {
+export async function getClinicProgramsWithSubcollections(
+  clinicId: string
+): Promise<TClinicProgram[]> {
   try {
-    const clinicianRef = doc(db, "clinicians", clinicianId);
-    const programsRef = collection(clinicianRef, "programs");
+    const clinicRef = doc(db, "clinics", clinicId);
+    const programsRef = collection(clinicRef, "programs");
 
     const programsQuery = query(programsRef, where("isSaved", "==", true));
     const programsSnap = await getDocs(
@@ -99,17 +101,15 @@ export async function getClinicianProgramsWithSubcollections(
         const { currentVersionRef } = p;
 
         const program = await _getProgramFromRef(currentVersionRef, true);
-        if (program.creator !== "clinician") {
-          throw new Error(
-            "Program is not a clinician program, invalid program"
-          );
+        if (program.creator !== "clinic") {
+          throw new Error("Program is not a clinic program, invalid program");
         }
 
         return program;
       })
     );
   } catch (error) {
-    console.error("Error fetching clinician programs:", error);
+    console.error("Error fetching clinic programs:", error);
     throw error;
   }
 }
