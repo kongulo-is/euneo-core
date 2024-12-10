@@ -20,6 +20,7 @@ import { TProgramPhase, TProgramPhaseKey } from "./programPhase";
 import { db } from "../../firebase/db";
 import { Collection } from "../global";
 import { updateDoc } from "../../utilities/updateDoc";
+import { TArea, TProgramArea } from "../exercises/exercises";
 
 export type TProgramRef = DocumentReference<TProgramRead, TProgramWrite>;
 
@@ -56,6 +57,8 @@ type TProgramBase = {
     TProgramVersionWrite
   >;
   programRef: TProgramRef;
+  primaryArea?: TProgramArea[] | null;
+  secondaryArea?: TProgramArea[] | null;
 };
 
 export type TEuneoProgramRead = TProgramBase & {
