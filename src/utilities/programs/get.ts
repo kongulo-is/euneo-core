@@ -15,7 +15,6 @@ import {
 } from "../programHelpers";
 import { updateDoc } from "../updateDoc";
 import {
-  TClinicianProgram,
   TEuneoProgram,
   TEuneoProgramWithoutSubCollections,
   TProgram,
@@ -30,11 +29,7 @@ import {
   TProgramVersionWrite,
 } from "../../entities/program/version";
 import { TClinicianClientRef } from "../../entities/clinician/clinicianClient";
-import {
-  deserializeInvitationPath,
-  invitationConverter,
-  TInvitation,
-} from "../../entities/invitation/invitation";
+import { invitationConverter } from "../../entities/invitation/invitation";
 import { prescriptionConverter } from "../../entities/clinician/prescription";
 
 /**
@@ -43,7 +38,7 @@ import { prescriptionConverter } from "../../entities/clinician/prescription";
  */
 // TODO: Fix function
 export async function getProgramFromCode(code: string): Promise<{
-  program: TClinicianProgram | TEuneoProgram;
+  program: TProgram;
   clinicianClientRef: TClinicianClientRef;
   clinicianId: string;
   invitationId: string;
@@ -205,6 +200,7 @@ export async function getEuneoProgramWithDays(
 
 /**
  * @description Use this function if it does not matter which program type it is
+ * @param excludeMaintenance Whether we want to skip getting maintenance data
  * @returns TProgram
  */
 export async function getProgram(
