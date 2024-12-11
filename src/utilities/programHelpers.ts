@@ -333,7 +333,7 @@ export function createPhase(
   const iterator = length ? length : phase?.length ? phase.length : 14;
 
   // Set the hours, minutes, seconds, and milliseconds of the date to 0
-  d.setHours(0, 0, 0, 0);
+  d.setHours(12, 0, 0, 0);
 
   // Loop for the number of times specified by the iterator
   for (let i = 0; i < iterator; i++) {

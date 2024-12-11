@@ -12,12 +12,69 @@ export const isToday = (date: Date) => {
   );
 };
 
+/**
+ * @description Compares two dates and returns true if they are equal
+ * @param compareTime True if we want to compare time as well
+ * @returns Boolean indicating whether they are equal or not
+ */
+export const areEqualDates = (
+  date1: Date,
+  date2: Date,
+  compareTime?: boolean
+) => {
+  if (compareTime) {
+    return date1.getTime() === date2.getTime();
+  } else {
+    return (
+      date1.getDate() === date2.getDate() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getFullYear() === date2.getFullYear()
+    );
+  }
+};
+
+/**
+ * @description Calculates the number of days between two dates
+ * @returns date2 - date1 in days
+ */
 export const daysBetweenDates = (date1: Date, date2: Date): number => {
   const d1 = new Date(date1);
   const d2 = new Date(date2);
   d1.setHours(0, 0, 0, 0);
   d2.setHours(0, 0, 0, 0);
   return Math.floor((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+};
+
+/**
+ * @description Checks if a date is in the past
+ * @returns Boolean indicating if the date is in the past or not
+ */
+export const isDateInPast = (date: Date, compareTime?: boolean) => {
+  const today = new Date();
+  const dateToCompare = new Date(date);
+
+  if (!compareTime) {
+    today.setHours(0, 0, 0, 0);
+    dateToCompare.setHours(0, 0, 0, 0);
+  }
+
+  return dateToCompare < today;
+};
+
+/**
+ * @description Checks if a date is in the future
+ * @returns Boolean indicating if the date is in the future or not
+ */
+export const isDateInFuture = (date: Date, compareTime?: boolean) => {
+  const today = new Date();
+  const dateToCompare = new Date(date);
+
+  if (!compareTime) {
+    today.setHours(0, 0, 0, 0);
+    dateToCompare.setHours(0, 0, 0, 0);
+  }
+
+  return dateToCompare > today;
 };
 
 // Returns number of days in a month
@@ -46,14 +103,17 @@ export function stringToDate(dateStr: string): Date {
 }
 
 export const isTodayOrBefore = (date: Date | Timestamp) => {
+  let compareDate: Date;
   if (date instanceof Timestamp) {
-    date = date.toDate();
+    compareDate = new Date(date.toDate());
+  } else {
+    compareDate = new Date(date);
   }
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  date.setHours(0, 0, 0, 0);
+  compareDate.setHours(0, 0, 0, 0);
 
-  return date <= today;
+  return compareDate <= today;
 };
 
 export function firestorePathToListObject(path: string): {

@@ -31,7 +31,7 @@ import {
   TProgramVersionRef,
   TProgramVersionWrite,
 } from "../../../entities/program/version";
-import { daysBetweenDates, isToday } from "../../basicHelpers";
+import { daysBetweenDates, isDateInPast, isToday } from "../../basicHelpers";
 
 const _getNumberOfDaysToModifyAndRemove = (
   clientProgramDays: TClientProgramDay[],
@@ -141,14 +141,6 @@ function _updateClientProgramPhases(
   updatedPhases.pop();
   updatedPhases.push({ key: currentPhaseId, value: phaseLength });
   return updatedPhases;
-}
-
-/**
- * @description Check if the current phase is finished.
- * @returns Boolean indicating if the current phase is finished or not
- */
-function _isPhaseFinished(days: TClientProgramDay[], today: Date): boolean {
-  return days[days.length - 1].date < today;
 }
 
 /**
@@ -377,14 +369,8 @@ async function _changeClientProgramMode(
       currentPhaseId
     ] as TProgramFinitePhaseRead;
 
-    // Set today's date with time set to 00:00:00
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     // Find the index of today's day in the client program days array
-    const currDayIndex = days.findIndex(
-      (day) => day.date.getTime() === today.getTime()
-    );
+    const currDayIndex = days.findIndex((day) => isToday(day.date));
 
     // Calculate the start index for phase days and document updates
     const startDocIndex = currDayIndex === -1 ? days.length : currDayIndex;
@@ -584,10 +570,6 @@ export async function updateClientProgramVersion(
         newCurrentPhaseId
       );
     }
-    // Keep track of today's date in a variable.
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     // Prepare references and current date.
     const { clinicianClientRef, programVersionRef, clientProgramRef } =
       _createReferences(
@@ -599,8 +581,10 @@ export async function updateClientProgramVersion(
         version
       );
 
-    // No need to modify program days if the last day is before today.
-    if (_isPhaseFinished(clientProgram.days, today)) {
+    const lastDay = clientProgram.days[clientProgram.days.length - 1];
+
+    // No need to modify program days if the last day is in the past.
+    if (isDateInPast(lastDay.date)) {
       return await _updateProgramVersion(
         clientProgramRef,
         clinicianClientRef,
@@ -646,17 +630,13 @@ export async function changeClientPhase(
   try {
     const { days, trainingDays } = clientProgram;
 
-    // Set today's date to midnight for comparison
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     // Check if the last day in the client program is before today
-    const isLastDayFinished = days[days.length - 1].date < today;
+    const isLastDayFinished = isDateInPast(days[days.length - 1].date);
 
     // Find the index of the current day or set to -1 if last day is finished
     const currDayIndex = isLastDayFinished
       ? -1
-      : days.findIndex((day) => day.date.getTime() === today.getTime());
+      : days.findIndex((day) => isToday(day.date));
 
     // Determine start indices for removing days and adding new days
     const startDayIndex = currDayIndex === -1 ? 0 : currDayIndex;
