@@ -1,8 +1,9 @@
 import { Timestamp } from "firebase/firestore";
 
 export type TPainLevelWrite = {
-  date: Timestamp;
   painIndex: number;
+  date: Timestamp;
+  submittedAt?: Timestamp;
 };
 
 /**
@@ -12,4 +13,5 @@ export type TPainLevelWrite = {
 export type TPainLevel = {
   painIndex: number;
   date: Date;
+  submittedAt?: Date;
 };

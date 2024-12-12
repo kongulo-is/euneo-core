@@ -228,8 +228,11 @@ export const clientProgramConverter = {
     }
 
     const painLevels = program.painLevels.map((pain) => ({
-      ...pain,
+      painIndex: pain.painIndex,
       date: Timestamp.fromDate(pain.date),
+      ...(pain.submittedAt && {
+        submittedAt: Timestamp.fromDate(pain.submittedAt),
+      }),
     }));
 
     const data: TClientProgramWrite = {
@@ -307,8 +310,9 @@ export const clientProgramConverter = {
     }
 
     const painLevelsClient: TPainLevel[] = painLevels.map((pain) => ({
-      ...pain,
+      painIndex: pain.painIndex,
       date: pain.date.toDate(),
+      ...(pain.submittedAt && { submittedAt: pain.submittedAt.toDate() }),
     }));
 
     // TODO: enable runtime checks?
