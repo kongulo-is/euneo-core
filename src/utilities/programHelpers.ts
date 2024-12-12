@@ -13,8 +13,9 @@ import {
   TProgramInfo,
   TProgramRead,
   TProgramWrite,
-  isClinicianProgram,
-  isEuneoProgram,
+  isClinicProgramInfo,
+  isClinicianProgramInfo,
+  isEuneoProgramInfo,
   programConverter,
 } from "../entities/program/program";
 import {
@@ -24,6 +25,7 @@ import {
   TProgramVersionRead,
   TProgramVersionWrite,
   deserializeProgramVersionPath,
+  isClinicProgramVersionIdentifiers,
   isClinicianProgramVersionIdentifiers,
   programVersionConverter,
 } from "../entities/program/version";
@@ -40,6 +42,7 @@ import {
 } from "../entities/program/programPhase";
 import { TClientProgramDay } from "../entities/client/day";
 import { TConditionId } from "../entities/global";
+import { TClinician } from "../entities/clinician/clinician";
 
 // TODO: is this function not already defined somewhere else?
 async function _fetchProgramVersion(
@@ -172,7 +175,7 @@ export async function _getProgramFromRef(
 
     // Adjust the returned type based on the program type
     if (isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
-      if (!isClinicianProgram(programInfo)) {
+      if (!isClinicianProgramInfo(programInfo)) {
         throw new Error(
           "Program is not a clinician program, invalid program info"
         );
@@ -186,8 +189,25 @@ export async function _getProgramFromRef(
         versionInfo,
         creator: "clinician",
       };
+    } else if (isClinicProgramVersionIdentifiers(programVersionIdentifiers)) {
+      console.log("Clinic program!!");
+
+      if (!isClinicProgramInfo(programInfo)) {
+        throw new Error(
+          "Program is not a clinic program, invalid program info"
+        );
+      }
+      return {
+        programVersionIdentifiers,
+        programVersionRef,
+        days,
+        phases,
+        programInfo,
+        versionInfo,
+        creator: "clinic",
+      };
     } else {
-      if (!isEuneoProgram(programInfo)) {
+      if (!isEuneoProgramInfo(programInfo)) {
         throw new Error("Program is not a euneo program, invalid program info");
       }
       return {
@@ -226,7 +246,7 @@ export async function _getProgramDetailsFromRef(
   >;
   programInfo: TProgramInfo;
   versionInfo: TProgramVersion;
-  creator: "euneo" | "clinician";
+  creator: "euneo" | "clinician" | "clinic";
 }> {
   try {
     const programVersionIdentifiers = deserializeProgramVersionPath(
@@ -243,7 +263,7 @@ export async function _getProgramDetailsFromRef(
 
     // Adjust the returned type based on the program type
     if (isClinicianProgramVersionIdentifiers(programVersionIdentifiers)) {
-      if (!isClinicianProgram(programInfo)) {
+      if (!isClinicianProgramInfo(programInfo)) {
         throw new Error(
           "Program is not a clinician program, invalid program info"
         );
@@ -255,8 +275,21 @@ export async function _getProgramDetailsFromRef(
         versionInfo,
         creator: "clinician",
       };
+    } else if (isClinicProgramVersionIdentifiers(programVersionIdentifiers)) {
+      if (!isClinicProgramInfo(programInfo)) {
+        throw new Error(
+          "Program is not a clinic program, invalid program info"
+        );
+      }
+      return {
+        programVersionIdentifiers,
+        programVersionRef,
+        programInfo,
+        versionInfo,
+        creator: "clinic",
+      };
     } else {
-      if (!isEuneoProgram(programInfo)) {
+      if (!isEuneoProgramInfo(programInfo)) {
         throw new Error("Program is not a euneo program, invalid program info");
       }
       return {
@@ -379,6 +412,24 @@ export function getProgramName(programInfo: {
   if (programInfo.name) return programInfo.name;
   else if (programInfo.conditionId) return conditions[programInfo.conditionId];
   else return "";
+}
+
+export function getProgramCreator(program: TProgram, clinician: TClinician) {
+  if (program.creator === "clinician") {
+    return clinician.name || clinician.email;
+  } else if (program.creator === "clinic") {
+    return (
+      clinician.clinics?.find(
+        (c) =>
+          c.clinicIdentifiers.clinics ===
+          program.programVersionIdentifiers.clinics
+      )?.name || "Clinic"
+    );
+  } else if (program.creator === "euneo") {
+    return "Euneo Health";
+  } else {
+    return "";
+  }
 }
 
 export function getProgramCondition(conditionId: TConditionId | null) {

@@ -2,6 +2,7 @@ export enum Collection {
   Clients = "clients",
   Programs = "programs",
   Clinicians = "clinicians",
+  Clinics = "clinics",
   Versions = "versions",
   Days = "days",
   Phases = "phases",
