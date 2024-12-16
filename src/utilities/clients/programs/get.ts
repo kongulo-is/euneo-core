@@ -16,10 +16,14 @@ import {
   clientProgramConverter,
   deserializeClientProgramPath,
   TClientProgram,
+  TClientProgramBase,
   TClientProgramRead,
   TClientProgramWrite,
 } from "../../../entities/client/clientProgram";
-import { clientProgramDayConverter } from "../../../entities/client/day";
+import {
+  clientProgramDayConverter,
+  TClientProgramDayRead,
+} from "../../../entities/client/day";
 import { TOutcomeMeasureId } from "../../../entities/outcomeMeasure/outcomeMeasure";
 import { db } from "../../../firebase/db";
 
@@ -142,5 +146,63 @@ export async function getClientPrograms(
   } catch (error) {
     console.error("Error fetching client programs:", error);
     throw error;
+  }
+}
+
+/**
+ * @description Get all client program days. Used for migration purposes only
+ */
+export async function getClientProgramDays(
+  clientProgramRef: DocumentReference<TClientProgramRead, TClientProgramWrite>
+): Promise<TClientProgramDayRead[]> {
+  // Sort days by their date
+  const queryConstraints: QueryConstraint[] = [orderBy("date")];
+
+  const daysSnap = await getDocs(
+    query(
+      collection(clientProgramRef, "days"),
+      ...queryConstraints
+    ).withConverter(clientProgramDayConverter)
+  );
+
+  const days = daysSnap.docs.map((doc) => doc.data());
+
+  return days;
+}
+
+/**
+ * @description Get client program base infor (No days). Used for migration purposes only
+ */
+export async function getClientProgramBase(
+  clientProgramRef: DocumentReference<TClientProgramRead, TClientProgramWrite>
+): Promise<TClientProgramBase | undefined> {
+  try {
+    const clientProgramSnap = await getDoc(
+      clientProgramRef.withConverter(clientProgramConverter)
+    );
+
+    const clientProgramRead = clientProgramSnap.data();
+
+    if (!clientProgramRead) {
+      throw new Error("Client program not found");
+    }
+
+    const { painLevels, outcomeMeasuresAnswers } = clientProgramRead;
+
+    let filteredPainLevels = [...painLevels];
+    let filteredOutcomeMeasureAnswers = outcomeMeasuresAnswers
+      ? { ...outcomeMeasuresAnswers }
+      : null;
+
+    const clientProgramBase: TClientProgramBase = {
+      ...clientProgramRead,
+      painLevels: filteredPainLevels,
+      outcomeMeasuresAnswers: filteredOutcomeMeasureAnswers,
+    };
+
+    return clientProgramBase;
+  } catch (error) {
+    console.error("Error fetching client program:", error, clientProgramRef);
+    return undefined;
   }
 }
