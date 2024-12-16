@@ -45,20 +45,21 @@ export function migrateOutcomeMeasureAnswers(
   // Convert sections to new answer format
   const answers = {} as Record<string, TOutcomeMeasureStandardAnswer | null>;
   let questionIdCounter = 1;
-
   // Convert section scoring from the old structure
   const sectionScorings: TSectionScoring[] = oldAnswers.sections.map(
     (section) => {
       const questionIds: string[] = [];
       let scoredPoints = 0;
       let answerCount = 0;
+      const oldAnswersListKey = "answers" in section ? "answers" : "questions";
+      console.log("oldAnswersListKey", oldAnswersListKey);
 
-      section.answers.forEach((answer: number | null) => {
+      // @ts-ignore
+      section[oldAnswersListKey].forEach((answer: number | null) => {
         // Questions 22 and 28 are not scored in the old om (missing from old faam)
         if (isFaam && (questionIdCounter === 22 || questionIdCounter === 28)) {
           questionIdCounter += 1;
         }
-
         if (answer !== null) {
           scoredPoints += answer;
           answerCount += 1;
@@ -71,7 +72,6 @@ export function migrateOutcomeMeasureAnswers(
         questionIds.push(id);
         questionIdCounter += 1;
       });
-
       const maxPoints =
         answerCount * maxQuestionPoints[oldAnswers.outcomeMeasureId];
 
@@ -83,7 +83,9 @@ export function migrateOutcomeMeasureAnswers(
           ? 100 - section.score
           : section.score,
         questionIds,
-        skipped: section.answers.every(
+        // @ts-ignore
+        skipped: section[oldAnswersListKey].every(
+          // @ts-ignore
           (answer) => answer === null || answer === undefined
         ),
       };
@@ -109,7 +111,6 @@ export function migrateOutcomeMeasureAnswers(
   if (reverseScore) {
     percentageScore = 100 - percentageScore;
   }
-
   // Build the new outcome measure answers object
   return {
     outcomeMeasureId: oldAnswers.outcomeMeasureId,

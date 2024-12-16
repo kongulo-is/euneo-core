@@ -1,4 +1,5 @@
 import { QueryDocumentSnapshot, SnapshotOptions } from "firebase/firestore";
+import { TArea, TOutcomeMeasureArea } from "../exercises/exercises";
 export type TOutcomeMeasureId =
   | "faam"
   | "sf-36"
@@ -113,6 +114,9 @@ export type TOutcomeMeasureBase = {
   reverseScore?: boolean; // flip percentage score, 100% - score. (100 good, 0 bad).
   higherIsBetter?: boolean; // Does the client want to score low or high on the om
   totalScore?: boolean; // Does the measure show the total score of the list. (e.g. total score bar in chart.)
+
+  primaryArea?: TOutcomeMeasureArea[];
+  secondaryArea?: TOutcomeMeasureArea[];
 
   // Only used if there is a custom scoring order (questions are not scored in the same order as displayed)
   customScoringSections?: {
