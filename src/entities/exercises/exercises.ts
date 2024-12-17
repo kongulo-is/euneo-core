@@ -26,7 +26,7 @@ export type TExerciseCollectionRef = CollectionReference<
   TExerciseWrite
 >;
 
-export type TExerciseArea =
+export type TArea =
   | "Foot and ankle"
   | "Knee"
   | "Hip"
@@ -38,6 +38,12 @@ export type TExerciseArea =
   | "Shoulder"
   | "Elbow"
   | "Wrist and hand";
+
+export type TExerciseArea = TArea;
+
+export type TProgramArea = TArea;
+
+export type TOutcomeMeasureArea = TArea;
 
 /**
  * @Stretch is deprecated

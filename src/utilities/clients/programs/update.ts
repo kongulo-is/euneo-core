@@ -1,35 +1,35 @@
-import { DocumentReference, deleteField } from "firebase/firestore";
+import { type DocumentReference, deleteField } from "firebase/firestore";
 import { updateDoc } from "../../updateDoc";
 import { createPhase } from "../../programHelpers";
 import { addContinuousDaysToClientProgram } from "./add";
 import { removeDaysFromClientProgram } from "./delete";
 import {
-  TProgramFinitePhaseRead,
-  TProgramPhase,
-  TProgramPhaseKey,
+  type TProgramFinitePhaseRead,
+  type TProgramPhase,
+  type TProgramPhaseKey,
 } from "../../../entities/program/programPhase";
-import { TClinicianProgram, TProgram } from "../../../entities/program/program";
+import { type TClinicianProgram, type TProgram } from "../../../entities/program/program";
 import {
   createClientProgramDayRef,
-  TClientProgramDay,
+  type TClientProgramDay,
 } from "../../../entities/client/day";
 import {
   createClinicianClientRef,
-  TClinicianClientRef,
+  type TClinicianClientRef,
 } from "../../../entities/clinician/clinicianClient";
-import { TPhase } from "../../../entities/client/phase";
+import { type TPhase } from "../../../entities/client/phase";
 import {
   createClientProgramRef,
-  TClientProgram,
-  TClientProgramRead,
-  TClientProgramRef,
-  TClientProgramWrite,
+  type TClientProgram,
+  type TClientProgramRead,
+  type TClientProgramRef,
+  type TClientProgramWrite,
 } from "../../../entities/client/clientProgram";
 import {
   createProgramVersionRef,
-  TProgramVersionRead,
-  TProgramVersionRef,
-  TProgramVersionWrite,
+  type TProgramVersionRead,
+  type TProgramVersionRef,
+  type TProgramVersionWrite,
 } from "../../../entities/program/version";
 import { daysBetweenDates, isDateInPast, isToday } from "../../basicHelpers";
 
@@ -256,12 +256,15 @@ async function _modifyClientProgramDays(
     );
   }
 
+  // Set new date to same time as old date
+  const newDate = new Date();
+  newDate.setHours(days[days.length - 1].date.getHours() || 12, 0, 0, 0);
   // Create and add new days to the program.
   const newDays = createPhase(
     trainingDays,
     program,
     currentPhaseId,
-    new Date(),
+    newDate,
     numberOfDaysToModify,
     currentPhase.days[startPhaseDayIndex] ? startPhaseDayIndex : 0
   );
@@ -309,12 +312,16 @@ async function _modifyMaintenanceClientProgramDays(
   // Copy the last phase to the generated maintenance phase
   program.phases["m1" as any] = program.phases[lastPhaseId as TProgramPhaseKey];
 
+  // Set new date to same time as old date
+  const newDate = new Date();
+  newDate.setHours(days[days.length - 1].date.getHours() || 12, 0, 0, 0);
+
   // Create and add new days to the program.
   const newDays = createPhase(
     trainingDays,
     program,
     "m1" as any,
-    new Date(),
+    newDate,
     daysLeft,
     currDayIndex
   );
@@ -385,12 +392,16 @@ async function _changeClientProgramMode(
       );
     }
 
+    // Set new date to same time as old date
+    const newDate = new Date();
+    newDate.setHours(days[days.length - 1].date.getHours() || 12, 0, 0, 0);
+
     // Create new days for the current phase
     const newDays = createPhase(
       trainingDays,
       program,
       currentPhaseId,
-      new Date(),
+      newDate,
       currentPhase.length,
       0
     );
@@ -656,13 +667,17 @@ export async function changeClientPhase(
       );
     }
 
+    // Set new date to same time as old date
+    const newDate = new Date();
+    newDate.setHours(days[days.length - 1].date.getHours() || 12, 0, 0, 0);
+
     // Create new days for the new phase
     const newPhase = program.phases[newPhaseId];
     const newDays = createPhase(
       trainingDays,
       program,
       newPhaseId,
-      new Date(), // Start the new phase from today
+      newDate,
       newPhase.length || 14, // Default length of the new phase to 14 days if not specified
       0 // Start the new phase at day 0
     );

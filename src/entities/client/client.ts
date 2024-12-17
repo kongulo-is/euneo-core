@@ -1,14 +1,14 @@
 import {
   deleteField,
   doc,
-  DocumentReference,
-  QueryDocumentSnapshot,
-  SnapshotOptions,
+  type DocumentReference,
+  type QueryDocumentSnapshot,
+  type SnapshotOptions,
 } from "firebase/firestore";
 import {
-  TClientProgram,
-  TClientProgramIdentifiers,
-  TClientProgramRef,
+  type TClientProgram,
+  type TClientProgramIdentifiers,
+  type TClientProgramRef,
   deserializeClientProgramPath,
 } from "./clientProgram";
 import { Collection } from "../global";
