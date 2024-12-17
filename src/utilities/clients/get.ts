@@ -5,10 +5,11 @@ import {
   getDocs,
   orderBy,
   query,
+  type QuerySnapshot,
   where,
 } from "firebase/firestore";
 import { db } from "../../firebase/db";
-import { clientConverter, type TClient } from "../../entities/client/client";
+import { clientConverter, type TClientWrite, type TClient } from "../../entities/client/client";
 
 /**
  * @description Used in app? //TODO: add description
@@ -58,13 +59,33 @@ export async function getAllClientsWithCurrentClientProgramRef(): Promise<
   const clientsCollection = collection(db, "clients");
   const clientsQuery = query(
     clientsCollection,
-    // where("currentClientProgramRef", "!=", null),
-    where("currentProgramRef", "!=", null),
+    where("currentClientProgramRef", "!=", null),
     orderBy("name", "asc")
   );
   const clientsSnapshot = await getDocs(
     clientsQuery.withConverter(clientConverter)
   );
+
+  return clientsSnapshot.docs.map((doc) => ({
+    ...doc.data(),
+    clientId: doc.id,
+  }));
+}
+
+/**
+ * @description Get all clients that have currentProgramRef set. Used for migration purposes only
+ */
+export async function getAllClientsWithCurrentProgramRef(): Promise<
+  TClient[]
+> {
+  const clientsCollection = collection(db, "clients");
+  const clientsQuery = query(
+    clientsCollection,
+    where("currentProgramRef", "!=", null),
+  );
+  const clientsSnapshot = await getDocs(
+    clientsQuery
+  ) as QuerySnapshot<TClientWrite>;
 
   return clientsSnapshot.docs.map((doc) => ({
     ...doc.data(),

@@ -5,8 +5,8 @@ import { updateProfile } from "firebase/auth";
 import { auth } from "../../firebase/authApp";
 import {
   createClientRef,
-  TClientPreferences,
-  TGender,
+  type TClientPreferences,
+  type TGender,
 } from "../../entities/client/client";
 
 export const updateClientPreference = async (

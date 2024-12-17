@@ -1,5 +1,5 @@
 import {
-  DocumentReference,
+  type DocumentReference,
   getDoc,
   getDocs,
   collection,
@@ -9,40 +9,40 @@ import {
 import { db } from "../firebase/db";
 import { conditions } from "../constants/conditions";
 import {
-  TProgram,
-  TProgramInfo,
-  TProgramRead,
-  TProgramWrite,
+  type TProgram,
+  type TProgramInfo,
+  type TProgramRead,
+  type TProgramWrite,
   isClinicProgramInfo,
   isClinicianProgramInfo,
   isEuneoProgramInfo,
   programConverter,
 } from "../entities/program/program";
 import {
-  TClinicianProgramVersionIdentifiers,
-  TEuneoProgramVersionIdentifiers,
-  TProgramVersion,
-  TProgramVersionRead,
-  TProgramVersionWrite,
+  type TClinicianProgramVersionIdentifiers,
+  type TEuneoProgramVersionIdentifiers,
+  type TProgramVersion,
+  type TProgramVersionRead,
+  type TProgramVersionWrite,
   deserializeProgramVersionPath,
   isClinicProgramVersionIdentifiers,
   isClinicianProgramVersionIdentifiers,
   programVersionConverter,
 } from "../entities/program/version";
 import {
-  TProgramDay,
-  TProgramDayKey,
+  type TProgramDay,
+  type TProgramDayKey,
   programDayConverter,
 } from "../entities/program/programDay";
 import {
   TProgramPhase,
-  TProgramPhaseKey,
-  TProgramPhaseRead,
+  type TProgramPhaseKey,
+  type TProgramPhaseRead,
   programPhaseConverter,
 } from "../entities/program/programPhase";
-import { TClientProgramDay } from "../entities/client/day";
-import { TConditionId } from "../entities/global";
-import { TClinician } from "../entities/clinician/clinician";
+import { type TClientProgramDay } from "../entities/client/day";
+import { type TConditionId } from "../entities/global";
+import { type TClinician } from "../entities/clinician/clinician";
 
 // TODO: is this function not already defined somewhere else?
 async function _fetchProgramVersion(
@@ -331,9 +331,6 @@ export function createPhase(
 
   // Set the iterator to the provided length if it's provided, otherwise set it to the phase length if it's defined, otherwise set it to 14
   const iterator = length ? length : phase?.length ? phase.length : 14;
-
-  // Set the hours, minutes, seconds, and milliseconds of the date to 0
-  d.setHours(12, 0, 0, 0);
 
   // Loop for the number of times specified by the iterator
   for (let i = 0; i < iterator; i++) {

@@ -20,6 +20,7 @@ import {
 } from "../utilities/clients/programs/update";
 import { type TOutcomeMeasureId } from "../entities/outcomeMeasure/outcomeMeasure";
 import { type TClient } from "../entities/client/client";
+import { type TClientProgramDay } from "../entities/client/day";
 
 // Helper type guard to check if an answer is in the old format
 export const isOldOutcomeMeasureAnswer = (
@@ -52,7 +53,6 @@ export function migrateOutcomeMeasureAnswers(
       let scoredPoints = 0;
       let answerCount = 0;
       const oldAnswersListKey = "answers" in section ? "answers" : "questions";
-      console.log("oldAnswersListKey", oldAnswersListKey);
 
       // @ts-ignore
       section[oldAnswersListKey].forEach((answer: number | null) => {
@@ -133,16 +133,16 @@ export function migrateOutcomeMeasureAnswers(
 async function updateClientProgramDays(
   clientId: string,
   clientProgramId: string,
-  clientProgramRef: TClientProgramRef
+  days: TClientProgramDay[]
 ) {
-  const days = await getClientProgramDays(clientProgramRef);
   if (days.length === 0) return;
-  if (days[0].date.getHours() === 12) return;
+
+  const firstDate = new Date(days[0].date);
 
   await Promise.all(
     days.map(async (day, index) => {
       const newDate = new Date(day.date);
-      newDate.setHours(12, 0, 0, 0);
+      newDate.setHours(firstDate.getHours() + 12, 0, 0, 0);
       await updateProgramDayDate(
         clientId,
         clientProgramId,
@@ -155,7 +155,7 @@ async function updateClientProgramDays(
 
 /**
  * @description Updates the program document by:
- * - Removing `lastActive`
+ * - Modifying the `lastActive` field
  * - Modifying the `painLevels` array
  * - Modifying the `outcomeMeasuresAnswers` field
  * @param {string} clientId - The client ID.
@@ -163,45 +163,47 @@ async function updateClientProgramDays(
  */
 async function updateClientProgram(
   clientId: string,
+  clientProgramId: string,
   clientProgramRef: TClientProgramRef
 ) {
-  const clientProgramBase = await getClientProgramBase(clientProgramRef);
+  const [clientProgramBase, days] = await Promise.all([
+    getClientProgramBase(clientProgramRef),
+    getClientProgramDays(clientProgramRef)
+  ])
 
   if (!clientProgramBase) {
     console.warn(`Program for client ${clientId} does not exist.`);
     return;
   }
 
-  if (Array.isArray(clientProgramBase.painLevels)) {
-    const firstPainLevel = clientProgramBase.painLevels[0];
-    const hour = firstPainLevel.date.getHours();
-    const minutes = firstPainLevel.date.getMinutes();
-    const seconds = firstPainLevel.date.getSeconds();
-    if (hour === 12 && minutes === 0 && seconds === 0) {
-      console.log(`Client has already be migrated!`);
-      return;
-    }
-  }
+  if (days.length === 0) return;
 
-  // const programData = programDoc.data();
+  const firstDate = new Date(days[0].date);
+
   const updatedFields: Partial<TClientProgramWrite> = {};
 
   // Update `lastActive` property if it exists
   if (clientProgramBase.lastActive) {
     const newDate = new Date(clientProgramBase.lastActive);
-    newDate.setHours(12, 0, 0, 0);
+    newDate.setHours(firstDate.getHours() + 12, 0, 0, 0);
     updatedFields.lastActive = Timestamp.fromDate(newDate);
   }
 
   // Update the `painLevels` array
   if (Array.isArray(clientProgramBase.painLevels)) {
+    const firstPainLevel = clientProgramBase.painLevels[0];
+
+    if (firstPainLevel.submittedAt) {
+      console.log(`Client has already be migrated!`);
+      return;
+    }
     const updatedPainLevels = clientProgramBase.painLevels.map((painLevel) => {
       // Add `submittedAt` property (copy of the original Timestamp)
       const submittedAt = Timestamp.fromDate(painLevel.date);
 
       // Update `date` to have the time set to 12:00 PM
       const originalDate = new Date(painLevel.date);
-      originalDate.setHours(12, 0, 0, 0);
+      originalDate.setHours(firstDate.getHours() + 12, 0, 0, 0);
 
       const updatedDate = Timestamp.fromDate(originalDate);
 
@@ -231,8 +233,8 @@ async function updateClientProgram(
         answers.map((answer) => {
           const originalDate = new Date(answer.date);
 
-          // Update `date` to have the time set to 12:00 PM
-          originalDate.setHours(12, 0, 0, 0);
+          // Update `date` to have the time set to 12:00 PM in client's local time zone
+          originalDate.setHours(firstDate.getHours() + 12, 0, 0, 0);
           const updatedDate = new Date(originalDate);
 
           return {
@@ -252,6 +254,7 @@ async function updateClientProgram(
   // Perform the update if there are fields to modify
   if (Object.keys(updatedFields).length > 0) {
     updatedFields.shouldRefetch = true;
+    await updateClientProgramDays(clientId, clientProgramId, days)
     await updateClientProgramFields(clientProgramRef, updatedFields);
   } else {
     console.log(`No updates needed for program of client ${clientId}`);
@@ -266,12 +269,7 @@ export async function clientTimezoneMigration(client: TClient) {
     if ("currentClientProgramRef" in client) {
       const clientId = client.currentClientProgramIdentifiers.clients;
       const clientProgramId = client.currentClientProgramIdentifiers.programs;
-      await updateClientProgram(clientId, client.currentClientProgramRef);
-      await updateClientProgramDays(
-        clientId,
-        clientProgramId,
-        client.currentClientProgramRef
-      );
+      await updateClientProgram(clientId, clientProgramId, client.currentClientProgramRef);
     }
   } catch (error) {
     console.error("Error during processing:", error);
