@@ -21,5 +21,5 @@ if (
   console.log("🔥 Connecting to Firestore emulator auth app");
 
   // Connect Firebase Auth to the local emulator
-  connectAuthEmulator(auth, "http://192.168.0.2:9099");
+  connectAuthEmulator(auth, "http://192.168.1.104:9099");
 }
