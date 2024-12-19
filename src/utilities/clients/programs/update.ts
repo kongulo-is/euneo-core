@@ -286,8 +286,6 @@ async function _modifyClientProgramDays(
     programPhaseLength
   );
 
-  console.log("updatedPhases", updatedPhases);
-
   return await _updateProgramVersion(
     clientProgramRef,
     clinicianClientRef,

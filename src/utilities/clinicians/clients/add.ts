@@ -28,8 +28,6 @@ export async function addPrescriptionToClinicianClient(
   clinicianName: string,
   isGivingFreeMonth: boolean = false
 ) {
-  console.log("prescription", prescription);
-
   try {
     let giftUsed = isGivingFreeMonth;
     // check if user has a current prescription
@@ -65,8 +63,6 @@ export async function addPrescriptionToClinicianClient(
       clinicianName,
       giftUsed
     );
-
-    console.log("prescriptionConverted", prescriptionConverted);
 
     await updateDoc(clinicianClientRef, {
       prescription: prescriptionConverted,
