@@ -12,6 +12,27 @@ export const isToday = (date: Date) => {
   );
 };
 
+/**
+ * @description Compares two dates and returns true if they are equal
+ * @param compareTime True if we want to compare time as well
+ * @returns Boolean indicating whether they are equal or not
+ */
+export const areEqualDates = (
+  date1: Date,
+  date2: Date,
+  compareTime?: boolean
+) => {
+  if (compareTime) {
+    return date1.getTime() === date2.getTime();
+  } else {
+    return (
+      date1.getDate() === date2.getDate() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getFullYear() === date2.getFullYear()
+    );
+  }
+};
+
 export const daysBetweenDates = (date1: Date, date2: Date): number => {
   const d1 = new Date(date1);
   const d2 = new Date(date2);

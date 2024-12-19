@@ -36,8 +36,6 @@ export function migrateOutcomeMeasureAnswers(
       let scoredPoints = 0;
       let answerCount = 0;
       const oldAnswersListKey = "answers" in section ? "answers" : "questions";
-      console.log("oldAnswersListKey", oldAnswersListKey);
-
       // @ts-ignore
       section[oldAnswersListKey].forEach((answer: number | null) => {
         // Questions 22 and 28 are not scored in the old om (missing from old faam)
